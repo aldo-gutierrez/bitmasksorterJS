@@ -11,7 +11,7 @@ function getMaskBit(array, start, end) {
         mask = mask | ei;
         inv_mask = inv_mask | (~ei);
     }
-    return [mask, inv_mask]
+    return mask & inv_mask;
 }
 
 function getMaskAsArray(mask) {
@@ -22,16 +22,6 @@ function getMaskAsArray(mask) {
         }
     }
     return res;
-}
-
-/*
-function getMaskBit(k) {
-    return 1 << k;
-}
-*/
-
-function twoPowerX(k) {
-    return 1 << k;
 }
 
 function swap(array, left, right) {
@@ -109,39 +99,35 @@ function partitionStable(array, start, end, mask, aux) {
 }
 
 function partitionStableLastBits(array, start, end, mask, twoPowerK, aux) {
-    let leftX = Array(twoPowerK).fill(0);
     let count = Array(twoPowerK).fill(0);
-    //Array(twoPowerK).fill(0); Array.apply(0, Array(twoPowerK));
     for (let i = start; i < end; i++) {
         count[array[i] & mask]++;
     }
-    for (let i = 1; i < twoPowerK; i++) {
-        leftX[i] = leftX[i - 1] + count[i - 1];
+    for (let i = 0, sum = 0; i < twoPowerK; i++) {
+        let c = count[i];
+        count[i] = sum;
+        sum += c;
     }
     for (let i = start; i < end; i++) {
         let element = array[i];
-        let elementShiftMasked = element & mask;
-        aux[leftX[elementShiftMasked]] = element;
-        leftX[elementShiftMasked]++;
+        aux[count[element & mask]++] = element;
     }
     arraycopy(aux, 0, array, start, end - start);
 }
 
 function partitionStableGroupBits(array, start, end, mask, shiftRight, twoPowerK, aux) {
-    let leftX = Array(twoPowerK).fill(0);
     let count = Array(twoPowerK).fill(0);
-    //Array(100).fill(undefined)
     for (let i = start; i < end; i++) {
         count[(array[i] & mask) >> shiftRight]++;
     }
-    for (let i = 1; i < twoPowerK; i++) {
-        leftX[i] = leftX[i - 1] + count[i - 1];
+    for (let i = 0, sum = 0; i < twoPowerK; i++) {
+        let c = count[i];
+        count[i] = sum;
+        sum += c;
     }
     for (let i = start; i < end; i++) {
         let element = array[i];
-        let elementShiftMasked = (element & mask) >> shiftRight;
-        aux[leftX[elementShiftMasked]] = element;
-        leftX[elementShiftMasked]++;
+        aux[count[(element & mask) >> shiftRight]++] = element;
     }
     arraycopy(aux, 0, array, start, end - start);
 }
@@ -155,30 +141,26 @@ function sort(array) {
     let start = 0;
     let end = array.length;
 
-    let maskParts = getMaskBit(array, start, end);
-    let mask = maskParts[0] & maskParts[1];
+    let mask = getMaskBit(array, start, end);
     let kList = getMaskAsArray(mask);
     if (kList.length === 0) {
         return;
     }
     if (kList[0] === 31) { //there are negative numbers and positive numbers
-        let sortMask = twoPowerX(kList[0]);
+        let sortMask = 1 << kList[0];
         let finalLeft = unsigned
             ? partitionNotStable(array, start, end, sortMask)
             : partitionReverseNotStable(array, start, end, sortMask);
-        if (finalLeft - start > 1) { //sort negative numbers
-            let aux = Array(finalLeft - start).fill(0);
-            ``
-            maskParts = getMaskBit(array, start, finalLeft);
-            mask = maskParts[0] & maskParts[1];
+        let n1 = finalLeft - start;
+        let n2 = end - finalLeft;
+        let aux = Array(max(n1, n2)).fill(0);
+        if (n1 > 1) { //sort negative numbers
+            mask = getMaskBit(array, start, finalLeft);
             kList = getMaskAsArray(mask);
             radixSort(array, start, finalLeft, kList, kList.length - 1, 0, aux);
         }
-        if (end - finalLeft > 1) { //sort positive numbers
-            let aux = Array(end - finalLeft).fill(0);
-            ``
-            maskParts = getMaskBit(array, finalLeft, end);
-            mask = maskParts[0] & maskParts[1];
+        if (n2 > 1) { //sort positive numbers
+            mask = getMaskBit(array, finalLeft, end);
             kList = getMaskAsArray(mask);
             radixSort(array, finalLeft, end, kList, kList.length - 1, 0, aux);
         }
@@ -191,14 +173,14 @@ function sort(array) {
 function radixSort(array, start, end, kList, kIndexStart, kIndexEnd, aux) {
     for (let i = kIndexStart; i >= kIndexEnd; i--) {
         let kListI = kList[i];
-        let maskI = twoPowerX(kListI);
+        let maskI = 1 << kListI;
         let bits = 1;
         let imm = 0;
         for (let j = 1; j <= 11; j++) { //11bits looks faster than 8 on AMD 4800H, 15 is slower
             if (i - j >= kIndexEnd) {
                 let kListIm1 = kList[i - j];
                 if (kListIm1 === kListI + j) {
-                    let maskIm1 = twoPowerX(kListIm1);
+                    let maskIm1 = 1 << kListIm1;
                     maskI = maskI | maskIm1;
                     bits++;
                     imm++;
@@ -211,7 +193,7 @@ function radixSort(array, start, end, kList, kIndexStart, kIndexEnd, aux) {
         if (bits === 1) {
             partitionStable(array, start, end, maskI, aux);
         } else {
-            let twoPowerBits = twoPowerX(bits);
+            let twoPowerBits = 1 << bits;
             if (kListI === 0) {
                 partitionStableLastBits(array, start, end, maskI, twoPowerBits, aux);
             } else {
