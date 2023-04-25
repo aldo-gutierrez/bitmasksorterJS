@@ -1,16 +1,16 @@
-# Mask Bit Sorters Java Script
+# BitMask Sorters in Java Script
 This project tests different ideas for sorting algorithms.
-We use a bitmask as a way to get statistical information about the numbers to be sorted.
-All the algorithms use this bitmask.
+One of them is a binary RadixSorter that reduces passes by using a BitMask
 
 See the initial implementation in java for more information.
 [Java Version and Documentation] (https://github.com/aldo-gutierrez/bitmasksorter)
 
-Only a test of RadixBitSorter is implemented for now in this project
+sorterInt() executes the radix sort in an array for numbers that are integers in the range -2^31 ... 2^31 -1
+sorterFloat() executes the radix sort in an array that contains integers and floats (currently only supporting positive numbers)
 
 ## RadixBitSorter:
-RadixBitSorter is a Radix Sorter that uses the bitmask to make a LSD sorting using bits instead of bytes
-upto 11 bits at a time.
+RadixBitSorter is a binary LSD Radix Sorter that uses the bitmask to reduce the passes of a radix sorter
+the max length of each set of bits is 11, but in a old machine 8bits is recommended
 
 # Speed
 Comparison for sorting 1 Million int elements with range from 0 to 1000 in an AMD Ryzen 7 4800H processor,
@@ -33,8 +33,5 @@ node v16.13.2
 | RadixBitSorterInt |             11783 |
 
 # TODO
-- Analyze how to fix the problem that bit operations is done on a 64-bit float converted each time to a 64-bit int-
-- Learn javascript type arrays
-- Support float numbers
 - Make a library
 - Learn WebAssembly SIMD
