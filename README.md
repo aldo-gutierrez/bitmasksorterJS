@@ -20,9 +20,9 @@ node v16.13.2
 
 | Algorithm               | AVG CPU time [ms] |
 |-------------------------|------------------:|
-| Javascript sort         |               225 |
+| Javascript sort         |               207 |
 | RadixBitIntSorter       |                13 |
-| RadixBitNumberSorter    |                34 |
+| RadixBitNumberSorter    |                30 |
 
 
 Comparison for sorting 40 Million int elements with range from 0 to 1000 Million in an AMD Ryzen 7 4800H processor,
@@ -31,9 +31,9 @@ node v16.13.2
 
 | Algorithm            | AVG CPU time [ms] |
 |----------------------|------------------:|
-| Javascript sort      |             13178 |
-| RadixBitIntSorter    |             12002 |
-| RadixBitNumberSorter |             20900 |
+| Javascript sort      |             13175 |
+| RadixBitIntSorter    |             12044 |
+| RadixBitNumberSorter |             12217 |
 
 # TODO
 - Make a sorter for Objects with number fields
