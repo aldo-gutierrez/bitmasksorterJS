@@ -1,6 +1,6 @@
-import {arraycopy} from "./commonSorter.js";
-import {sortInt} from "./radixBitIntSorter.js";
-import {sortNumber} from "./radixBitNumberSorter.js";
+import {arraycopy} from "./sorter-utils.js";
+import {sortInt} from "./radix-bit-int-sorter.js";
+import {sortNumber} from "./radix-bit-number-sorter.js";
 
 console.log("Comparing Sorters\n");
 
@@ -43,7 +43,7 @@ for (let i = 0; i < iterations; i++) {
         arrayK1 = Array(size);
         arraycopy(orig, 0, arrayK1, 0, size);
         start = performance.now();
-        sortInt(arrayK1, 0, arrayK1.length);
+        sortInt(arrayK1);
         end = performance.now();
         elapsedK = end - start;
     }
@@ -54,7 +54,7 @@ for (let i = 0; i < iterations; i++) {
         arrayK2= Array(size);
         arraycopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
-        sortNumber(arrayK2, 0, arrayK2.length);
+        sortNumber(orig);
         end = performance.now();
         elapsedK2 = end - start;
     }

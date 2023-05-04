@@ -1,4 +1,4 @@
-import {arraycopy, getMaskAsArray, getSections, partitionReverseNotStableUpperBit, reverse} from "./commonSorter.js";
+import {arraycopy, getMaskAsArray, getSections, partitionReverseNotStableUpperBit, reverse} from "./sorter-utils.js";
 
 function calculateMaskNumber(array, start, endP1) {
     let pMask0 = 0;
@@ -80,7 +80,7 @@ function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, 
 }
 
 
-function radixSortNumber(arrayI32, arrayF64, start, end, kList, auxF64) {
+function radixSortNumber(arrayI32, arrayF64, start, endP1, kList, auxF64) {
     let elementIndex = 0;
     let sections0 = getSections(kList[elementIndex]);
     for (let index = 0; index < sections0.length; index++) {
@@ -89,13 +89,13 @@ function radixSortNumber(arrayI32, arrayF64, start, end, kList, auxF64) {
         let bits = res[1];
         let shift = res[2];
         if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, auxF64);
+            partitionStableNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, auxF64);
         } else {
             let twoPowerBits = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, twoPowerBits, auxF64);
+                partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, twoPowerBits, auxF64);
             } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, shift, twoPowerBits, auxF64);
+                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, shift, twoPowerBits, auxF64);
             }
         }
     }
@@ -107,19 +107,25 @@ function radixSortNumber(arrayI32, arrayF64, start, end, kList, auxF64) {
         let bits = res[1];
         let shift = res[2];
         if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, auxF64);
+            partitionStableNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, auxF64);
         } else {
             let twoPowerBits = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, twoPowerBits, auxF64);
+                partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, twoPowerBits, auxF64);
             } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, end, maskI, elementIndex, shift, twoPowerBits, auxF64);
+                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, maskI, elementIndex, shift, twoPowerBits, auxF64);
             }
         }
     }
 }
 
 export function sortNumber(array, start, endP1) {
+    if (!start) {
+        start = 0;
+    }
+    if (!endP1) {
+        endP1 = array.length;
+    }
     let n = endP1 - start;
     if (n < 2) {
         return;

@@ -1,7 +1,7 @@
 {
   "name": "@aldogg/sorter",
   "version": "0.0.1",
-  "description": "BitMask sorters, including Radix",
+  "description": "BitMask sorters, RadixBitMask Sorter",
   "type": "module",
   "main": "main.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "radix"
   ],
   "author": "Aldo Gutierrez",
-  "license": "LGPL-3.0-or-later",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/aldo-gutierrez/bitsorterJS/issues"
   },

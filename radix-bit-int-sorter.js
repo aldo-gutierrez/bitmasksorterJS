@@ -1,6 +1,6 @@
-import {arraycopy, getSections} from "./commonSorter.js";
-import {partitionReverseNotStableUpperBit} from "./commonSorter.js";
-import {getMaskAsArray} from "./commonSorter.js";
+import {arraycopy, getSections} from "./sorter-utils.js";
+import {partitionReverseNotStableUpperBit} from "./sorter-utils.js";
+import {getMaskAsArray} from "./sorter-utils.js";
 
 function calculateMaskInt(array, start, endP1) {
     let mask = 0x00000000;
@@ -86,6 +86,12 @@ function radixSortInt(array, start, end, kList, aux) {
 }
 
 export function sortInt(array, start, endP1) {
+    if (!start) {
+        start = 0;
+    }
+    if (!endP1) {
+        endP1 = array.length;
+    }
     let n = endP1 - start;
     if (n < 2) {
         return;
