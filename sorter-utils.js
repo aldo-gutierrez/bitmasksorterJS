@@ -1,4 +1,4 @@
-export function arraycopy(src, srcPos, dst, dstPos, length) {
+export function arrayCopy(src, srcPos, dst, dstPos, length) {
     while (length--) dst[dstPos++] = src[srcPos++];
     return dst;
 }
