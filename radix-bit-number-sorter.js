@@ -1,4 +1,4 @@
-import {arraycopy, getMaskAsArray, getSections, partitionReverseNotStableUpperBit, reverse} from "./sorter-utils.js";
+import {arrayCopy, getMaskAsArray, getSections, partitionReverseNotStableUpperBit, reverse} from "./sorter-utils.js";
 
 function calculateMaskNumber(array, start, endP1) {
     let pMask0 = 0;
@@ -35,7 +35,7 @@ function partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIn
             right++;
         }
     }
-    arraycopy(auxF64, 0, arrayF64, left, right);
+    arrayCopy(auxF64, 0, arrayF64, left, right);
     return left;
 }
 
@@ -56,7 +56,7 @@ function partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, e
         count[elementShiftMasked]++;
         auxF64[index] = element;
     }
-    arraycopy(auxF64, 0, arrayF64, start, (endP1 - start));
+    arrayCopy(auxF64, 0, arrayF64, start, (endP1 - start));
 }
 
 function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shiftRight, twoPowerK, auxF64) {
@@ -76,7 +76,7 @@ function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, 
         count[elementShiftMasked]++;
         auxF64[index] = element;
     }
-    arraycopy(auxF64, 0, arrayF64, start, (endP1 - start));
+    arrayCopy(auxF64, 0, arrayF64, start, (endP1 - start));
 }
 
 
@@ -167,5 +167,5 @@ export function sortNumber(array, start, endP1) {
         }
     }
 
-    arraycopy(arrayFloat64, 0, array, start, endP1 - start);
+    arrayCopy(arrayFloat64, 0, array, start, endP1 - start);
 }

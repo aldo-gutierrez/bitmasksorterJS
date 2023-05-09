@@ -36,6 +36,7 @@ node v16.13.2
 | RadixBitNumberSorter |             12217 |
 
 # TODO
+- Optimize arrayCopy usage
 - Make a sorter for Objects with number fields
 - Make a library
-- Learn WebAssembly and SIMD
+- Learn WebAssembly and SIMD and apply it

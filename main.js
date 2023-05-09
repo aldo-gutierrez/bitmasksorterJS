@@ -1,4 +1,4 @@
-import {arraycopy} from "./sorter-utils.js";
+import {arrayCopy} from "./sorter-utils.js";
 import {sortInt} from "./radix-bit-int-sorter.js";
 import {sortNumber} from "./radix-bit-number-sorter.js";
 
@@ -29,7 +29,7 @@ for (let i = 0; i < iterations; i++) {
     //let orig = Array.from({length: size}, () => Math.random() * range - range / 2);
 
     let arrayJS = Array(size);
-    arraycopy(orig, 0, arrayJS, 0, size);
+    arrayCopy(orig, 0, arrayJS, 0, size);
     let start = performance.now();
     arrayJS.sort(function (a, b) {
         return a - b;
@@ -41,7 +41,7 @@ for (let i = 0; i < iterations; i++) {
     let elapsedK;
     if (testRadixIntSorter) {
         arrayK1 = Array(size);
-        arraycopy(orig, 0, arrayK1, 0, size);
+        arrayCopy(orig, 0, arrayK1, 0, size);
         start = performance.now();
         sortInt(arrayK1);
         end = performance.now();
@@ -52,7 +52,7 @@ for (let i = 0; i < iterations; i++) {
     let elapsedK2;
     if (testRadixNumberSorter) {
         arrayK2= Array(size);
-        arraycopy(orig, 0, arrayK2, 0, size);
+        arrayCopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
         sortNumber(orig);
         end = performance.now();

@@ -1,4 +1,4 @@
-import {arraycopy, getSections} from "./sorter-utils.js";
+import {arrayCopy, getSections} from "./sorter-utils.js";
 import {partitionReverseNotStableUpperBit} from "./sorter-utils.js";
 import {getMaskAsArray} from "./sorter-utils.js";
 
@@ -27,7 +27,7 @@ function partitionStableInt(array, start, endP1, mask, aux) {
             right++;
         }
     }
-    arraycopy(aux, 0, array, left, right);
+    arrayCopy(aux, 0, array, left, right);
     return left;
 }
 
@@ -45,7 +45,7 @@ function partitionStableLastBitsInt(array, start, endP1, mask, twoPowerK, aux) {
         let element = array[i];
         aux[count[element & mask]++] = element;
     }
-    arraycopy(aux, 0, array, start, endP1 - start);
+    arrayCopy(aux, 0, array, start, endP1 - start);
 }
 
 function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, twoPowerK, aux) {
@@ -62,7 +62,7 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, twoP
         let element = array[i];
         aux[count[(element & mask) >> shiftRight]++] = element;
     }
-    arraycopy(aux, 0, array, start, endP1 - start);
+    arrayCopy(aux, 0, array, start, endP1 - start);
 }
 
 function radixSortInt(array, start, end, kList, aux) {
