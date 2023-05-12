@@ -54,7 +54,7 @@ for (let i = 0; i < iterations; i++) {
         arrayK2= Array(size);
         arrayCopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
-        sortNumber(orig);
+        sortNumber(arrayK2);
         end = performance.now();
         elapsedK2 = end - start;
     }
