@@ -46,20 +46,20 @@ export function partitionReverseNotStableUpperBit(array, start, endP1) {
 //11bits looks faster than 8 on AMD 4800H, 15 is slower
 const MAX_BITS_RADIX_SORT = 11;
 
-export function getSections(kList) {
+export function getSections(bList) {
     let sections = [];
-    let kIndexStart = kList.length - 1;
+    let kIndexStart = bList.length - 1;
     let kIndexEnd = 0;
     for (let i = kIndexStart; i >= kIndexEnd; i--) {
-        let kListI = kList[i];
-        let maskI = 1 << kListI;
+        let bListI = bList[i];
+        let maskI = 1 << bListI;
         let bits = 1;
         let imm = 0;
         for (let j = 1; j <= MAX_BITS_RADIX_SORT - 1; j++) {
             if (i - j >= kIndexEnd) {
-                let kListIm1 = kList[i - j];
-                if (kListIm1 === kListI + j) {
-                    maskI = maskI | 1 << kListIm1;
+                let bListIm1 = bList[i - j];
+                if (bListIm1 === bListI + j) {
+                    maskI = maskI | 1 << bListIm1;
                     bits++;
                     imm++;
                 } else {
@@ -68,7 +68,7 @@ export function getSections(kList) {
             }
         }
         i -= imm;
-        sections.push([maskI, bits, kListI])
+        sections.push([maskI, bits, bListI])
     }
     return sections;
 }

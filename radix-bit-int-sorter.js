@@ -31,12 +31,12 @@ function partitionStableInt(array, start, endP1, mask, aux) {
     return left;
 }
 
-function partitionStableLastBitsInt(array, start, endP1, mask, twoPowerK, aux) {
-    let count = Array(twoPowerK).fill(0);
+function partitionStableLastBitsInt(array, start, endP1, mask, kRange, aux) {
+    let count = Array(kRange).fill(0);
     for (let i = start; i < endP1; i++) {
         count[array[i] & mask]++;
     }
-    for (let i = 0, sum = 0; i < twoPowerK; i++) {
+    for (let i = 0, sum = 0; i < kRange; i++) {
         let c = count[i];
         count[i] = sum;
         sum += c;
@@ -48,12 +48,12 @@ function partitionStableLastBitsInt(array, start, endP1, mask, twoPowerK, aux) {
     arrayCopy(aux, 0, array, start, endP1 - start);
 }
 
-function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, twoPowerK, aux) {
-    let count = Array(twoPowerK).fill(0);
+function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, kRange, aux) {
+    let count = Array(kRange).fill(0);
     for (let i = start; i < endP1; i++) {
         count[(array[i] & mask) >> shiftRight]++;
     }
-    for (let i = 0, sum = 0; i < twoPowerK; i++) {
+    for (let i = 0, sum = 0; i < kRange; i++) {
         let c = count[i];
         count[i] = sum;
         sum += c;
@@ -65,21 +65,21 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, twoP
     arrayCopy(aux, 0, array, start, endP1 - start);
 }
 
-function radixSortInt(array, start, end, kList, aux) {
-    let sections = getSections(kList);
+function radixSortInt(array, start, end, bList, aux) {
+    let sections = getSections(bList);
     for (let index = 0; index < sections.length; index++) {
         let res = sections[index];
-        let maskI = res[0];
+        let mask = res[0];
         let bits = res[1];
         let shift = res[2];
         if (bits === 1) {
-            partitionStableInt(array, start, end, maskI, aux);
+            partitionStableInt(array, start, end, mask, aux);
         } else {
-            let twoPowerBits = 1 << bits;
+            let kRange = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsInt(array, start, end, maskI, twoPowerBits, aux);
+                partitionStableLastBitsInt(array, start, end, mask, kRange, aux);
             } else {
-                partitionStableGroupBitsInt(array, start, end, maskI, shift, twoPowerBits, aux);
+                partitionStableGroupBitsInt(array, start, end, mask, shift, kRange, aux);
             }
         }
     }
@@ -97,27 +97,37 @@ export function sortInt(array, start, endP1) {
         return;
     }
     let mask = calculateMaskInt(array, start, endP1);
-    let kList = getMaskAsArray(mask);
-    if (kList.length === 0) {
+    let bList = getMaskAsArray(mask);
+    if (bList.length === 0) {
         return;
     }
-    if (kList[0] === 31) { //there are negative numbers and positive numbers
+    if (bList[0] === 31) { //there are negative numbers and positive numbers
         let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
-        let aux = Array(Math.max(n1, n2)).fill(0);
+        let bList1;
+        let bList2;
         if (n1 > 1) { //sort negative numbers
-            mask = calculateMaskInt(array, start, finalLeft);
-            kList = getMaskAsArray(mask);
-            radixSortInt(array, start, finalLeft, kList, aux);
+            bList1 = getMaskAsArray(calculateMaskInt(array, start, finalLeft));
+            if (bList1.length <= 0) {
+                n1 = 0;
+            }
         }
         if (n2 > 1) { //sort positive numbers
-            mask = calculateMaskInt(array, finalLeft, endP1);
-            kList = getMaskAsArray(mask);
-            radixSortInt(array, finalLeft, endP1, kList, aux);
+            bList2 = getMaskAsArray(calculateMaskInt(array, finalLeft, endP1));
+            if (bList2.length <= 0) {
+                n2 = 0;
+            }
+        }
+        let aux = Array(Math.max(n1, n2)).fill(0);
+        if (n1 > 0) {
+            radixSortInt(array, start, finalLeft, bList1, aux);
+        }
+        if (n2 > 0) {
+            radixSortInt(array, finalLeft, endP1, bList2, aux);
         }
     } else {
         let aux = Array(endP1 - start).fill(0);
-        radixSortInt(array, start, endP1, kList, aux);
+        radixSortInt(array, start, endP1, bList, aux);
     }
 }
