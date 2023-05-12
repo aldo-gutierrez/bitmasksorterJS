@@ -143,21 +143,27 @@ export function sortNumber(array, start, endP1) {
         let finalLeft = partitionReverseNotStableUpperBit(arrayFloat64, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
-        let auxFloat64= new Float64Array(Math.max(n1, n2));
+        let bList1;
+        let bList2;
         if (n1 > 1) { //sort negative numbers
-            mask = calculateMaskNumber(arrayInt32, start, finalLeft);
-            bList = getMaskAsArrayNumber(mask);
-            if (!(bList[0].length === 0 && bList[1].length === 0)) {
-                radixSortNumber(arrayInt32, arrayFloat64, start, finalLeft, bList, auxFloat64);
-                reverse(arrayFloat64, start, finalLeft);
+            bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
+            if (bList1[0].length === 0 && bList1[1].length === 0) {
+                n1 = 0;
             }
         }
         if (n2 > 1) { //sort positive numbers
-            mask = calculateMaskNumber(arrayInt32, finalLeft, endP1);
-            bList = getMaskAsArrayNumber(mask);
-            if (!(bList[0].length === 0 && bList[1].length === 0)) {
-                radixSortNumber(arrayInt32, arrayFloat64, finalLeft, endP1, bList, auxFloat64);
+            bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
+            if (bList2[0].length === 0 && bList2[1].length === 0) {
+                n2 = 0;
             }
+        }
+        let auxFloat64= new Float64Array(Math.max(n1, n2));
+        if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
+            radixSortNumber(arrayInt32, arrayFloat64, start, finalLeft, bList1, auxFloat64);
+            reverse(arrayFloat64, start, finalLeft);
+        }
+        if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
+            radixSortNumber(arrayInt32, arrayFloat64, finalLeft, endP1, bList2, auxFloat64);
         }
     } else {
         let auxFloat64= new Float64Array(endP1 - start);
