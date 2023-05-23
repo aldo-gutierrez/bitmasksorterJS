@@ -8,7 +8,7 @@ See the initial implementation in java for more information.
 sortInt() executes the radix sort in an array of numbers that are integers in the range -2^31 ... 2^31 -1
 
 sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers.
-JavaScript numbers are always stored as double precision floating point numbers, following the international IEEE 754 standard.
+JavaScript's numbers are always stored as double precision floating point numbers, following the international IEEE 754 standard.
 
 ## RadixBitSorter:
 RadixBitSorter is a binary LSD Radix Sorter that uses the bitmask to reduce the passes of a radix sorter
@@ -35,8 +35,43 @@ node v16.13.2
 | RadixBitIntSorter    |             12044 |
 | RadixBitNumberSorter |             12217 |
 
+# USAGE
+
+```javascript
+import {sortInt} from "@aldogg/sorter";
+import {sortNumber} from "@aldogg/sorter";
+
+//sortInt can sort negative and positive integer numbers in the range -2^31 ... 2^31-1 ONLY
+let array = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
+let array = new Float32Array(); //ONLY range -2^24 ... 2^24-1
+let array = new Float64Array(); //ONLY range -2^31 ... 2^31-1
+let array = new Int8Array();
+let array = new Int16Array();
+let array = new Int32Array();
+let array = new Uint8Array();
+let array = new Uint16Array();
+let array = new Uint32Array();  //ONLY positive intenger numbers 0 ... 2^31-1
+//let array =  BigInt64Array(); //BigInt is not supported neither BigInt64
+
+sortInt(array);
+
+//sortNumber can sort negative and positive decimal numbers in the range supported by a Float64 IIEE 754
+let arrayF = Array.from({length: size}, () => Math.random() * range - range / 2);
+let arrayF = new Float32Array();
+let arrayF = new Float64Array();
+let arrayF = new Int8Array();
+let arrayF = new Int16Array();
+let arrayF = new Int32Array();
+let arrayF = new Uint8Array();
+let arrayF = new Uint16Array();
+let arrayF = new Uint32Array();
+//let array =  BigInt64Array(); //BigInt is not supported neither BigInt64
+
+sortNumber(arrayF)
+
+
+
+```
 # TODO
-- Optimize arrayCopy usage
 - Make a sorter for Objects with number fields
-- Make a library
 - Learn WebAssembly and SIMD and apply it
