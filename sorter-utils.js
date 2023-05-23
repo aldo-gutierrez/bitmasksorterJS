@@ -46,34 +46,36 @@ export function partitionReverseNotStableUpperBit(array, start, endP1) {
 //11bits looks faster than 8 on AMD 4800H, 15 is slower
 const MAX_BITS_RADIX_SORT = 11;
 
+function reverseListGet(bList, index) {
+    return bList[bList.length - 1 - index];
+}
+
 export function getSections(bList) {
-    let sections = [];
-    let kIndexStart = bList.length - 1;
-    let kIndexEnd = 0;
-    for (let i = kIndexStart; i >= kIndexEnd; i--) {
-        let bListI = bList[i];
-        let maskI = 1 << bListI;
-        let bits = 1;
-        let imm = 0;
-        for (let j = 1; j <= MAX_BITS_RADIX_SORT - 1; j++) {
-            if (i - j >= kIndexEnd) {
-                let bListIm1 = bList[i - j];
-                if (bListIm1 === bListI + j) {
-                    maskI = maskI | 1 << bListIm1;
-                    bits++;
-                    imm++;
-                } else {
-                    break;
-                }
-            }
-        }
-        i -= imm;
-        sections.push([maskI, bits, bListI])
+    if (!bList || bList.length === 0) {
+        return [];
     }
+    let maxBitsDigit = MAX_BITS_RADIX_SORT;
+    let sections = [];
+    let b = 0;
+    let shift = reverseListGet(bList, b);
+    let bits = 1;
+    b++;
+    while (b < bList.length) {
+        let bitIndex = reverseListGet(bList, b);
+        if (bitIndex <= shift + maxBitsDigit - 1) {
+            bits = (bitIndex - shift + 1);
+        } else {
+            sections.push([bits, shift, shift + bits - 1]);
+            shift = bitIndex;
+            bits = 1;
+        }
+        b++;
+    }
+    sections.push([bits, shift, shift + bits - 1]);
     return sections;
 }
 
-export  function getMaskAsArray(mask) {
+export function getMaskAsArray(mask) {
     let res = [];
     for (let i = 31; i >= 0; i--) {
         if (((mask >> i) & 1) === 1) {
@@ -82,3 +84,8 @@ export  function getMaskAsArray(mask) {
     }
     return res;
 }
+
+export function getMaskRangeBits(bStart, bEnd) {
+    return ((1 << bStart + 1 - bEnd) - 1) << bEnd;
+}
+
