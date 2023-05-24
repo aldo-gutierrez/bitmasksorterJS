@@ -1,6 +1,7 @@
 import {sortInt} from "@aldogg/sorter";
 import {sortNumber} from "@aldogg/sorter";
 import {arrayCopy} from "@aldogg/sorter";
+import {destructiveCountSortInt} from "@aldogg/sorter";
 
 console.log("Comparing Sorters\n");
 
@@ -31,6 +32,7 @@ for (let i = 0; i < iterations; i++) {
     let arrayJS = Array(size);
     arrayCopy(orig, 0, arrayJS, 0, size);
     let start = performance.now();
+    //arrayJS.sort();
     arrayJS.sort(function (a, b) {
         return a - b;
     });
@@ -55,6 +57,7 @@ for (let i = 0; i < iterations; i++) {
         arrayCopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
         sortNumber(arrayK2);
+        //destructiveCountSortInt(arrayK2, 0, arrayK2.length);
         end = performance.now();
         elapsedK2 = end - start;
     }
@@ -80,7 +83,7 @@ for (let i = 0; i < iterations; i++) {
             console.log("Arrays Not Equal RadixBitNumberSorter");
             if (arrayJS.length < 300) {
                 console.log("OK:  " + arrayJS);
-                console.log("NOK: " + arrayK1);
+                console.log("NOK: " + arrayK2);
             }
         }
     }
