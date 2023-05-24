@@ -120,7 +120,7 @@ export function sortInt(array, start, endP1) {
                 n2 = 0;
             }
         }
-        let aux = Array(Math.max(n1, n2)).fill(0);
+        let aux = Array(Math.max(n1, n2));
         if (n1 > 0) {
             radixSortInt(array, start, finalLeft, bList1, aux);
         }
@@ -128,7 +128,7 @@ export function sortInt(array, start, endP1) {
             radixSortInt(array, finalLeft, endP1, bList2, aux);
         }
     } else {
-        let aux = Array(endP1 - start).fill(0);
+        let aux = Array(endP1 - start);
         radixSortInt(array, start, endP1, bList, aux);
     }
 }
