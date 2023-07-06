@@ -1,7 +1,11 @@
 /**
- * Destructive count sort as it reconstructs (rebuilds) the int numbers, no swaps, reverse or aux arrays.
+ * Pigeonhole count sort is destructive count sort as it reconstructs (rebuilds)
+ * the int numbers, no swaps, reverse or aux arrays.
  * Fastest sorter when the following conditions are met:
- * when max-min (range) <= 2^20
+ * when max-min (range <= 2**19 is faster than radixBitSorterInt)
+ * when max-min (range < 2**25 is faster than javascript sorter)
+ * when max-min (range = 2**25 has similar performance than javascript sorter)
+ * when max-min (range > 2**25 is slower than javascript sorter)
  * when endP1-start (n) >= 2^17 or 2^20
  * @param array
  * @param start
@@ -9,7 +13,7 @@
  * @param min
  * @param max
  */
-export function destructiveCountSortInt(array, start, endP1, min, max) {
+export function pgCountSortInt(array, start, endP1, min, max) {
     if (!start) {
         start = 0;
     }
@@ -35,7 +39,7 @@ export function destructiveCountSortInt(array, start, endP1, min, max) {
     }
     let range = max - min + 1;
     if (range > 2**25) {
-        console.error("Destructive count sort should be used for number range <= 2**25, for optimal performance: range <= 2**20")
+        console.error("Count sort should be used for number range <= 2**25, for optimal performance: range <= 2**20")
     }
     let count = new Array(range).fill(0);
     for (let i = start; i < endP1; i++) {
