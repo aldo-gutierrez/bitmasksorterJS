@@ -1,7 +1,7 @@
 import {sortInt} from "@aldogg/sorter";
 import {sortNumber} from "@aldogg/sorter";
 import {arrayCopy} from "@aldogg/sorter";
-import {destructiveCountSortInt} from "@aldogg/sorter";
+//import {pgCountSortInt} from "@aldogg/sorter";
 
 console.log("Comparing Sorters\n");
 
@@ -11,6 +11,7 @@ let totalElapsedK2 = 0;
 
 const iterations = 20;
 const range = 1000;
+//2**19;
 const size = 1000000;
 // const range = 1000000000;
 // const size = 40000000;
@@ -57,7 +58,7 @@ for (let i = 0; i < iterations; i++) {
         arrayCopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
         sortNumber(arrayK2);
-        //destructiveCountSortInt(arrayK2, 0, arrayK2.length);
+        //pgCountSortInt(arrayK2, 0, arrayK2.length);
         end = performance.now();
         elapsedK2 = end - start;
     }
