@@ -6,14 +6,14 @@
  * when max-min (range < 2**25 is faster than javascript sorter)
  * when max-min (range = 2**25 has similar performance than javascript sorter)
  * when max-min (range > 2**25 is slower than javascript sorter)
- * when endP1-start (n) >= 2^17 or 2^20
+ *    and when n (endP1-start) 2^17..2^20 (other ranges not tested yet)
  * @param array
  * @param start
  * @param endP1
  * @param min
  * @param max
  */
-export function pgCountSortInt(array, start, endP1, min, max) {
+export function pCountSortInt(array, start, endP1, min, max) {
     if (!start) {
         start = 0;
     }
@@ -38,8 +38,8 @@ export function pgCountSortInt(array, start, endP1, min, max) {
         }
     }
     let range = max - min + 1;
-    if (range > 2**25) {
-        console.error("Count sort should be used for number range <= 2**25, for optimal performance: range <= 2**20")
+    if (range > 2**24) {
+        console.error("Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20")
     }
     let count = new Array(range).fill(0);
     for (let i = start; i < endP1; i++) {
@@ -49,9 +49,14 @@ export function pgCountSortInt(array, start, endP1, min, max) {
     let j = min;
     for (; j <= max; j++) {
         let cMax = count[j - min];
-        for (let c = 0; c < cMax; c++) {
-            array[i] = j;
-            i++;
+        if (cMax > 0) {
+            for (let c = 0; c < cMax; c++) {
+                array[i] = j;
+                i++;
+            }
+            if (i === endP1) {
+                break;
+            }
         }
     }
 
