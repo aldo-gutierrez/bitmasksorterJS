@@ -21,8 +21,18 @@ node v16.13.2
 | Algorithm               | AVG CPU time [ms] |
 |-------------------------|------------------:|
 | Javascript sort         |               207 |
-| RadixBitIntSorter       |                13 |
+| RadixBitIntSorter       |                12 |
 | RadixBitNumberSorter    |                30 |
+
+
+Comparison for sorting 1 Million int elements with range from 0 to 1000 Million in an AMD Ryzen 7 4800H processor,
+node v16.13.2
+
+| Algorithm               | AVG CPU time [ms] |
+|-------------------------|------------------:|
+| Javascript sort         |               263 |
+| RadixBitIntSorter       |                30 |
+| RadixBitNumberSorter    |                51 |
 
 
 Comparison for sorting 40 Million int elements with range from 0 to 1000 Million in an AMD Ryzen 7 4800H processor,
@@ -31,9 +41,9 @@ node v16.13.2
 
 | Algorithm            | AVG CPU time [ms] |
 |----------------------|------------------:|
-| Javascript sort      |             13175 |
-| RadixBitIntSorter    |             12044 |
-| RadixBitNumberSorter |             12217 |
+| Javascript sort      |             13231 |
+| RadixBitIntSorter    |             10863 |
+| RadixBitNumberSorter |              5133 |
 
 # USAGE
 

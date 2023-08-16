@@ -43,7 +43,7 @@ export function partitionReverseNotStableUpperBit(array, start, endP1) {
     return left;
 }
 
-//11bits looks faster than 8 on AMD 4800H, 15 is slower
+//11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual core CPUs
 const MAX_BITS_RADIX_SORT = 11;
 
 function reverseListGet(bList, index) {
