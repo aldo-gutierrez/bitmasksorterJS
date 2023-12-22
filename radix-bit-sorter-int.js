@@ -106,26 +106,28 @@ export function sortInt(array, start, endP1) {
         let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
-        let bList1;
-        let bList2;
+        let mask1 = 0;
+        let mask2 = 0;
         if (n1 > 1) { //sort negative numbers
-            bList1 = getMaskAsArray(calculateMaskInt(array, start, finalLeft));
-            if (bList1.length <= 0) {
+            mask1 = calculateMaskInt(array, start, finalLeft);
+            if (mask1 === 0) {
                 n1 = 0;
             }
         }
         if (n2 > 1) { //sort positive numbers
-            bList2 = getMaskAsArray(calculateMaskInt(array, finalLeft, endP1));
-            if (bList2.length <= 0) {
+            mask2 = calculateMaskInt(array, finalLeft, endP1);
+            if (mask2 === 0) {
                 n2 = 0;
             }
         }
         let aux = Array(Math.max(n1, n2));
-        if (n1 > 0) {
-            radixSortInt(array, start, finalLeft, bList1, aux);
+        if (n1 > 1) {
+            bList = getMaskAsArray(mask1);
+            radixSortInt(array, start, finalLeft, bList, aux);
         }
-        if (n2 > 0) {
-            radixSortInt(array, finalLeft, endP1, bList2, aux);
+        if (n2 > 1) {
+            bList = getMaskAsArray(mask2);
+            radixSortInt(array, finalLeft, endP1, bList, aux);
         }
     } else {
         let aux = Array(endP1 - start);
