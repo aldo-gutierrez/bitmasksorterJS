@@ -1,49 +1,70 @@
 # BitMask Sorters in Java Script
-This project tests different ideas for sorting algorithms.
-One of them is a binary RadixSorter that reduces passes by using a BitMask
+This project explores various sorting algorithms employing a BitMask approach.
+One of the algorithms is a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
 
-See the initial implementation in java for more information.
+The following code demonstrates the calculation of the BitMask:
+
+```
+    function calculateMaskInt(array, start, endP1) {
+        let mask = 0x00000000;
+        let inv_mask = 0x00000000;
+        for (let i = start; i < endP1; i++) {
+            let ei = array[i];
+            mask = mask | ei;
+            inv_mask = inv_mask | (~ei);
+        }
+        return mask & inv_mask;
+    }
+```
+
+For further details, refer to the initial Java implementation
 [Java Version and Documentation] (https://github.com/aldo-gutierrez/bitmasksorter)
 
 sortInt() executes the radix sort in an array of numbers that are integers in the range -2^31 ... 2^31 -1
 
 sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers.
-JavaScript's numbers are always stored as double precision floating point numbers, following the international IEEE 754 standard.
+
+JavaScript numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard.
 
 ## RadixBitSorter:
-RadixBitSorter is a binary LSD Radix Sorter that uses the bitmask to reduce the passes of a radix sorter
-the max length of each set of bits is 11, but in an old machine 8 is recommended
+
+RadixBitSorter is the implementation of a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
+
+RadixBitSorter is an LSD Radix Sorter. 
+The number of bits per iteration has been increased to 11, departing from the standard 8.
+For a dual-core machine or lower, it is recommended to use 8 bits.
 
 # Speed
-Comparison for sorting 1 Million int elements with range from 0 to 1000 in an AMD Ryzen 7 4800H processor,
-node v16.13.2
+### Comparison for sorting 1 million integer elements ranging from 0 to 1000.
+Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
-| Algorithm               | AVG CPU time [ms] |
-|-------------------------|------------------:|
-| Javascript sort         |               207 |
-| RadixBitIntSorter       |                12 |
-| RadixBitNumberSorter    |                30 |
-
-
-Comparison for sorting 1 Million int elements with range from 0 to 1000 Million in an AMD Ryzen 7 4800H processor,
-node v16.13.2
-
-| Algorithm               | AVG CPU time [ms] |
-|-------------------------|------------------:|
-| Javascript sort         |               263 |
-| RadixBitIntSorter       |                30 |
-| RadixBitNumberSorter    |                51 |
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                207 |
+| RadixBitIntSorter       |                 12 |
+| RadixBitNumberSorter    |                 30 |
 
 
-Comparison for sorting 40 Million int elements with range from 0 to 1000 Million in an AMD Ryzen 7 4800H processor,
-node v16.13.2
+### Comparison for sorting 1 million integer elements ranging from 0 to 1000 million.
+Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 
-| Algorithm            | AVG CPU time [ms] |
-|----------------------|------------------:|
-| Javascript sort      |             13231 |
-| RadixBitIntSorter    |             10863 |
-| RadixBitNumberSorter |              5133 |
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                263 |
+| RadixBitIntSorter       |                 30 |
+| RadixBitNumberSorter    |                 51 |
+
+
+### Comparison for sorting 40 million integer elements ranging from 0 to 1000 million.
+Environment: AMD Ryzen 7 4800H processor, node v16.13.2
+
+
+| Algorithm            | avg. CPU time [ms] |
+|----------------------|-------------------:|
+| Javascript sort      |              13231 |
+| RadixBitIntSorter    |              10863 |
+| RadixBitNumberSorter |               5133 |
 
 # USAGE
 
