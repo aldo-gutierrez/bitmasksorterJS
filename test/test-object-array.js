@@ -5,6 +5,7 @@
 
 import {arrayCopy} from "../sorter-utils.js";
 import {sortObjectInt} from "../radix-bit-sorter-object-int.js";
+import {sortObjectNumber} from "../radix-bit-sorter-object-number.js";
 
 console.log("Comparing Sorters\n");
 
@@ -68,7 +69,7 @@ for (let i = 0; i < iterations; i++) {
         arrayK2= Array(size);
         arrayCopy(orig, 0, arrayK2, 0, size);
         start = performance.now();
-        sortObjectInt(arrayK2, (x) => x.id);
+        sortObjectNumber(arrayK2, (x) => x.id);
         //pgCountSortInt(arrayK2, 0, arrayK2.length);
         end = performance.now();
         elapsedK2 = end - start;
