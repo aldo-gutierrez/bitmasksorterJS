@@ -17,16 +17,22 @@ export function sortObjectNumber(arrayObj, mapper, start, endP1) {
     }
     let arrayFloat64 = new Float64Array(n);
     let j = 0;
+    let nulls = 0;
+    let undefineds = 0;
     for (let i = start; i < endP1; i++) {
         let elementObj = arrayObj[i];
-        if (!((elementObj === null || elementObj === undefined))) {
-            let element = mapper(elementObj);
-            if (!((element === null || element === undefined))) {
-                arrayFloat64[j] = element;
-                j++;
-            } else {
-                //TODO
-            }
+        if (elementObj === null) {
+            nulls++;
+            continue;
+        }
+        if (elementObj === undefined) {
+            undefineds++;
+            continue;
+        }
+        let element = mapper(elementObj);
+        if (!((element === null || element === undefined))) {
+            arrayFloat64[j] = element;
+            j++;
         } else {
             //TODO
         }
