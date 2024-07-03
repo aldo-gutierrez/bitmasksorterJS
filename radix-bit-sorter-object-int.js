@@ -23,7 +23,7 @@ export function sortObjectInt(array, mapper, start, endP1) {
     }
     let aux = Array(endP1 - start);
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableInt(array, start, endP1, aux, mapper);
+        let finalLeft = partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;

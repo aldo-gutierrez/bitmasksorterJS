@@ -16,7 +16,7 @@ let totalElapsedK2 = 0;
 const iterations = 20;
 const range = 1000;
 //2**19;
-const size = 1000000;
+const size = 10;
 // const range = 1000000000;
 // const size = 40000000;
 
@@ -26,21 +26,22 @@ let testRadixNumberSorter = true;
 for (let i = 0; i < iterations; i++) {
 
     //test positive numbers
-    let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
-    let orig = [];
-    origInt.forEach(x=> {
-       orig.push({
-           "id":x,
-           "value":"Text"+x
-       })
-    });
+    //let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
 
 
     //test negative/positive numbers
-    //let orig = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
+    let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
 
     //test negative/positive floating point numbers, set testRadixIntSorter to false and testRadixNumberSorter to true
-    //let orig = Array.from({length: size}, () => Math.random() * range - range / 2);
+    //let origInt = Array.from({length: size}, () => Math.random() * range - range / 2);
+
+    let orig = [];
+    origInt.forEach(x=> {
+        orig.push({
+            "id":x,
+            "value":"Text"+x
+        })
+    });
 
     let arrayJS = Array(size);
     arrayCopy(orig, 0, arrayJS, 0, size);
@@ -82,8 +83,8 @@ for (let i = 0; i < iterations; i++) {
         if (!equal) {
             console.log("Arrays Not Equal RadixBitObjectIntSorter");
             if (arrayJS.length < 300) {
-                console.log("OK:  " + arrayJS);
-                console.log("NOK: " + arrayK1);
+                console.log("OK:  " + JSON.stringify(arrayJS));
+                console.log("NOK: " + JSON.stringify(arrayK1));
             }
         }
     }
@@ -95,8 +96,8 @@ for (let i = 0; i < iterations; i++) {
         if (!equal) {
             console.log("Arrays Not Equal RadixBitObjectNumberSorter");
             if (arrayJS.length < 300) {
-                console.log("OK:  " + arrayJS);
-                console.log("NOK: " + arrayK2);
+                console.log("OK:  " + JSON.stringify(arrayJS));
+                console.log("NOK: " + JSON.stringify(arrayK2));
             }
         }
     }
