@@ -44,7 +44,7 @@ export function sortObjectNumber(arrayObj, mapper, start, endP1) {
     let auxObj = Array(endP1 - start).fill(null);
 
     if (bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, arrayFloat64, auxObj);
+        let finalLeft = partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let bList1;
