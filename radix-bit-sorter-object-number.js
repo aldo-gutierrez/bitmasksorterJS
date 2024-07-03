@@ -15,10 +15,11 @@ export function sortObjectNumber(arrayObj, mapper, start, endP1) {
     if (n < 2) {
         return;
     }
-    let arrayFloat64 = new Float64Array(n);
     let j = 0;
     let nulls = 0;
-    let undefineds = 0;
+    let undefinedValues = 0;
+    let nans = [];
+    let arrayFloat64 = new Float64Array(n);
     for (let i = start; i < endP1; i++) {
         let elementObj = arrayObj[i];
         if (elementObj === null) {
@@ -26,17 +27,34 @@ export function sortObjectNumber(arrayObj, mapper, start, endP1) {
             continue;
         }
         if (elementObj === undefined) {
-            undefineds++;
+            undefinedValues++;
             continue;
         }
         let element = mapper(elementObj);
-        if (!((element === null || element === undefined))) {
-            arrayFloat64[j] = element;
-            j++;
-        } else {
-            //TODO
+        if (isNaN(element)) {
+            nans.push(element);
+            continue;
         }
+        if (i !== j) {
+            arrayObj[j] = element;
+        }
+        arrayFloat64[j] = element;
+        j++;
     }
+    arrayCopy(nans, 0, arrayObj, j, nans.length);
+    j += nans.length;
+    while (nulls > 0) {
+        arrayObj[j] = null;
+        nulls--;
+        j++;
+    }
+    while (undefinedValues > 0) {
+        arrayObj[j] = undefined;
+        undefinedValues--;
+        j++;
+    }
+    endP1 = endP1 - nans.length - nulls - undefinedValues;
+    n = endP1 - start;
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
