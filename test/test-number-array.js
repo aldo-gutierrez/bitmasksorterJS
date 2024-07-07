@@ -1,7 +1,11 @@
-import {sortInt} from "@aldogg/sorter";
-import {sortNumber} from "@aldogg/sorter";
-import {arrayCopy} from "@aldogg/sorter";
+// import {sortInt} from "@aldogg/sorter";
+// import {sortNumber} from "@aldogg/sorter";
+// import {arrayCopy} from "@aldogg/sorter";
 //import {pgCountSortInt} from "@aldogg/sorter";
+
+import {sortInt} from "../radix-bit-sorter-int.js";
+import {arrayCopy} from "../sorter-utils.js";
+import {sortNumber} from "../radix-bit-sorter-number.js";
 
 console.log("Comparing Sorters\n");
 
