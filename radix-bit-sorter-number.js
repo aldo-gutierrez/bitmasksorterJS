@@ -7,7 +7,7 @@ import {
     reverse
 } from "./sorter-utils.js";
 
-function calculateMaskNumber(array, start, endP1) {
+export function calculateMaskNumber(array, start, endP1) {
     let pMask0 = 0;
     let invMask0 = 0;
     let pMask1 = 0;
@@ -24,7 +24,7 @@ function calculateMaskNumber(array, start, endP1) {
     return [pMask0 & invMask0, pMask1 & invMask1]
 }
 
-function getMaskAsArrayNumber(masks) {
+export function getMaskAsArrayNumber(masks) {
     return [getMaskAsArray(masks[0]), getMaskAsArray(masks[1])];
 }
 
