@@ -126,6 +126,7 @@ origInt.forEach(x => {
     })
 });
 
+const mapper = (x) => x.id;
 sortObjectInt(orig, mapper);
 
 //sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
@@ -141,6 +142,7 @@ origNumber.forEach(x => {
     })
 });
 
+const mapper = (x) => x.id;
 sortObjectNumber(orig2, mapper);
 
 ```
