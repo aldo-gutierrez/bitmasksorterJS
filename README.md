@@ -24,7 +24,12 @@ sortInt() executes the radix sort in an array of numbers that are integers in th
 
 sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers.
 
-JavaScript numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard.
+sortObjectInt() executes the radix sort in an array of objects with number keys that are integers in the range -2^31 ... 2^31 -1
+
+sortObjectNumber() executes the radix sort in an array of objects with number keys that contains integer and floating point numbers.
+
+JavaScript Numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard. 
+sortNumber and sortObjectNumber support this range.
 
 ## RadixBitSorter:
 
@@ -68,6 +73,8 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 # USAGE
 
+For sorting array of numbers
+
 ```javascript
 import {sortInt} from "@aldogg/sorter";
 import {sortNumber} from "@aldogg/sorter";
@@ -100,9 +107,43 @@ let arrayF = new Uint32Array();
 
 sortNumber(arrayF)
 
+```
 
+
+
+```javascript
+import {sortObjectInt} from "@aldogg/sorter";
+import {sortObjectNumber} from "@aldogg/sorter";
+
+//sortObjectInt can sort objects with negative and positive integer fields in the range -2^31 ... 2^31-1 ONLY
+let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
+
+let orig = [];
+origInt.forEach(x => {
+    orig.push({
+        "id": x,
+        "value": "Text" + x
+    })
+});
+
+sortObjectInt(orig, mapper);
+
+//sortObjectNumber can sort java script Numbers
+
+let origNumber = Array.from({length: size}, () => Math.random() * range - range / 2);
+
+let orig2 = [];
+origNumber.forEach(x => {
+    orig2.push({
+        "id": x,
+        "value": "Text" + x
+    })
+});
+
+sortObjectNumber(orig2, mapper);
 
 ```
+
+
 # TODO
-- Make a sorter for Objects with number fields
-- Learn WebAssembly and SIMD and apply it
+- Try WebAssembly and SIMD
