@@ -109,11 +109,8 @@ sortNumber(arrayF)
 
 ```
 
-
-
 ```javascript
-import {sortObjectInt} from "@aldogg/sorter";
-import {sortObjectNumber} from "@aldogg/sorter";
+import {sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
 
 //sortObjectInt can sort objects with negative and positive integer fields in the range -2^31 ... 2^31-1 ONLY
 let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
@@ -126,8 +123,7 @@ origInt.forEach(x => {
     })
 });
 
-const mapper = (x) => x.id;
-sortObjectInt(orig, mapper);
+sortObjectInt(orig, (x) => x.id);
 
 //sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
 
@@ -142,8 +138,7 @@ origNumber.forEach(x => {
     })
 });
 
-const mapper = (x) => x.id;
-sortObjectNumber(orig2, mapper);
+sortObjectNumber(orig2, (x) => x.id);
 
 ```
 
