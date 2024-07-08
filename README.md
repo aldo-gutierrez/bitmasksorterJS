@@ -128,7 +128,8 @@ origInt.forEach(x => {
 
 sortObjectInt(orig, mapper);
 
-//sortObjectNumber can sort java script Numbers
+//sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
+
 
 let origNumber = Array.from({length: size}, () => Math.random() * range - range / 2);
 
