@@ -4,7 +4,7 @@ One of the algorithms is a Radix Sort utilizing a BitMask to minimize the number
 
 The following code demonstrates the calculation of the BitMask:
 
-```
+```javascript
     function calculateMaskInt(array, start, endP1) {
         let mask = 0x00000000;
         let inv_mask = 0x00000000;
