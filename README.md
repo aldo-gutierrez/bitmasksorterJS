@@ -174,18 +174,19 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 # TODO
 
-[X] Test integer positive numbers
-[X] Test integer negative numbers
-[X] Test integer positive/negative numbers
-[X] Test floating point positive/negative numbers
-[X] Test object sorting stability
-[ ] Try WebAssembly
-[ ] Try SIMD
-[ ] Try QuickSort with Bitmask
-[X] Implement Pigeonhole sort
-[ ] Integrate Pigeonhole sort with Bitmask
-[ ] Implement Bucket sort
-[ ] Optimization for small lists (like in java version)
-[ ] Support asc, desc options
-[ ] Implement Ska Sort
-[ ] Implement Ska Sort with BitMask
+- [X] Test integer positive numbers
+- [X] Test integer negative numbers
+- [X] Test integer positive/negative numbers
+- [X] Test floating point positive/negative numbers
+- [X] Test object sorting stability
+- [ ] Try WebAssembly
+- [ ] Try SIMD
+- [ ] Try QuickSort with Bitmask
+- [X] Implement Pigeonhole sort
+- [ ] Integrate Pigeonhole sort with Bitmask
+- [ ] Implement Bucket sort
+- [ ] Optimization for small lists (like in java version)
+- [ ] Support asc, desc options
+- [ ] Implement Ska Sort
+- [ ] Implement Ska Sort with BitMask
+- [ ] Implement String sorting
