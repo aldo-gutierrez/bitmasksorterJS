@@ -1,8 +1,10 @@
 # BitMask Sorters in Java Script
 This project explores various sorting algorithms employing a BitMask approach.
-One of the algorithms is a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
+The first implemented algorithms is a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
 
-The following code demonstrates the calculation of the BitMask:
+This Radix sort can be from 4x to 16x times faster than standard Javascript sort
+
+The following code demonstrates the calculation of the BitMask of a 32 bit number:
 
 ```javascript
     function calculateMaskInt(array, start, endP1) {
@@ -16,20 +18,57 @@ The following code demonstrates the calculation of the BitMask:
         return mask & inv_mask;
     }
 ```
+JavaScript Numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard.
+so for numbers out of the integer range -2^31 ... 2^31 -1 and also for floating point numbers two mask are extracted for the lower 32 bits and upper 32 bits 
 
 For further details, refer to the initial Java implementation
 [Java Version and Documentation] (https://github.com/aldo-gutierrez/bitmasksorter)
 
-sortInt() executes the radix sort in an array of numbers that are integers in the range -2^31 ... 2^31 -1
+## Principal functions:
 
-sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers.
+sortInt() executes the radix sort in an array of numbers that are integers in the range -2^31 ... 2^31 -1. Unstable sort
 
-sortObjectInt() executes the radix sort in an array of objects with number keys that are integers in the range -2^31 ... 2^31 -1
+sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers. Unstable sort
 
-sortObjectNumber() executes the radix sort in an array of objects with number keys that contains integer and floating point numbers.
+sortObjectInt() executes the radix sort in an array of objects with number keys that are integers in the range -2^31 ... 2^31 -1. Stable sort
 
-JavaScript Numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard. 
-sortNumber and sortObjectNumber support this range.
+sortObjectNumber() executes the radix sort in an array of objects with number keys that contains integer and floating point numbers. Stable sort
+
+## Usage
+
+### For sorting array of numbers
+
+```javascript
+import {sortInt} from "@aldogg/sorter";
+import {sortNumber} from "@aldogg/sorter";
+
+// sortInt can sort negative and positive integer numbers in the range -2^31 ... 2^31-1 ONLY
+// array can be: a normal array, Int8Array, Int16Array, Int32Array(), Uint8Array(), Uint16Array()
+//    limited support for all integers in the range  -2^31 ... 2^31-1 for Float32Array, Float64Array, Uint32Array
+//    No support for BintInt64 or BigInt64Array();
+sortInt(array);
+
+//sortNumber can sort negative and positive decimal numbers in the range supported by a Float64 IIEE 754
+// arrayF can be a normal array, Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint16Array, Uint32Array;
+//   No support for BintInt64 or BigInt64Array();
+
+sortNumber(arrayF)
+
+```
+### For sorting array of objects
+
+```javascript
+import {sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
+
+//sortObjectInt can sort objects with negative and positive integer fields in the range -2^31 ... 2^31-1 ONLY
+
+sortObjectInt(orig, (x) => x.id);
+
+//sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
+
+sortObjectNumber(orig2, (x) => x.id);
+
+```
 
 ## RadixBitSorter:
 
@@ -39,109 +78,114 @@ RadixBitSorter is an LSD Radix Sorter.
 The number of bits per iteration has been increased to 11, departing from the standard 8.
 For a dual-core machine or lower, it is recommended to use 8 bits.
 
-# Speed
-### Comparison for sorting 1 million integer elements ranging from 0 to 1000.
+## Benchmark Environment
+
 Environment: AMD Ryzen 7 4800H processor, node v16.13.2
+
+## Benchmark Integer Numbers
+
+### Comparison for sorting 1 million integer elements ranging from 0 to 1 million.
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                207 |
+| Javascript sort         |                274 |
+| RadixBitIntSorter       |                 20 |
+| RadixBitNumberSorter    |                 39 |
+
+### Comparison for sorting 1 million integer elements ranging from 0 to 1000.
+
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                223 |
 | RadixBitIntSorter       |                 12 |
 | RadixBitNumberSorter    |                 30 |
 
 
 ### Comparison for sorting 1 million integer elements ranging from 0 to 1000 million.
-Environment: AMD Ryzen 7 4800H processor, node v16.13.2
-
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                263 |
+| Javascript sort         |                277 |
 | RadixBitIntSorter       |                 30 |
 | RadixBitNumberSorter    |                 51 |
 
 
 ### Comparison for sorting 40 million integer elements ranging from 0 to 1000 million.
-Environment: AMD Ryzen 7 4800H processor, node v16.13.2
-
 
 | Algorithm            | avg. CPU time [ms] |
 |----------------------|-------------------:|
-| Javascript sort      |              13231 |
-| RadixBitIntSorter    |              10863 |
-| RadixBitNumberSorter |               5133 |
+| Javascript sort      |              13647 |
+| RadixBitIntSorter    |              11008 |
+| RadixBitNumberSorter |              11892 |
 
-# USAGE
+## Speed Floating Point Numbers
 
-For sorting array of numbers
+### Comparison for sorting 1 million floating-point elements ranging from 0 to 1 million.
 
-```javascript
-import {sortInt} from "@aldogg/sorter";
-import {sortNumber} from "@aldogg/sorter";
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                620 |
+| RadixBitNumberSorter    |                 71 |
 
-//sortInt can sort negative and positive integer numbers in the range -2^31 ... 2^31-1 ONLY
-let array = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
-let array = new Float32Array(); //ONLY range -2^24 ... 2^24-1
-let array = new Float64Array(); //ONLY range -2^31 ... 2^31-1
-let array = new Int8Array();
-let array = new Int16Array();
-let array = new Int32Array();
-let array = new Uint8Array();
-let array = new Uint16Array();
-let array = new Uint32Array();  //ONLY positive intenger numbers 0 ... 2^31-1
-//let array =  BigInt64Array(); //BigInt is not supported neither BigInt64
+### Comparison for sorting 1 million floating-point elements ranging from 0 to 1000.
 
-sortInt(array);
-
-//sortNumber can sort negative and positive decimal numbers in the range supported by a Float64 IIEE 754
-let arrayF = Array.from({length: size}, () => Math.random() * range - range / 2);
-let arrayF = new Float32Array();
-let arrayF = new Float64Array();
-let arrayF = new Int8Array();
-let arrayF = new Int16Array();
-let arrayF = new Int32Array();
-let arrayF = new Uint8Array();
-let arrayF = new Uint16Array();
-let arrayF = new Uint32Array();
-//let array =  BigInt64Array(); //BigInt is not supported neither BigInt64
-
-sortNumber(arrayF)
-
-```
-
-```javascript
-import {sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
-
-//sortObjectInt can sort objects with negative and positive integer fields in the range -2^31 ... 2^31-1 ONLY
-let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
-
-let orig = [];
-origInt.forEach(x => {
-    orig.push({
-        "id": x,
-        "value": "Text" + x
-    })
-});
-
-sortObjectInt(orig, (x) => x.id);
-
-//sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                637 |
+| RadixBitNumberSorter    |                 71 |
 
 
-let origNumber = Array.from({length: size}, () => Math.random() * range - range / 2);
+### Comparison for sorting 1 million floating-point elements ranging from 0 to 1000 million.
 
-let orig2 = [];
-origNumber.forEach(x => {
-    orig2.push({
-        "id": x,
-        "value": "Text" + x
-    })
-});
+| Algorithm               | avg. CPU time [ms] |
+|-------------------------|-------------------:|
+| Javascript sort         |                617 |
+| RadixBitNumberSorter    |                 70 |
 
-sortObjectNumber(orig2, (x) => x.id);
 
-```
+## Speed sorting Objects
 
+### Comparison for sorting 1 million objects with integer keys ranging from 0 to 1 million.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                568 |
+| fast-sort 3.4.0            |                630 |
+| RadixBitObjectIntSorter    |                176 |
+| RadixBitObjectNumberSorter |                 76 |
+
+### Comparison for sorting 1 million objects with integer keys ranging from 0 to 1000.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                307 |
+| fast-sort 3.4.0            |                361 |
+| RadixBitObjectIntSorter    |                 20 |
+| RadixBitObjectNumberSorter |                 55 |
+
+### Comparison for sorting 1 million objects with integer keys ranging from 0 to 1000 million.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                592 |
+| fast-sort 3.4.0            |                691 |
+| RadixBitObjectIntSorter    |                220 |
+| RadixBitObjectNumberSorter |                130 |
 
 # TODO
-- Try WebAssembly and SIMD
+
+[X] Test integer positive numbers
+[X] Test integer negative numbers
+[X] Test integer positive/negative numbers
+[X] Test floating point positive/negative numbers
+[X] Test object sorting stability
+[ ] Try WebAssembly
+[ ] Try SIMD
+[ ] Try QuickSort with Bitmask
+[X] Implement Pigeonhole sort
+[ ] Integrate Pigeonhole sort with Bitmask
+[ ] Implement Bucket sort
+[ ] Optimization for small lists (like in java version)
+[ ] Support asc, desc options
+[ ] Implement Ska Sort
+[ ] Implement Ska Sort with BitMask
