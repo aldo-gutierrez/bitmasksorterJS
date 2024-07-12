@@ -3,117 +3,145 @@
 // import {arrayCopy} from "@aldogg/sorter";
 //import {pgCountSortInt} from "@aldogg/sorter";
 
-import {sortInt} from "../radix-bit-sorter-int.js";
-import {arrayCopy} from "../sorter-utils.js";
-import {sortNumber} from "../radix-bit-sorter-number.js";
+import {arrayCopy, sortInt, sortNumber, pCountSortInt} from "../main.js";
 
 console.log("Comparing Sorters\n");
 
-let totalElapsedP = 0;
-let totalElapsedK = 0;
-let totalElapsedK2 = 0;
-
 const iterations = 20;
-const range = 1000;
-//2**19;
-const size = 1000000;
-// const range = 1000000000;
-// const size = 40000000;
+let algorithms = [
+    {
+        'name': 'Javascript          ',
+        'sortFunction': (array) => {
+            array.sort(function (a, b) {
+                return a - b;
+            });
+            return array;
+        }
+    },
+    {
+        'name': 'RadixBitIntSorter   ',
+        'sortFunction': (array) => {
+            sortInt(array);
+            return array;
+        }
+    },
+    {
+        'name': 'RadixBitNumberSorter',
+        'sortFunction': (array) => {
+            sortNumber(array);
+            return array;
+        }
+    },
+    // {
+    //     'name': 'PingeonCountSorter',
+    //     'sortFunction': (array) => {
+    //         pCountSortInt(array);
+    //         return array;
+    //     }
+    // },
+]
 
-let testRadixIntSorter = true;
-let testRadixNumberSorter = true;
 
-for (let i = 0; i < iterations; i++) {
+let verbose = false;
 
-    //test positive numbers
-    let orig = Array.from({length: size}, () => Math.floor(Math.random() * range));
+let tests = [
+    {"range": 1000, "size": 2000},
+    {"range": 1000, "size": 1000000},
+    {"range": 1000000, "size": 1000000},
+    {"range": 1000000000, "size": 1000000},
+    {"range": 1000000000, "size": 40000000}
+]
 
-    //test negative/positive numbers
-    //let orig = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
 
-    //test negative/positive floating point numbers, set testRadixIntSorter to false and testRadixNumberSorter to true
-    //let orig = Array.from({length: size}, () => Math.random() * range - range / 2);
+for (let t = 0; t < tests.length; t++) {
+    let test = tests[t];
+    let range = test.range;
+    let size = test.size;
 
-    let arrayJS = Array(size);
-    arrayCopy(orig, 0, arrayJS, 0, size);
-    let start = performance.now();
-    //arrayJS.sort();
-    arrayJS.sort(function (a, b) {
-        return a - b;
-    });
-    let end = performance.now();
-    let elapsedP = end - start;
+    let generators = [
+        {
+            "name": `Positive Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range))
+        },
+        {
+            "name": `Negative Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => -Math.floor(Math.random() * range))
+        },
+        {
+            "name": `Negative/Positive Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2))
+        },
+        {
+            "name": `Negative/Positive Floating Point Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.random() * range - range / 2)
+        }
+    ]
 
-    let arrayK1;
-    let elapsedK;
-    if (testRadixIntSorter) {
-        arrayK1 = Array(size);
-        arrayCopy(orig, 0, arrayK1, 0, size);
-        start = performance.now();
-        sortInt(arrayK1);
-        end = performance.now();
-        elapsedK = end - start;
-    }
+    for (let g = 0; g < generators.length; g++) {
+        let generator = generators[g];
+        let origArray = generator.genFunction();
 
-    let arrayK2;
-    let elapsedK2;
-    if (testRadixNumberSorter) {
-        arrayK2= Array(size);
-        arrayCopy(orig, 0, arrayK2, 0, size);
-        start = performance.now();
-        sortNumber(arrayK2);
-        //pgCountSortInt(arrayK2, 0, arrayK2.length);
-        end = performance.now();
-        elapsedK2 = end - start;
-    }
+        for (let a = 0; a < algorithms.length; a++) {
+            let algorithm = algorithms[a];
+            algorithm.totalElapsed = 0;
+            algorithm.iterations = 0;
+        }
 
-    if (testRadixIntSorter) {
-        let equal = arrayJS.length === arrayK1.length && arrayK1.every(function (value, index) {
-            return value === arrayJS[index]
-        })
-        if (!equal) {
-            console.log("Arrays Not Equal RadixBitIntSorter");
-            if (arrayJS.length < 300) {
-                console.log("OK:  " + arrayJS);
-                console.log("NOK: " + arrayK1);
+        for (let i = 0; i < iterations; i++) {
+
+            for (let a = 0; a < algorithms.length; a++) {
+                let algorithm = algorithms[a];
+                let arrayK = Array(size);
+                arrayCopy(origArray, 0, arrayK, 0, size);
+                let start = performance.now();
+                arrayK = algorithm.sortFunction(arrayK);
+                let elapsedP = performance.now() - start;
+                let equal = true;
+                if (a === 0) {
+                    algorithm["sortedArray"] = arrayK;
+                } else {
+                    let arrayJS = algorithms[0]["sortedArray"];
+                    let firstError = null;
+                    equal = arrayJS.length === arrayK.length && arrayK.every(function (value, index) {
+                        if (value === arrayJS[index]) {
+                            return true;
+                        } else {
+                            if (!firstError) {
+                                firstError = {"index": index, "expected": arrayJS[index], "real": value};
+                            }
+                            return false;
+                        }
+                    })
+                    if (!equal) {
+                        if (verbose) {
+                            console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
+                        }
+                        if (arrayJS.length < 300) {
+                            console.log("ORIG: " + JSON.stringify(orig));
+                            console.log("OK  : " + JSON.stringify(arrayJS));
+                            console.log("NOK : " + JSON.stringify(arrayK));
+                        }
+                    }
+                }
+                if (equal) {
+                    if (verbose) {
+                        console.log(`Elapsed ${algorithm.name} time: ${elapsedP} ms.`);
+                    }
+                    algorithm.totalElapsed += elapsedP;
+                    algorithm.iterations++;
+                }
+            }
+            if (verbose) {
+                console.log();
             }
         }
-    }
 
-    if (testRadixNumberSorter) {
-        let equal = arrayJS.length === arrayK2.length && arrayK2.every(function (value, index) {
-            return value === arrayJS[index]
-        })
-        if (!equal) {
-            console.log("Arrays Not Equal RadixBitNumberSorter");
-            if (arrayJS.length < 300) {
-                console.log("OK:  " + arrayJS);
-                console.log("NOK: " + arrayK2);
-            }
+        console.log();
+        console.log(`Times for test: ${generator.name}`);
+        for (let a = 0; a < algorithms.length; a++) {
+            let algorithm = algorithms[a];
+            console.log(`AVG elapsed ${algorithm.name} time: ${algorithm.totalElapsed / algorithm.iterations} ms.`);
         }
     }
-
-
-    console.log("Elapsed Javascript           time:  " + elapsedP + " ms.");
-    totalElapsedP += elapsedP;
-    if (testRadixIntSorter) {
-        console.log("Elapsed RadixBitIntSorter    time:  " + elapsedK + " ms.");
-        totalElapsedK += elapsedK;
-    }
-    if (testRadixNumberSorter) {
-        console.log("Elapsed RadixBitNumberSorter time:  " + elapsedK2 + " ms.");
-        totalElapsedK2 += elapsedK2;
-    }
-    console.log("");
-
 }
 
-console.log("AVG elapsed Javascript          time: " + (totalElapsedP / iterations) + " ms.");
-if (testRadixIntSorter) {
-    console.log("AVG elapsed RadixBitSorterInt   time:  " + (totalElapsedK / iterations) + " ms.");
-}
-if (testRadixNumberSorter) {
-    console.log("AVG elapsed RadixBitSorterFloat time:  " + (totalElapsedK2 / iterations) + " ms.");
-}
-
-console.log("\n");

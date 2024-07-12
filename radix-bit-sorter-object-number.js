@@ -73,25 +73,25 @@ export function sortObjectNumber(arrayObj, mapper, start, endP1) {
         if (n1 > 1) { //sort negative numbers
             let bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
             if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
-                radixSortNumber(arrayInt32, arrayFloat64, arrayObj, start, finalLeft, bList1, auxFloat64, auxObj);
-                reverse(arrayObj, start, finalLeft);
+                radixSortNumber(false, arrayInt32, arrayFloat64, arrayObj, start, finalLeft, bList1, auxFloat64, auxObj);
             }
         }
         if (n2 > 1) { //sort positive numbers
             let bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
             if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
-                radixSortNumber(arrayInt32, arrayFloat64, arrayObj, finalLeft, endP1, bList2, auxFloat64, auxObj);
+                radixSortNumber(true, arrayInt32, arrayFloat64, arrayObj, finalLeft, endP1, bList2, auxFloat64, auxObj);
             }
         }
     } else {
-        radixSortNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, bList, auxFloat64, auxObj);
-        if (arrayFloat64[0] < 0) {
-            reverse(arrayObj, start, finalLeft);
+        if ((arrayInt32[1] & (1 << 31)) != 0) { //for special case -0
+            radixSortNumber(false, arrayInt32, arrayFloat64, arrayObj, start, endP1, bList, auxFloat64, auxObj);
+        } else {
+            radixSortNumber(true, arrayInt32, arrayFloat64, arrayObj, start, endP1, bList, auxFloat64, auxObj);
         }
     }
 }
 
-function radixSortNumber(arrayI32, arrayF64, arrayObj, start, endP1, bList, auxF64, auxObj) {
+function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList, auxF64, auxObj) {
     let elementIndex = 0;
     let sections0 = getSections(bList[elementIndex]);
     for (let index = 0; index < sections0.length; index++) {
@@ -101,13 +101,17 @@ function radixSortNumber(arrayI32, arrayF64, arrayObj, start, endP1, bList, auxF
         let bStart = res[2];
         let mask = getMaskRangeBits(bStart, shift);
         if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            if (asc) {
+                partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            } else {
+                partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            }
         } else {
             let dRange = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
+                partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
             } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
+                partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
             }
         }
     }
@@ -120,13 +124,17 @@ function radixSortNumber(arrayI32, arrayF64, arrayObj, start, endP1, bList, auxF
         let bStart = res[2];
         let mask = getMaskRangeBits(bStart, shift);
         if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            if (asc) {
+                partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            } else {
+                partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+            }
         } else {
             let dRange = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
+                partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
             } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
+                partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
             }
         }
     }
@@ -174,15 +182,23 @@ function partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask,
     return left;
 }
 
-function partitionStableLastBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj) {
+function partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj) {
     let count = Array(dRange).fill(0);
     for (let i = start; i < endP1; ++i) {
         count[arrayI32[i * 2 + elementIndex] & mask]++;
     }
-    for (let i = 0, sum = 0; i < dRange; i++) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
+    if (asc) {
+        for (let i = 0, sum = 0; i < dRange; ++i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
+    } else {
+        for (let i = dRange - 1, sum = 0; i >= 0; --i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
     }
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
@@ -197,15 +213,23 @@ function partitionStableLastBitsNumber(arrayI32, arrayF64, arrayObj, start, endP
     arrayCopy(auxObj, 0, arrayObj, start, (endP1 - start));
 }
 
-function partitionStableGroupBitsNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shiftRight, dRange, auxF64, auxObj) {
+function partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shiftRight, dRange, auxF64, auxObj) {
     let count = Array(dRange).fill(0);
     for (let i = start; i < endP1; ++i) {
         count[(arrayI32[i * 2 + elementIndex] & mask) >>> shiftRight]++;
     }
-    for (let i = 0, sum = 0; i < dRange; ++i) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
+    if (asc) {
+        for (let i = 0, sum = 0; i < dRange; ++i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
+    } else {
+        for (let i = dRange - 1, sum = 0; i >= 0; --i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
     }
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
