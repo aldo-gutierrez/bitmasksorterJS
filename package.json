@@ -1,7 +1,7 @@
 {
   "name": "@aldogg/sorter",
-  "version": "0.0.5",
-  "description": "Radix, Radix sorter, BitMask, BitMask sorters, RadixBitMask sorter, bitmasksorter, bitmask-sorter",
+  "version": "0.0.6",
+  "description": "Radix, Radix sorter, BitMask, BitMask sorters, RadixBitMask sorter, bitmasksorter, bitmask-sorter, fastest sorter",
   "type": "module",
   "main": "main.js",
   "scripts": {

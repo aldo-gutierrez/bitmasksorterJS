@@ -1,130 +1,152 @@
-// import {sortInt} from "@aldogg/sorter";
-// import {sortNumber} from "@aldogg/sorter";
-// import {arrayCopy} from "@aldogg/sorter";
-//import {pgCountSortInt} from "@aldogg/sorter";
-
-import {arrayCopy} from "../sorter-utils.js";
-import {sortObjectInt} from "../radix-bit-sorter-object-int.js";
-import {sortObjectNumber} from "../radix-bit-sorter-object-number.js";
+// import {arrayCopy, sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
+//import {sort} from 'fast-sort';
+import {arrayCopy, sortObjectInt, sortObjectNumber} from "../main.js";
 
 console.log("Comparing Sorters\n");
 
-const algorithm1 = 'Javascript                ';
-const algorithm2 = 'RadixBitObjectIntSorter   ';
-const algorithm3 = 'RadixBitObjectNumberSorter';
-
-let totalElapsedP = 0;
-let totalElapsedK = 0;
-let totalElapsedK2 = 0;
-
 const iterations = 20;
+let algorithms = [
+    {
+        'name': 'Javascript                ',
+        'sortFunction': (array) => {
+            array.sort(function (a, b) {
+                return a.id - b.id;
+            });
+            return array;
+        }
+    },
+    {
+        'name': 'RadixBitObjectIntSorter   ',
+        'sortFunction': (array) => {
+            sortObjectInt(array, (x) => x.id);
+            return array;
+        }
+    },
+    {
+        'name': 'RadixBitObjectNumberSorter',
+        'sortFunction': (array) => {
+            sortObjectNumber(array, (x) => x.id);
+            return array;
+        }
+    },
+    // {
+    //     'name': 'fast-sort                 ',
+    //     'sortFunction': (array) => {
+    //         array = sort(array).asc((x) => x.id);
+    //         return array;
+    //     }
+    // }
+]
 
-const range = 1000;
-const size = 1000000;
 
-//const range = 1000000000;
-//const size = 1000000;
+let verbose = false;
 
-let testAlgorithm2 = true;
-let testAlgorithm3 = true;
+let tests = [
+    {"range": 1000, "size": 5000},
+    {"range": 1000, "size": 1000000},
+    {"range": 1000000, "size": 1000000},
+    {"range": 1000000000, "size": 1000000},
+    // {"range": 1000000000, "size": 10000000}, slow
+    // {"range": 1000000000, "size": 40000000}, Out of Memeory
+]
 
+//let origInt = [-488,-860,-212,-82,-35,-831,-751,-898,-329,-831,-362,-207,-862,-315,-154,-361,-141,-614,-503,-180] bug for stable
 
-for (let i = 0; i < iterations; i++) {
+for (let t = 0; t < tests.length; t++) {
+    let test = tests[t];
+    let range = test.range;
+    let size = test.size;
 
-    //test positive numbers
-    //let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range));
+    let generators = [
+        {
+            "name": `Positive Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range))
+        },
+        {
+            "name": `Negative Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => -Math.floor(Math.random() * range))
+        },
+        {
+            "name": `Negative/Positive Integer Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2))
+        },
+        {
+            "name": `Negative/Positive Floating Point Numbers, range:${range}, size: ${size}`,
+            "genFunction": () => Array.from({length: size}, () => Math.random() * range - range / 2)
+        }
+    ]
 
-    //test negative/positive numbers
-    //let origInt = Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2));
+    for (let g = 0; g < generators.length; g++) {
+        let generator = generators[g];
+        let origArray = generator.genFunction();
 
-    //test negative/positive floating point numbers, set testRadixIntSorter to false and testRadixNumberSorter to true
-    let origInt = Array.from({length: size}, () => Math.random() * range - range / 2);
+        for (let a = 0; a < algorithms.length; a++) {
+            let algorithm = algorithms[a];
+            algorithm.totalElapsed = 0;
+        }
 
-    let orig = [];
-    origInt.forEach(x => {
-        orig.push({
-            "id": x,
-            "value": "Text" + x
-        })
-    });
+        for (let i = 0; i < iterations; i++) {
 
-    let arrayJS = Array(size);
-    arrayCopy(orig, 0, arrayJS, 0, size);
-    let start = performance.now();
-    arrayJS.sort(function (a, b) {
-        return a.id - b.id;
-    });
-    let elapsedP = performance.now() - start;
+            let orig = [];
+            origArray.forEach(x => {
+                orig.push({
+                    "id": x,
+                    "value": "Text " + x
+                })
+            });
 
-    let arrayK1;
-    let elapsedK;
-    const mapper = (x) => x.id;
-
-    if (testAlgorithm2) {
-        arrayK1 = Array(size);
-        arrayCopy(orig, 0, arrayK1, 0, size);
-        start = performance.now();
-        sortObjectInt(arrayK1, mapper);
-        elapsedK = performance.now() - start;
-    }
-
-    let arrayK2;
-    let elapsedK2;
-    if (testAlgorithm3) {
-        arrayK2 = Array(size);
-        arrayCopy(orig, 0, arrayK2, 0, size);
-        start = performance.now();
-        sortObjectNumber(arrayK2, mapper);
-        //pgCountSortInt(arrayK2, 0, arrayK2.length);
-        elapsedK2 = performance.now() - start;
-    }
-
-    if (testAlgorithm2) {
-        let equal = arrayJS.length === arrayK1.length && arrayK1.every(function (value, index) {
-            return value === arrayJS[index]
-        })
-        if (!equal) {
-            console.log(`Arrays Not Equal ${algorithm2}`);
-            if (arrayJS.length < 300) {
-                console.log("OK:  " + JSON.stringify(arrayJS));
-                console.log("NOK: " + JSON.stringify(arrayK1));
+            for (let a = 0; a < algorithms.length; a++) {
+                let algorithm = algorithms[a];
+                let arrayK = Array(size);
+                arrayCopy(orig, 0, arrayK, 0, size);
+                let start = performance.now();
+                arrayK = algorithm.sortFunction(arrayK);
+                let elapsedP = performance.now() - start;
+                let equal = true;
+                if (a === 0) {
+                    algorithm["sortedArray"] = arrayK;
+                } else {
+                    let arrayJS = algorithms[0]["sortedArray"];
+                    let firstError = null;
+                    equal = arrayJS.length === arrayK.length && arrayK.every(function (value, index) {
+                        if (value === arrayJS[index]) {
+                            return true;
+                        } else {
+                            if (!firstError) {
+                                firstError = {"index": index, "expected": arrayJS[index], "real": value};
+                            }
+                            return false;
+                        }
+                    })
+                    if (!equal) {
+                        if (verbose) {
+                            console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
+                        }
+                        if (arrayJS.length < 300) {
+                            console.log("ORIG: " + JSON.stringify(orig));
+                            console.log("OK  : " + JSON.stringify(arrayJS));
+                            console.log("NOK : " + JSON.stringify(arrayK));
+                        }
+                    }
+                }
+                if (equal) {
+                    if (verbose) {
+                        console.log(`Elapsed ${algorithm.name} time: ${elapsedP} ms.`);
+                    }
+                    algorithm.totalElapsed += elapsedP;
+                }
+            }
+            if (verbose) {
+                console.log();
             }
         }
-    }
 
-    if (testAlgorithm3) {
-        let equal = arrayJS.length === arrayK2.length && arrayK2.every(function (value, index) {
-            return value === arrayJS[index]
-        })
-        if (!equal) {
-            console.log(`Arrays Not Equal ${algorithm3}`);
-            if (arrayJS.length < 300) {
-                console.log("OK:  " + JSON.stringify(arrayJS));
-                console.log("NOK: " + JSON.stringify(arrayK2));
-            }
+        console.log();
+        console.log(`Times for test: ${generator.name}`);
+        for (let a = 0; a < algorithms.length; a++) {
+            let algorithm = algorithms[a];
+            console.log(`AVG elapsed ${algorithm.name} time: ${algorithm.totalElapsed / iterations} ms.`);
         }
     }
-
-    console.log(`Elapsed ${algorithm1} time: ${elapsedP} ms.`);
-    totalElapsedP += elapsedP;
-    if (testAlgorithm2) {
-        console.log(`Elapsed ${algorithm2} time: ${elapsedK} ms.`);
-        totalElapsedK += elapsedK;
-    }
-    if (testAlgorithm3) {
-        console.log(`Elapsed ${algorithm3} time: ${elapsedK2} ms.`);
-        totalElapsedK2 += elapsedK2;
-    }
-    console.log("");
-
 }
 
-console.log(`AVG elapsed ${algorithm1} time: ${totalElapsedP / iterations} ms.`);
-if (testAlgorithm2) {
-    console.log(`AVG elapsed ${algorithm2} time:  ${totalElapsedK / iterations} ms.`);
-}
-if (testAlgorithm3) {
-    console.log(`AVG elapsed ${algorithm3} time:  ${totalElapsedK2 / iterations} ms.`);
-}
-
-console.log("\n");

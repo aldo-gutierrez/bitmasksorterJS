@@ -41,6 +41,10 @@ export function pCountSortInt(array, start, endP1, min, max) {
     if (range > 2**24) {
         console.error("Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20")
     }
+    if (!Number.isInteger(range)) {
+        console.error("Pigeonhole Count sort only works on integers")
+        return;
+    }
     let count = new Array(range).fill(0);
     for (let i = start; i < endP1; i++) {
         count[array[i] - min]++
