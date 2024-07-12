@@ -172,6 +172,30 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 | RadixBitObjectIntSorter    |                220 |
 | RadixBitObjectNumberSorter |                130 |
 
+### Comparison for sorting 1 million objects with floating point  keys ranging from 0 to 1 million.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                760 |
+| fast-sort 3.4.0            |                779 |
+| RadixBitObjectNumberSorter |                183 |
+
+### Comparison for sorting 1 million objects with floating point keys ranging from 0 to 1000.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                770 |
+| fast-sort 3.4.0            |                776 |
+| RadixBitObjectNumberSorter |                189 |
+
+### Comparison for sorting 1 million objects with floating point keys ranging from 0 to 1000 million.
+
+| Algorithm                  | avg. CPU time [ms] |
+|----------------------------|-------------------:|
+| Javascript sort            |                804 |
+| fast-sort 3.4.0            |                770 |
+| RadixBitObjectNumberSorter |                185 |
+
 # TODO
 
 - [X] Test integer positive numbers
