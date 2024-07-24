@@ -50,6 +50,19 @@ export function getSections(bList) {
     return sections;
 }
 
+export function getSectionBits(section) {
+    return section[0];
+}
+
+export function getSectionShift(section) {
+    return section[1];
+}
+
+export function getSectionStart(section) {
+    return section[2];
+}
+
+
 export function getMaskAsArray(mask) {
     let res = [];
     for (let i = 31; i >= 0; i--) {
@@ -64,3 +77,11 @@ export function getMaskRangeBits(bStart, bEnd) {
     return ((1 << bStart + 1 - bEnd) - 1) << bEnd;
 }
 
+export function getMaskLastBits(bList, bListStart) {
+    let mask = 0;
+    for (let i = bListStart; i < bList.length; i++) {
+        let bIndex = bList[i];
+        mask = mask | 1 << bIndex;
+    }
+    return mask;
+}
