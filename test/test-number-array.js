@@ -3,7 +3,7 @@
 // import {arrayCopy} from "@aldogg/sorter";
 //import {pgCountSortInt} from "@aldogg/sorter";
 
-import {arrayCopy, sortInt, sortNumber, pCountSortInt, quickBitSorterInt} from "../main.js";
+import {arrayCopy, sortInt, sortNumber, quickBitSorterInt, pCountSortInt} from "../main.js";
 
 console.log("Comparing Sorters\n");
 
@@ -37,6 +37,13 @@ let algorithms = [
         'sortFunction': (array) => {
             sortNumber(array);
             return array;
+        }
+    },
+    {
+        'name': 'pCountSortInt',
+        'sortFunction': (array) => {
+           pCountSortInt(array);
+           return array
         }
     },
     {
