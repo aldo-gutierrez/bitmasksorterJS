@@ -1,10 +1,9 @@
 import {
     arrayCopy, getMaskRangeBits, getSections,
-    reverse
 } from "./sorter-utils.js";
-import {calculateMaskNumber, getMaskAsArrayNumber} from "./radix-bit-sorter-number.js";
+import {calculateMaskNumber, getMaskAsArrayNumber} from "./sorter-utils-number.js";
 
-export function sortObjectNumber(arrayObj, mapper, start, endP1) {
+export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }
