@@ -3,7 +3,7 @@
 // import {arrayCopy} from "@aldogg/sorter";
 //import {pgCountSortInt} from "@aldogg/sorter";
 
-import {arrayCopy, sortInt, sortNumber, pCountSortInt} from "../main.js";
+import {arrayCopy, sortInt, sortNumber, pCountSortInt, quickBitSorterInt} from "../main.js";
 
 console.log("Comparing Sorters\n");
 
@@ -19,33 +19,39 @@ let algorithms = [
         }
     },
     {
-        'name': 'RadixBitIntSorter   ',
+        'name': 'quickBitSorterInt   ',
+        'sortFunction': (array) => {
+            quickBitSorterInt(array);
+            return array;
+        }
+    },
+    {
+        'name': 'sortInt   ',
         'sortFunction': (array) => {
             sortInt(array);
             return array;
         }
     },
     {
-        'name': 'RadixBitNumberSorter',
+        'name': 'sortNumber',
         'sortFunction': (array) => {
             sortNumber(array);
             return array;
         }
     },
-    // {
-    //     'name': 'PingeonCountSorter',
-    //     'sortFunction': (array) => {
-    //         pCountSortInt(array);
-    //         return array;
-    //     }
-    // },
+    {
+        'name': 'Float64Array.sort',
+        'sortFunction': (array) => {
+            let sorted = new Float64Array(array).sort();
+            return sorted;
+        }
+    },
 ]
 
 
 let verbose = false;
 
 let tests = [
-    {"range": 1000, "size": 2000},
     {"range": 1000, "size": 1000000},
     {"range": 1000000, "size": 1000000},
     {"range": 1000000000, "size": 1000000},
@@ -117,7 +123,7 @@ for (let t = 0; t < tests.length; t++) {
                             console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
                         }
                         if (arrayJS.length < 300) {
-                            console.log("ORIG: " + JSON.stringify(orig));
+                            console.log("ORIG: " + JSON.stringify(origArray));
                             console.log("OK  : " + JSON.stringify(arrayJS));
                             console.log("NOK : " + JSON.stringify(arrayK));
                         }

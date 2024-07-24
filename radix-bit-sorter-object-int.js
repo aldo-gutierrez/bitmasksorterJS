@@ -5,7 +5,7 @@ import {
     getSections
 } from "./sorter-utils.js";
 
-export function sortObjectInt(array, mapper, start, endP1) {
+export function radixBitSorterObjectInt(array, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }

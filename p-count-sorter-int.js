@@ -7,12 +7,8 @@
  * when max-min (range = 2**25 has similar performance than javascript sorter)
  * when max-min (range > 2**25 is slower than javascript sorter)
  *    and when n (endP1-start) 2^17..2^20 (other ranges not tested yet)
- * @param array
- * @param start
- * @param endP1
- * @param min
- * @param max
  */
+
 export function pCountSortInt(array, start, endP1, min, max) {
     if (!start) {
         start = 0;

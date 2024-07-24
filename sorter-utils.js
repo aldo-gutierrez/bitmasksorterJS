@@ -18,31 +18,6 @@ export function reverse(array, start, endP1) {
     }
 }
 
-export function partitionReverseNotStableUpperBit(array, start, endP1) {
-    let left = start;
-    let right = endP1 - 1;
-
-    while (left <= right) {
-        let element = array[left];
-        if (element >= 0) {
-            while (left <= right) {
-                element = array[right];
-                if (element >= 0) {
-                    right--;
-                } else {
-                    swap(array, left, right);
-                    left++;
-                    right--;
-                    break;
-                }
-            }
-        } else {
-            left++;
-        }
-    }
-    return left;
-}
-
 //11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual core CPUs
 const MAX_BITS_RADIX_SORT = 11;
 
