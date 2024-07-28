@@ -43,29 +43,16 @@ export function getSections(bList, maxBitsDigit) {
             bits = (bitIndex - shift + 1);
         } else {
             let start = shift + bits - 1;
-            sections.push([bits, shift, start, getMaskRangeBits(start, shift)]);
+            sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
             shift = bitIndex;
             bits = 1;
         }
         b++;
     }
     let start = shift + bits - 1
-    sections.push([bits, shift, start, getMaskRangeBits(start, shift)]);
+    sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
     return sections;
 }
-
-export function getSectionBits(section) {
-    return section[0];
-}
-
-export function getSectionShift(section) {
-    return section[1];
-}
-
-export function getSectionStart(section) {
-    return section[2];
-}
-
 
 export function getMaskAsArray(mask) {
     let res = [];
