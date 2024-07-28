@@ -4,7 +4,8 @@ import {
     getMaskRangeBits,
     getSectionBits,
     getSections,
-    getSectionShift, getSectionStart
+    getSectionShift,
+    getSectionStart
 } from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-int.js";
 
@@ -23,7 +24,7 @@ export function pCountSortInt(array, start, endP1, bList, bListStart) {
         bListStart = 0;
     }
     let bListNew = bList.slice(bListStart);
-    let sections = getSections(bListNew);
+    let sections = getSections(bListNew, 32);
     if (sections.length === 1) {
         let section = sections[0];
         let shift = getSectionShift(section)
@@ -243,13 +244,52 @@ function pCountSortSections(array, start, endP1, sections) {
     }
 }
 
+/**
+ * Maybe this could be useful when n is short compared to range, Maybe not as better algorithms are available
+ */
+function pCountSortSectionsSparse(array, start, endP1, sections) {
+    let bits = 0;
+    for (let s = 0; s < sections.length; s++) {
+        let section = sections[s];
+        bits += getSectionBits(section);
+    }
+    let range = 1 << bits;
+    if (range > (1 << 24)) {
+        if (!COUNT_SORT_ERROR_SHOWED) {
+            console.error(COUNT_SORT_ERROR);
+            COUNT_SORT_ERROR_SHOWED = true;
+        }
+    }
+    let count = new Array();
+    let number = new Array();
+
+    for (let i = start; i < endP1; i++) {
+        let element = array[i];
+        let key = getKeySN(element, sections);
+        count[key] = count[key] ? count[key] + 1 : 1;
+        number[key] = element;
+    }
+
+    let i = start;
+    count.forEach((countJ, j) => {
+        let value = number[j];
+        for (let c = 0; c < countJ; c++) {
+            array[i] = value;
+            i++;
+        }
+    })
+}
+
+
 function getKeySN(element, sections) {
     let result = 0;
-    for (let i = sections.length - 1; i >= 0; i--) { //TODO CHECK THIS LINE, IN JAVA IMPLEMENTATION IS THE OPPOSIE DIRECTION
+    const length = sections.length;
+    for (let i = length - 1; i >= 0; i--) { //TODO CHECK THIS LINE, IN JAVA IMPLEMENTATION IS THE OPPOSITE DIRECTION
         let section = sections[i];
-        let mask = getMaskRangeBits(getSectionStart(section), getSectionShift(section));
-        let bits = (element & mask) >> getSectionShift(section);
-        result = result << getSectionBits(section) | bits;
+        //let bits = (element & mask) >> getSectionShift(section);
+        let bits = (element & section[3]) >> section[1];
+        //result = result << getSectionBits(section) | bits;
+        result = result << section[0] | bits;
     }
     return result;
 }
