@@ -10,6 +10,7 @@ import {sortNumber} from "./sorter-number.js";
 import {sortObjectNumber} from "./sorter-objet-number.js";
 import {sortObjectInt} from "./sorter-object-int.js";
 import {pCountSortInt} from "./p-count-sorter-int.js";
+import {pCountSortIntNoMask} from "./p-count-sorter-int.js";
 
 export {
     arrayCopy,
@@ -19,8 +20,8 @@ export {
     radixBitSorterObjectInt,
     radixBitSorterObjectIntV2,
     radixBitSorterObjectNumber,
-   // pCountSortIntWithMinMax,
     pCountSortInt,
+    pCountSortIntNoMask,
     sortInt,
     sortNumber,
     sortObjectInt,

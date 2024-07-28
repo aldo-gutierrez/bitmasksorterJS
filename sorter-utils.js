@@ -25,11 +25,13 @@ function reverseListGet(bList, index) {
     return bList[bList.length - 1 - index];
 }
 
-export function getSections(bList) {
+export function getSections(bList, maxBitsDigit) {
     if (!bList || bList.length === 0) {
         return [];
     }
-    let maxBitsDigit = MAX_BITS_RADIX_SORT;
+    if (!maxBitsDigit) {
+        maxBitsDigit = MAX_BITS_RADIX_SORT;
+    }
     let sections = [];
     let b = 0;
     let shift = reverseListGet(bList, b);
@@ -40,13 +42,15 @@ export function getSections(bList) {
         if (bitIndex <= shift + maxBitsDigit - 1) {
             bits = (bitIndex - shift + 1);
         } else {
-            sections.push([bits, shift, shift + bits - 1]);
+            let start = shift + bits - 1;
+            sections.push([bits, shift, start, getMaskRangeBits(start, shift)]);
             shift = bitIndex;
             bits = 1;
         }
         b++;
     }
-    sections.push([bits, shift, shift + bits - 1]);
+    let start = shift + bits - 1
+    sections.push([bits, shift, start, getMaskRangeBits(start, shift)]);
     return sections;
 }
 
