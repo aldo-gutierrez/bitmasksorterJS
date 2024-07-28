@@ -88,11 +88,11 @@ export function radixBitSorterObjectIntV2(arrayObj, mapper, start, endP1) {
 function radixSortObjectI32(asc, arrayI32, arrayObj, start, endP1, bList, auxI32, auxObj) {
     let sections0 = getSections(bList);
     for (let index = 0; index < sections0.length; index++) {
-        let res = sections0[index];
-        let bits = res[0];
-        let shift = res[1];
-        let bStart = res[2];
-        let mask = getMaskRangeBits(bStart, shift);
+        let section = sections0[index];
+        let bits = section.bits;
+        let shift = section.shift;
+        let bStart = section.start;
+        let mask = section.mask;
         if (bits === 1) {
             if (asc) {
                 partitionStableObjectI32(arrayI32, arrayObj, start, endP1, mask, auxI32, auxObj);

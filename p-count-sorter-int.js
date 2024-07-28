@@ -1,11 +1,7 @@
 import {
     getMaskAsArray,
-    getMaskLastBits,
     getMaskRangeBits,
-    getSectionBits,
     getSections,
-    getSectionShift,
-    getSectionStart
 } from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-int.js";
 
@@ -27,13 +23,13 @@ export function pCountSortInt(array, start, endP1, bList, bListStart) {
     let sections = getSections(bListNew, 32);
     if (sections.length === 1) {
         let section = sections[0];
-        let shift = getSectionShift(section)
+        let shift = section.shift;
         if (shift === 0) {
-            let mask = getMaskLastBits(bListNew, 0);
+            let mask = section.mask;
             let elementSample = array[start];
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
-                pCountSortPositive(array, start, endP1, 1 << getSectionBits(section));
+                pCountSortPositive(array, start, endP1, 1 << section.bits);
             } else { //last bits but there is a mask for a bigger number
                 pCountSortEndingMask(array, start, endP1, mask, elementSample);
             }
@@ -208,7 +204,7 @@ function pCountSortSections(array, start, endP1, sections) {
     let bits = 0;
     for (let s = 0; s < sections.length; s++) {
         let section = sections[s];
-        bits += getSectionBits(section);
+        bits += section.bits;
     }
     let range = 1 << bits;
     if (range > (1 << 24)) {
@@ -286,10 +282,8 @@ function getKeySN(element, sections) {
     const length = sections.length;
     for (let i = length - 1; i >= 0; i--) { //TODO CHECK THIS LINE, IN JAVA IMPLEMENTATION IS THE OPPOSITE DIRECTION
         let section = sections[i];
-        //let bits = (element & mask) >> getSectionShift(section);
-        let bits = (element & section[3]) >> section[1];
-        //result = result << getSectionBits(section) | bits;
-        result = result << section[0] | bits;
+        let bits = (element & section.mask) >> section.shift;
+        result = result << section.bits | bits;
     }
     return result;
 }

@@ -94,11 +94,11 @@ function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList,
     let elementIndex = 0;
     let sections0 = getSections(bList[elementIndex]);
     for (let index = 0; index < sections0.length; index++) {
-        let res = sections0[index];
-        let bits = res[0];
-        let shift = res[1];
-        let bStart = res[2];
-        let mask = getMaskRangeBits(bStart, shift);
+        let section = sections0[index];
+        let bits = section.bits;
+        let shift = section.shift;
+        let bStart = section.start;
+        let mask = section.mask;
         if (bits === 1) {
             if (asc) {
                 partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
@@ -117,11 +117,11 @@ function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList,
     elementIndex = 1;
     let sections1 = getSections(bList[elementIndex]);
     for (let index = 0; index < sections1.length; index++) {
-        let res = sections1[index];
-        let bits = res[0];
-        let shift = res[1];
-        let bStart = res[2];
-        let mask = getMaskRangeBits(bStart, shift);
+        let section = sections1[index];
+        let bits = section.bits;
+        let shift = section.shift;
+        let bStart = section.start;
+        let mask = section.mask;
         if (bits === 1) {
             if (asc) {
                 partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);

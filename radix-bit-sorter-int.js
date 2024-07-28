@@ -106,11 +106,11 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRan
 function radixSortInt(array, start, end, bList, aux) {
     let sections = getSections(bList);
     for (let index = 0; index < sections.length; index++) {
-        let res = sections[index];
-        let bits = res[0];
-        let shift = res[1];
-        let bStart = res[2];
-        let mask = getMaskRangeBits(bStart, shift);
+        let section = sections[index];
+        let bits = section.bits;
+        let shift = section.shift;
+        let bStart = section.start;
+        let mask = section.mask;
         if (bits === 1) {
             partitionStableInt(array, start, end, mask, aux);
         } else {
