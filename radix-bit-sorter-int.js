@@ -1,4 +1,4 @@
-import {arrayCopy, getSections, getMaskRangeBits} from "./sorter-utils.js";
+import {arrayCopy, getSections} from "./sorter-utils.js";
 import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
 import {getMaskAsArray} from "./sorter-utils.js";
 
@@ -109,7 +109,6 @@ function radixSortInt(array, start, end, bList, aux) {
         let section = sections[index];
         let bits = section.bits;
         let shift = section.shift;
-        let bStart = section.start;
         let mask = section.mask;
         if (bits === 1) {
             partitionStableInt(array, start, end, mask, aux);
