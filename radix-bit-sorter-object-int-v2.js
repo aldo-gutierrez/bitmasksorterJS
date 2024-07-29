@@ -1,5 +1,5 @@
 import {
-    arrayCopy, getMaskAsArray, getMaskRangeBits, getSections,
+    arrayCopy, getMaskAsArray, getSections,
 } from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-int.js";
 

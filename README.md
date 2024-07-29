@@ -205,9 +205,9 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 - [X] Test object sorting stability
 - [ ] Try WebAssembly
 - [ ] Try SIMD
-- [ ] Try QuickSort with Bitmask
+- [X] Try QuickSort with Bitmask
 - [X] Implement Pigeonhole sort
-- [ ] Integrate Pigeonhole sort with Bitmask
+- [X] Integrate Pigeonhole sort with Bitmask
 - [ ] Implement Bucket sort
 - [ ] Optimization for small lists (like in java version)
 - [ ] Support asc, desc options

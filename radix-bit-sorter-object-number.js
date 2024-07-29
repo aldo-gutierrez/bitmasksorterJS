@@ -82,7 +82,7 @@ export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
             }
         }
     } else {
-        if ((arrayInt32[1] & (1 << 31)) != 0) { //for special case -0
+        if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
             radixSortNumber(false, arrayInt32, arrayFloat64, arrayObj, start, endP1, bList, auxFloat64, auxObj);
         } else {
             radixSortNumber(true, arrayInt32, arrayFloat64, arrayObj, start, endP1, bList, auxFloat64, auxObj);
