@@ -1,5 +1,5 @@
 import {
-    arrayCopy, getMaskRangeBits, getSections,
+    arrayCopy, getSections,
 } from "./sorter-utils.js";
 import {calculateMaskNumber, getMaskAsArrayNumber} from "./sorter-utils-number.js";
 
@@ -97,7 +97,6 @@ function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList,
         let section = sections0[index];
         let bits = section.bits;
         let shift = section.shift;
-        let bStart = section.start;
         let mask = section.mask;
         if (bits === 1) {
             if (asc) {
@@ -120,7 +119,6 @@ function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList,
         let section = sections1[index];
         let bits = section.bits;
         let shift = section.shift;
-        let bStart = section.start;
         let mask = section.mask;
         if (bits === 1) {
             if (asc) {

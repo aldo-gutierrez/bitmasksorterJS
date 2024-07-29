@@ -4,7 +4,7 @@ The first implemented algorithms is a Radix Sort utilizing a BitMask to minimize
 
 This Radix sort can be from 4x to 16x times faster than standard Javascript sort
 
-The following code demonstrates the calculation of the BitMask of a 32 bit number:
+The following code demonstrates the calculation of the BitMask of a 32-bit number:
 
 ```javascript
     function calculateMaskInt(array, start, endP1) {
@@ -96,9 +96,9 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                223 |
+| Javascript sort         |                224 |
 | RadixBitIntSorter       |                 12 |
-| RadixBitNumberSorter    |                 30 |
+| RadixBitNumberSorter    |                 31 |
 
 
 ### Comparison for sorting 1 million integer elements ranging from 0 to 1000 million.

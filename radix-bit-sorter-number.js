@@ -129,7 +129,6 @@ function radixSortNumber(arrayI32, arrayF64, start, endP1, bList, auxF64) {
         let section = sections0[index];
         let bits = section.bits;
         let shift = section.shift;
-        let bStart = section.start;
         let mask = section.mask
         if (bits === 1) {
             partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64);

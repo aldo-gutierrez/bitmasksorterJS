@@ -18,7 +18,7 @@ export function reverse(array, start, endP1) {
     }
 }
 
-//11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual core CPUs
+//11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual-core CPUs
 const MAX_BITS_RADIX_SORT = 11;
 
 function reverseListGet(bList, index) {

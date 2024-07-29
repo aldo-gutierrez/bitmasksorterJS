@@ -91,7 +91,6 @@ function radixSortObjectI32(asc, arrayI32, arrayObj, start, endP1, bList, auxI32
         let section = sections0[index];
         let bits = section.bits;
         let shift = section.shift;
-        let bStart = section.start;
         let mask = section.mask;
         if (bits === 1) {
             if (asc) {

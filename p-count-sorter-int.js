@@ -1,6 +1,5 @@
 import {
     getMaskAsArray,
-    getMaskRangeBits,
     getSections,
 } from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-int.js";
@@ -45,7 +44,7 @@ export function pCountSortInt(array, start, endP1, bList, bListStart) {
 // /**
 //  * Pigeonhole count sort is destructive count sort as it reconstructs (rebuilds)
 //  * the int numbers, no swaps, reverse or aux arrays.
-//  * Fastest sorter when the following conditions are met:
+//  * Faster sorter when the following conditions are met:
 //  * when max-min (range <= 2**19 is faster than radixBitSorterInt)
 //  * when max-min (range < 2**25 is faster than javascript sorter)
 //  * when max-min (range = 2**25 has similar performance than javascript sorter)
@@ -166,7 +165,7 @@ function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
 }
 
 function pCountSortSection(array, start, endP1, section) {
-    let range = 1 << getSectionBits(section);
+    let range = 1 << section.bits;
     if (range > (1 << 24)) {
         if (!COUNT_SORT_ERROR_SHOWED) {
             console.error(COUNT_SORT_ERROR);
@@ -175,10 +174,10 @@ function pCountSortSection(array, start, endP1, section) {
     }
     let count = new Array(range).fill(0);
     let number = new Array(range);
-    let mask1 = getMaskRangeBits(getSectionStart(section), getSectionShift(section));
+    let mask = section.mask;
     for (let i = start; i < endP1; i++) {
         let element = array[i];
-        let key = (element & mask1) >> getSectionShift(section);
+        let key = (element & mask) >> section.shift;
         count[key]++;
         number[key] = element;
     }
@@ -247,7 +246,7 @@ function pCountSortSectionsSparse(array, start, endP1, sections) {
     let bits = 0;
     for (let s = 0; s < sections.length; s++) {
         let section = sections[s];
-        bits += getSectionBits(section);
+        bits += section.bits;
     }
     let range = 1 << bits;
     if (range > (1 << 24)) {
@@ -256,8 +255,8 @@ function pCountSortSectionsSparse(array, start, endP1, sections) {
             COUNT_SORT_ERROR_SHOWED = true;
         }
     }
-    let count = new Array();
-    let number = new Array();
+    let count = [];
+    let number = [];
 
     for (let i = start; i < endP1; i++) {
         let element = array[i];
