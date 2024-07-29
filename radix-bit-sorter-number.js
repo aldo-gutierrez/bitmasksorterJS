@@ -56,7 +56,7 @@ export function radixBitSorterNumber(array, start, endP1) {
     } else {
         let auxFloat64= new Float64Array(endP1 - start);
         radixSortNumber(arrayInt32, arrayFloat64, start, endP1, bList, auxFloat64);
-        if ((arrayInt32[1] & (1 << 31)) != 0) { //for special case -0
+        if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
             reverse(arrayFloat64, start, endP1);
         }
     }
