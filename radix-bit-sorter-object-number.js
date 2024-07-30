@@ -91,47 +91,26 @@ export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
 }
 
 function radixSortNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, bList, auxF64, auxObj) {
-    let elementIndex = 0;
-    let sections0 = getSections(bList[elementIndex]);
-    for (let index = 0; index < sections0.length; index++) {
-        let section = sections0[index];
-        let bits = section.bits;
-        let shift = section.shift;
-        let mask = section.mask;
-        if (bits === 1) {
-            if (asc) {
-                partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+    for (let elementIndex =0; elementIndex<=1; elementIndex++) {
+        let sections = getSections(bList[elementIndex]);
+        for (let index = 0; index < sections.length; index++) {
+            let section = sections[index];
+            let bits = section.bits;
+            let shift = section.shift;
+            let mask = section.mask;
+            if (bits === 1) {
+                if (asc) {
+                    partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+                } else {
+                    partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
+                }
             } else {
-                partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
-            }
-        } else {
-            let dRange = 1 << bits;
-            if (shift === 0) {
-                partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
-            } else {
-                partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
-            }
-        }
-    }
-    elementIndex = 1;
-    let sections1 = getSections(bList[elementIndex]);
-    for (let index = 0; index < sections1.length; index++) {
-        let section = sections1[index];
-        let bits = section.bits;
-        let shift = section.shift;
-        let mask = section.mask;
-        if (bits === 1) {
-            if (asc) {
-                partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
-            } else {
-                partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj);
-            }
-        } else {
-            let dRange = 1 << bits;
-            if (shift === 0) {
-                partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
-            } else {
-                partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
+                let dRange = 1 << bits;
+                if (shift === 0) {
+                    partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, dRange, auxF64, auxObj);
+                } else {
+                    partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, shift, dRange, auxF64, auxObj);
+                }
             }
         }
     }
