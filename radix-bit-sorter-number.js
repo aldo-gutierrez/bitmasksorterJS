@@ -1,6 +1,5 @@
 import {
     arrayCopy,
-    getMaskRangeBits,
     getSections,
     reverse
 } from "./sorter-utils.js";
@@ -123,40 +122,22 @@ function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, 
 
 
 function radixSortNumber(arrayI32, arrayF64, start, endP1, bList, auxF64) {
-    let elementIndex = 0;
-    let sections0 = getSections(bList[elementIndex]);
-    for (let index = 0; index < sections0.length; index++) {
-        let section = sections0[index];
-        let bits = section.bits;
-        let shift = section.shift;
-        let mask = section.mask
-        if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64);
-        } else {
-            let dRange = 1 << bits;
-            if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, dRange, auxF64);
+    for (let elementIndex = 0; elementIndex <= 1; elementIndex++) {
+        let sections = getSections(bList[elementIndex]);
+        for (let index = 0; index < sections.length; index++) {
+            let section = sections[index];
+            let bits = section.bits;
+            let shift = section.shift;
+            let mask = section.mask
+            if (bits === 1) {
+                partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64);
             } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shift, dRange, auxF64);
-            }
-        }
-    }
-    elementIndex = 1;
-    let sections1 = getSections(bList[elementIndex]);
-    for (let index = 0; index < sections1.length; index++) {
-        let section = sections1[index];
-        let bits = section.bits;
-        let shift = section.shift;
-        let bStart = section.start;
-        let mask = getMaskRangeBits(bStart, shift);
-        if (bits === 1) {
-            partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64);
-        } else {
-            let dRange = 1 << bits;
-            if (shift === 0) {
-                partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, dRange, auxF64);
-            } else {
-                partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shift, dRange, auxF64);
+                let dRange = 1 << bits;
+                if (shift === 0) {
+                    partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, dRange, auxF64);
+                } else {
+                    partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shift, dRange, auxF64);
+                }
             }
         }
     }
