@@ -1,5 +1,5 @@
 import {
-    arrayCopy, getMaskAsArray, getSections,
+    arrayCopy, calculateCount, getMaskAsArray, getSections,
 } from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-int.js";
 
@@ -156,19 +156,7 @@ function partitionStableLastBitsObjectI32(asc, arrayI32, arrayObj, start, endP1,
     for (let i = start; i < endP1; ++i) {
         count[arrayI32[i] & mask]++;
     }
-    if (asc) {
-        for (let i = 0, sum = 0; i < dRange; ++i) {
-            let c = count[i];
-            count[i] = sum;
-            sum += c;
-        }
-    } else {
-        for (let i = dRange - 1, sum = 0; i >= 0; --i) {
-            let c = count[i];
-            count[i] = sum;
-            sum += c;
-        }
-    }
+    calculateCount(asc, count, dRange);
     for (let i = start; i < endP1; ++i) {
         let element = arrayI32[i];
         let elementObj = arrayObj[i];
@@ -187,19 +175,7 @@ function partitionStableGroupBitsObjectI32(asc, arrayI32, arrayObj, start, endP1
     for (let i = start; i < endP1; ++i) {
         count[(arrayI32[i] & mask) >>> shiftRight]++;
     }
-    if (asc) {
-        for (let i = 0, sum = 0; i < dRange; ++i) {
-            let c = count[i];
-            count[i] = sum;
-            sum += c;
-        }
-    } else {
-        for (let i = dRange - 1, sum = 0; i >= 0; --i) {
-            let c = count[i];
-            count[i] = sum;
-            sum += c;
-        }
-    }
+    calculateCount(asc, count, dRange);
     for (let i = start; i < endP1; ++i) {
         let element = arrayI32[i];
         let elementObj = arrayObj[i];
@@ -212,4 +188,3 @@ function partitionStableGroupBitsObjectI32(asc, arrayI32, arrayObj, start, endP1
     arrayCopy(auxI32, 0, arrayI32, start, (endP1 - start));
     arrayCopy(auxObj, 0, arrayObj, start, (endP1 - start));
 }
-

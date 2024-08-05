@@ -36,7 +36,6 @@ export function quickBitSorterInt(array, start, endP1) {
                 n2 = 0;
             }
         }
-        //let aux = Array(Math.max(n1, n2));
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
             qbSortInt(array, start, finalLeft, bList, 0, false);

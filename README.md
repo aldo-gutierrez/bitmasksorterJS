@@ -88,25 +88,25 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                274 |
-| RadixBitIntSorter       |                 20 |
-| RadixBitNumberSorter    |                 39 |
+| Javascript sort         |                270 |
+| RadixBitIntSorter       |                 21 | 
+| RadixBitNumberSorter    |                 42 |
 
 ### Comparison for sorting 1 million integer elements ranging from 0 to 1000.
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
 | Javascript sort         |                224 |
-| RadixBitIntSorter       |                 12 |
-| RadixBitNumberSorter    |                 31 |
+| RadixBitIntSorter       |                 11 |
+| RadixBitNumberSorter    |                 30 |
 
 
 ### Comparison for sorting 1 million integer elements ranging from 0 to 1000 million.
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                277 |
-| RadixBitIntSorter       |                 30 |
+| Javascript sort         |                267 |
+| RadixBitIntSorter       |                 29 |
 | RadixBitNumberSorter    |                 51 |
 
 
@@ -114,9 +114,9 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm            | avg. CPU time [ms] |
 |----------------------|-------------------:|
-| Javascript sort      |              13647 |
-| RadixBitIntSorter    |              11008 |
-| RadixBitNumberSorter |              11892 |
+| Javascript sort      |              13569 |
+| RadixBitIntSorter    |              11123 |
+| RadixBitNumberSorter |               4539 |
 
 ## Speed Floating Point Numbers
 
