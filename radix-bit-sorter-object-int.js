@@ -1,5 +1,5 @@
 import {
-    arrayCopy,
+    arrayCopy, calculateCount,
     getMaskAsArray,
     getSections
 } from "./sorter-utils.js";
@@ -111,11 +111,7 @@ function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux, mapp
     for (let i = start; i < endP1; i++) {
         count[mapper(array[i]) & mask]++;
     }
-    for (let i = 0, sum = 0; i < dRange; i++) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
-    }
+    calculateCount(true, count, dRange);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
         aux[count[element & mask]++] = array[i];
@@ -128,11 +124,7 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRan
     for (let i = start; i < endP1; i++) {
         count[(mapper(array[i]) & mask) >> shiftRight]++;
     }
-    for (let i = 0, sum = 0; i < dRange; i++) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
-    }
+    calculateCount(true, count, dRange);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
         aux[count[(element & mask) >> shiftRight]++] = array[i];

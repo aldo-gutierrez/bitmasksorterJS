@@ -18,6 +18,22 @@ export function reverse(array, start, endP1) {
     }
 }
 
+export function calculateCount(asc, count, countLength) {
+    if (asc) {
+        for (let i = 0, sum = 0; i < countLength; ++i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
+    } else {
+        for (let i = countLength - 1, sum = 0; i >= 0; --i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
+    }
+}
+
 //11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual-core CPUs
 const MAX_BITS_RADIX_SORT = 11;
 
