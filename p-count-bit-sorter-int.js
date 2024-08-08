@@ -76,12 +76,7 @@ export function pCountSortIntNoMask(array, start, endP1, min, max) {
         }
     }
     let range = max - min + 1;
-    if (range > 2 ** 24) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     if (!Number.isInteger(range)) {
         console.error("Pigeonhole Count sort only works on integers")
         return;
@@ -108,12 +103,7 @@ export function pCountSortIntNoMask(array, start, endP1, min, max) {
 
 
 function pCountSortPositive(array, start, endP1, range) {
-    if (range > (1 << 24)) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     let count = new Array(range).fill(0);
     for (let i = start; i < endP1; i++) {
         count[array[i]]++
@@ -136,12 +126,7 @@ function pCountSortPositive(array, start, endP1, range) {
 
 function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
     let range = mask + 1;
-    if (range > (1 << 24)) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     let count = new Array(range).fill(0);
     for (let i = start; i < endP1; i++) {
         count[array[i] & mask]++
@@ -166,12 +151,7 @@ function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
 
 function pCountSortSection(array, start, endP1, section) {
     let range = 1 << section.bits;
-    if (range > (1 << 24)) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     let count = new Array(range).fill(0);
     let number = new Array(range);
     let mask = section.mask;
@@ -206,12 +186,7 @@ function pCountSortSections(array, start, endP1, sections) {
         bits += section.bits;
     }
     let range = 1 << bits;
-    if (range > (1 << 24)) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     let count = new Array(range).fill(0);
     let number = new Array(range);
 
@@ -249,12 +224,7 @@ function pCountSortSectionsSparse(array, start, endP1, sections) {
         bits += section.bits;
     }
     let range = 1 << bits;
-    if (range > (1 << 24)) {
-        if (!COUNT_SORT_ERROR_SHOWED) {
-            console.error(COUNT_SORT_ERROR);
-            COUNT_SORT_ERROR_SHOWED = true;
-        }
-    }
+    validatePCountSortRange(range);
     let count = [];
     let number = [];
 
@@ -287,3 +257,12 @@ function getKeySN(element, sections) {
     return result;
 }
 
+
+export function validatePCountSortRange(range) {
+    if (range > (1 << 24)) {
+        if (!COUNT_SORT_ERROR_SHOWED) {
+            console.error(COUNT_SORT_ERROR);
+            COUNT_SORT_ERROR_SHOWED = true;
+        }
+    }
+}

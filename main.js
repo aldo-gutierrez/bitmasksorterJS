@@ -5,12 +5,14 @@ import {radixBitSorterObjectInt} from "./radix-bit-sorter-object-int.js";
 import {radixBitSorterObjectIntV2} from "./radix-bit-sorter-object-int-v2.js";
 import {radixBitSorterObjectNumber} from "./radix-bit-sorter-object-number.js";
 import {quickBitSorterInt} from "./quick-bit-sorter-int.js";
+import {quickBitSorterObjectInt} from "./quick-bit-sorter-object-int.js";
 import {sortInt} from "./sorter-int.js";
 import {sortNumber} from "./sorter-number.js";
-import {sortObjectNumber} from "./sorter-objet-number.js";
+import {sortObjectNumber} from "./sorter-object-number.js";
 import {sortObjectInt} from "./sorter-object-int.js";
-import {pCountSortInt} from "./p-count-sorter-int.js";
-import {pCountSortIntNoMask} from "./p-count-sorter-int.js";
+import {pCountSortInt} from "./p-count-bit-sorter-int.js";
+import {pCountSortIntNoMask} from "./p-count-bit-sorter-int.js";
+import {pCountSorterObjectInt} from "./p-count-bit-sorter-object-int.js";
 
 export {
     arrayCopy,
@@ -20,8 +22,10 @@ export {
     radixBitSorterObjectInt,
     radixBitSorterObjectIntV2,
     radixBitSorterObjectNumber,
+    quickBitSorterObjectInt,
     pCountSortInt,
     pCountSortIntNoMask,
+    pCountSorterObjectInt,
     sortInt,
     sortNumber,
     sortObjectInt,
