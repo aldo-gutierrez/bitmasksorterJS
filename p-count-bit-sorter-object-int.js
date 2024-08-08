@@ -1,6 +1,6 @@
 import {arrayCopy, getMaskAsArray, getSections} from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
-import {validatePCountSortRange} from "./p-count-bit-sorter-int.js";
+import {validatePCountSortRange, getKeySN} from "./p-count-bit-sorter-int.js";
 
 export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
@@ -25,7 +25,7 @@ export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListS
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
                 pCountSortPositive(array, mapper, start, endP1, 1 << section.bits);
             } else { //last bits but there is a mask for a bigger number
-                pCountSortEndingMask(array, mapper, start, endP1, mask, elementSample);
+                pCountSortEndingMask(array, mapper, start, endP1, mask);
             }
         } else {
             pCountSortSection(array, mapper, start, endP1, section);
@@ -53,7 +53,7 @@ function pCountSortPositive(array, mapper, start, endP1, range) {
     }
 }
 
-function pCountSortEndingMask(array, mapper, start, endP1, mask, elementSample) {
+function pCountSortEndingMask(array, mapper, start, endP1, mask) {
     let range = mask + 1;
     validatePCountSortRange(range)
     let count = new Array(range)

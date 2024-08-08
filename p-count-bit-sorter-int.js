@@ -246,7 +246,7 @@ function pCountSortSectionsSparse(array, start, endP1, sections) {
 }
 
 
-function getKeySN(element, sections) {
+export function getKeySN(element, sections) {
     let result = 0;
     const length = sections.length;
     for (let i = length - 1; i >= 0; i--) { //TODO CHECK THIS LINE, IN JAVA IMPLEMENTATION IS THE OPPOSITE DIRECTION
