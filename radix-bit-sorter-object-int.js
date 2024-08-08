@@ -3,6 +3,7 @@ import {
     getMaskAsArray,
     getSections
 } from "./sorter-utils.js";
+import {partitionReverseStableInt, partitionStableInt, calculateMaskInt} from "./sorter-utils-object-int.js";
 
 export function radixBitSorterObjectInt(array, mapper, start, endP1) {
     if (!start) {
@@ -72,40 +73,6 @@ function radixSortInt(array, start, end, bList, aux, mapper) {
     }
 }
 
-function partitionStableInt(array, start, endP1, mask, aux, mapper) {
-    let left = start;
-    let right = 0;
-    for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
-        if ((element & mask) === 0) {
-            array[left] = array[i];
-            left++;
-        } else {
-            aux[right] = array[i];
-            right++;
-        }
-    }
-    arrayCopy(aux, 0, array, left, right);
-    return left;
-}
-
-function partitionReverseStableInt(array, start, endP1, mask, aux, mapper) {
-    let left = start;
-    let right = 0;
-    for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
-        if (!((element & mask) === 0)) {
-            array[left] = array[i];
-            left++;
-        } else {
-            aux[right] = array[i];
-            right++;
-        }
-    }
-    arrayCopy(aux, 0, array, left, right);
-    return left;
-}
-
 function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux, mapper) {
     let count = Array(dRange).fill(0);
     for (let i = start; i < endP1; i++) {
@@ -133,13 +100,3 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRan
 }
 
 
-function calculateMaskInt(array, start, endP1, mapper) {
-    let mask = 0x00000000;
-    let inv_mask = 0x00000000;
-    for (let i = start; i < endP1; i++) {
-        let ei = mapper(array[i]);
-        mask = mask | ei;
-        inv_mask = inv_mask | (~ei);
-    }
-    return mask & inv_mask;
-}
