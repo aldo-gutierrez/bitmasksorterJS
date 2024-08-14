@@ -1,6 +1,6 @@
 import {arrayCopy, getMaskAsArray, getSections} from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
-import {validatePCountSortRange, getKeySN} from "./p-count-bit-sorter-int.js";
+import {getKeySN, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
 
 export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
@@ -13,6 +13,7 @@ export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListS
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1, mapper));
         bListStart = 0;
     }
+    let N = endP1 - start
     let bListNew = bList.slice(bListStart);
     let sections = getSections(bListNew, 32);
     if (sections.length === 1) {
@@ -23,45 +24,89 @@ export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListS
             let elementSample = mapper(array[start]);
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
-                pCountSortPositive(array, mapper, start, endP1, 1 << section.bits);
+                const range = 1 << section.bits;
+                if (range >= N) {
+                    pCountSortPositiveV2(array, mapper, start, endP1, range);
+                } else {
+                    pCountSortPositiveV1(array, mapper, start, endP1, range);
+                }
             } else { //last bits but there is a mask for a bigger number
-                pCountSortEndingMask(array, mapper, start, endP1, mask);
+                const range = mask + 1;
+                if (range >= N) {
+                    pCountSortEndingMaskV2(array, mapper, start, endP1, mask);
+                } else {
+                    pCountSortEndingMaskV1(array, mapper, start, endP1, mask);
+                }
             }
         } else {
-            pCountSortSection(array, mapper, start, endP1, section);
+            let range = 1 << section.bits;
+            if (range >= N) {
+                pCountSortSectionV2(array, mapper, start, endP1, section);
+            } else {
+                pCountSortSectionV1(array, mapper, start, endP1, section);
+            }
         }
     } else if (sections.length > 1) {
-        pCountSortSections(array, mapper, start, endP1, sections);
+        const range = 1 << getBits(sections);
+        if (range >= N) {
+            pCountSortSectionsV2(array, mapper, start, endP1, sections);
+        } else {
+            pCountSortSectionsV1(array, mapper, start, endP1, sections);
+        }
     }
 }
 
-function pCountSortPositive(array, mapper, start, endP1, range) {
+function pCountSortPositiveV1(array, mapper, start, endP1, range) {
     validatePCountSortRange(range);
-    let count = new Array(range)
+    const count = new Array(range)
     for (let i = 0; i < range; i++) {
         count[i] = [];
     }
     for (let i = start; i < endP1; i++) {
-        count[mapper(array[i])].push(array[i]);
+        const element = array[i];
+        count[mapper(element)].push(element);
     }
     let i = start;
     let j = 0;
     for (; j < count.length; j++) {
         let countJ = count[j];
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
+        if (countJ.length > 0) {
+            arrayCopy(countJ, 0, array, i, countJ.length);
+            i += countJ.length;
+        }
     }
 }
 
-function pCountSortEndingMask(array, mapper, start, endP1, mask) {
-    let range = mask + 1;
+function pCountSortPositiveV2(array, mapper, start, endP1, range) {
+    validatePCountSortRange(range);
+    const count = new Array(range);
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const key = mapper(element);
+        let aux = count[key];
+        if (!aux) {
+            aux = []
+            count[key] = aux;
+        }
+        aux.push(element);
+    }
+    let i = start;
+    count.forEach((countJ, j) => {
+        arrayCopy(countJ, 0, array, i, countJ.length);
+        i += countJ.length;
+    })
+}
+
+function pCountSortEndingMaskV1(array, mapper, start, endP1, mask) {
+    const range = mask + 1;
     validatePCountSortRange(range)
-    let count = new Array(range)
+    const count = new Array(range)
     for (let i = 0; i < range; i++) {
         count[i] = [];
     }
     for (let i = start; i < endP1; i++) {
-        count[mapper(array[i]) & mask].push(array[i]);
+        const element = array[i];
+        count[mapper(element) & mask].push(element);
     }
     let i = start;
     let j = 0;
@@ -72,48 +117,119 @@ function pCountSortEndingMask(array, mapper, start, endP1, mask) {
     }
 }
 
-function pCountSortSection(array, mapper, start, endP1, section) {
-    let range = 1 << section.bits;
+function pCountSortEndingMaskV2(array, mapper, start, endP1, mask) {
+    const range = mask + 1;
+    validatePCountSortRange(range);
+    const count = new Array(range);
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const key = mapper(element) & mask;
+        let aux = count[key];
+        if (!aux) {
+            aux = []
+            count[key] = aux;
+        }
+        aux.push(element);
+    }
+    let i = start;
+    count.forEach((countJ, j) => {
+        arrayCopy(countJ, 0, array, i, countJ.length);
+        i += countJ.length;
+    })
+}
+
+function pCountSortSectionV1(array, mapper, start, endP1, section) {
+    const range = 1 << section.bits;
     validatePCountSortRange(range)
-    let count = new Array(range)
+    const count = new Array(range)
     for (let i = 0; i < range; i++) {
         count[i] = [];
     }
     for (let i = start; i < endP1; i++) {
-        count[(mapper(array[i]) & mask) >> section.shift].push(array[i]);
+        const element = array[i];
+        count[(mapper(element) & section.mask) >> section.shift].push(element);
     }
     let i = start;
     let j = 0;
     for (; j < count.length; j++) {
         let countJ = count[j];
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
+        if (countJ.length > 0) {
+            arrayCopy(countJ, 0, array, i, countJ.length);
+            i += countJ.length;
+        }
     }
 }
 
-function pCountSortSections(array, mapper, start, endP1, sections) {
+function pCountSortSectionV2(array, mapper, start, endP1, section) {
+    const range = 1 << section.bits;
+    validatePCountSortRange(range);
+    const count = new Array(range);
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const key = (mapper(element) & section.mask) >> section.shift;
+        let aux = count[key];
+        if (!aux) {
+            aux = []
+            count[key] = aux;
+        }
+        aux.push(element);
+    }
+    let i = start;
+    count.forEach((countJ, j) => {
+        arrayCopy(countJ, 0, array, i, countJ.length);
+        i += countJ.length;
+    })
+}
+
+function pCountSortSectionsV1(array, mapper, start, endP1, sections) {
+    const range = 1 << getBits(sections);
+    validatePCountSortRange(range)
+    const count = new Array(range)
+    for (let i = 0; i < range; i++) {
+        count[i] = [];
+    }
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const key = getKeySN(mapper(element), sections);
+        count[key].push(element);
+    }
+    let i = start;
+    let j = 0;
+    for (; j < count.length; j++) {
+        let countJ = count[j];
+        if (countJ.length > 0) {
+            arrayCopy(countJ, 0, array, i, countJ.length);
+            i += countJ.length;
+        }
+    }
+}
+
+function pCountSortSectionsV2(array, mapper, start, endP1, sections) {
+    const range = 1 << getBits(sections);
+    validatePCountSortRange(range)
+    const count = new Array(range);
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const key = getKeySN(mapper(element), sections);
+        let aux = count[key];
+        if (!aux) {
+            aux = []
+            count[key] = aux;
+        }
+        aux.push(element);
+    }
+    let i = start;
+    count.forEach((countJ, j) => {
+        arrayCopy(countJ, 0, array, i, countJ.length);
+        i += countJ.length;
+    })
+}
+
+function getBits(sections) {
     let bits = 0;
     for (let s = 0; s < sections.length; s++) {
         let section = sections[s];
         bits += section.bits;
     }
-    let range = 1 << bits;
-    validatePCountSortRange(range)
-    let count = new Array(range)
-    for (let i = 0; i < range; i++) {
-        count[i] = [];
-    }
-    for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        let key = getKeySN(mapper(element), sections);
-        count[key].push(element);
-    }
-    let i = start;
-    let j = 0;
-    for (; j <= count.length; j++) {
-        let countJ = count[j];
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    }
+    return bits;
 }
-
