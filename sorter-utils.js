@@ -18,7 +18,7 @@ export function reverse(array, start, endP1) {
     }
 }
 
-export function calculateCount(asc, count, countLength) {
+export function calculateSumOffsets(asc, count, countLength) {
     if (asc) {
         for (let i = 0, sum = 0; i < countLength; ++i) {
             let c = count[i];
