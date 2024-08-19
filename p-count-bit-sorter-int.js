@@ -180,12 +180,7 @@ function pCountSortSection(array, start, endP1, section) {
 }
 
 function pCountSortSections(array, start, endP1, sections) {
-    let bits = 0;
-    for (let s = 0; s < sections.length; s++) {
-        let section = sections[s];
-        bits += section.bits;
-    }
-    let range = 1 << bits;
+    let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     let count = new Array(range).fill(0);
     let number = new Array(range);
@@ -218,12 +213,7 @@ function pCountSortSections(array, start, endP1, sections) {
  * Maybe this could be useful when n is short compared to range, Maybe not as better algorithms are available
  */
 function pCountSortSectionsSparse(array, start, endP1, sections) {
-    let bits = 0;
-    for (let s = 0; s < sections.length; s++) {
-        let section = sections[s];
-        bits += section.bits;
-    }
-    let range = 1 << bits;
+    let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     let count = [];
     let number = [];
@@ -257,6 +247,14 @@ export function getKeySN(element, sections) {
     return result;
 }
 
+export function getSectionsBits(sections) {
+    let bits = 0;
+    for (let s = 0; s < sections.length; s++) {
+        let section = sections[s];
+        bits += section.bits;
+    }
+    return bits;
+}
 
 export function validatePCountSortRange(range) {
     if (range > (1 << 24)) {

@@ -1,5 +1,5 @@
 import {
-    arrayCopy, calculateCount, getSections,
+    arrayCopy, calculateSumOffsets, getSections,
 } from "./sorter-utils.js";
 import {calculateMaskNumber, getMaskAsArrayNumber} from "./sorter-utils-number.js";
 
@@ -163,7 +163,7 @@ function partitionStableLastBitsNumber(asc, arrayI32, arrayF64, arrayObj, start,
     for (let i = start; i < endP1; ++i) {
         count[arrayI32[i * 2 + elementIndex] & mask]++;
     }
-    calculateCount(asc, count, dRange);
+    calculateSumOffsets(asc, count, dRange);
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
         let elementObj = arrayObj[i];
@@ -182,7 +182,7 @@ function partitionStableGroupBitsNumber(asc, arrayI32, arrayF64, arrayObj, start
     for (let i = start; i < endP1; ++i) {
         count[(arrayI32[i * 2 + elementIndex] & mask) >>> shiftRight]++;
     }
-    calculateCount(asc, count, dRange);
+    calculateSumOffsets(asc, count, dRange);
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
         let elementObj = arrayObj[i];

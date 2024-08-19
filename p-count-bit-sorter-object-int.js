@@ -1,6 +1,6 @@
 import {arrayCopy, getMaskAsArray, getSections} from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
-import {getKeySN, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
+import {getKeySN, getSectionsBits, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
 
 export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
@@ -47,7 +47,7 @@ export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListS
             }
         }
     } else if (sections.length > 1) {
-        const range = 1 << getBits(sections);
+        const range = 1 << getSectionsBits(sections);
         if (range >= N) {
             pCountSortSectionsV2(array, mapper, start, endP1, sections);
         } else {
@@ -182,7 +182,7 @@ function pCountSortSectionV2(array, mapper, start, endP1, section) {
 }
 
 function pCountSortSectionsV1(array, mapper, start, endP1, sections) {
-    const range = 1 << getBits(sections);
+    const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range)
     const count = new Array(range)
     for (let i = 0; i < range; i++) {
@@ -205,7 +205,7 @@ function pCountSortSectionsV1(array, mapper, start, endP1, sections) {
 }
 
 function pCountSortSectionsV2(array, mapper, start, endP1, sections) {
-    const range = 1 << getBits(sections);
+    const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range)
     const count = new Array(range);
     for (let i = start; i < endP1; i++) {
@@ -223,13 +223,4 @@ function pCountSortSectionsV2(array, mapper, start, endP1, sections) {
         arrayCopy(countJ, 0, array, i, countJ.length);
         i += countJ.length;
     })
-}
-
-function getBits(sections) {
-    let bits = 0;
-    for (let s = 0; s < sections.length; s++) {
-        let section = sections[s];
-        bits += section.bits;
-    }
-    return bits;
 }

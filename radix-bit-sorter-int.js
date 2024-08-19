@@ -1,4 +1,4 @@
-import {arrayCopy, calculateCount, getSections} from "./sorter-utils.js";
+import {arrayCopy, calculateSumOffsets, getSections} from "./sorter-utils.js";
 import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
 import {getMaskAsArray} from "./sorter-utils.js";
 
@@ -74,7 +74,7 @@ function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux) {
     for (let i = start; i < endP1; i++) {
         count[array[i] & mask]++;
     }
-    calculateCount(true, count, dRange);
+    calculateSumOffsets(true, count, dRange);
     for (let i = start; i < endP1; i++) {
         let element = array[i];
         aux[count[element & mask]++] = element;
@@ -87,7 +87,7 @@ function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRan
     for (let i = start; i < endP1; i++) {
         count[(array[i] & mask) >> shiftRight]++;
     }
-    calculateCount(true, count, dRange);
+    calculateSumOffsets(true, count, dRange);
     for (let i = start; i < endP1; i++) {
         let element = array[i];
         aux[count[(element & mask) >> shiftRight]++] = element;
