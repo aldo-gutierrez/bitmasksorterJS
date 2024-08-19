@@ -1,7 +1,7 @@
 import {calculateSumOffsets, getMaskAsArray, getSections, swap} from "./sorter-utils.js";
 import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
 
-export function flagBitSorterInt(array, start, endP1) {
+export function aFlagBitSorterInt(array, start, endP1) {
     if (!start) {
         start = 0;
     }
@@ -37,23 +37,23 @@ export function flagBitSorterInt(array, start, endP1) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            flagSortInt(array, start, finalLeft, bList);
+            aFlagSortInt(array, start, finalLeft, bList);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            flagSortInt(array, finalLeft, endP1, bList);
+            aFlagSortInt(array, finalLeft, endP1, bList);
         }
     } else {
-        flagSortInt(array, start, endP1, bList);
+        aFlagSortInt(array, start, endP1, bList);
     }
 }
 
-function flagSortInt(array, start, endP1, bList) {
+function aFlagSortInt(array, start, endP1, bList) {
     let sections = getSections(bList, 12);
-    flagSortIntAux(array, start, endP1, sections, sections.length - 1);
+    aFlagSortIntAux(array, start, endP1, sections, sections.length - 1);
 }
 
-function flagSortIntAux(array, start, endP1, sections, sectionIndex) {
+function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
     let section = sections[sectionIndex];
     let bits = section.bits;
     let shift = section.shift;
@@ -84,7 +84,7 @@ function flagSortIntAux(array, start, endP1, sections, sectionIndex) {
             let start2 = offsets[i];
             let end2 = i + 1 < offsets.length ? offsets[i + 1] : endP1;
             if (end2 - start2 > 1) {
-                flagSortIntAux(array, start2, end2, sections, sectionIndex - 1);
+                aFlagSortIntAux(array, start2, end2, sections, sectionIndex - 1);
             }
         }
     }
