@@ -3,7 +3,11 @@ import {
     getMaskAsArray,
     getSections
 } from "./sorter-utils.js";
-import {partitionReverseStableInt, partitionStableInt, calculateMaskInt} from "./sorter-utils-object-int.js";
+import {
+    partitionReverseStableInt,
+    partitionStableInt,
+    calculateMaskInt,
+} from "./sorter-utils-object-int.js";
 
 export function radixBitSorterObjectInt(array, mapper, start, endP1) {
     if (!start) {
