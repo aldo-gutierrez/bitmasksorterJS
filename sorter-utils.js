@@ -18,43 +18,36 @@ export function reverse(array, start, endP1) {
     }
 }
 
-export function partitionReverseNotStableUpperBit(array, start, endP1) {
-    let left = start;
-    let right = endP1 - 1;
-
-    while (left <= right) {
-        let element = array[left];
-        if (element >= 0) {
-            while (left <= right) {
-                element = array[right];
-                if (element >= 0) {
-                    right--;
-                } else {
-                    swap(array, left, right);
-                    left++;
-                    right--;
-                    break;
-                }
-            }
-        } else {
-            left++;
+export function calculateSumOffsets(asc, count, countLength) {
+    if (asc) {
+        for (let i = 0, sum = 0; i < countLength; ++i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
+        }
+    } else {
+        for (let i = countLength - 1, sum = 0; i >= 0; --i) {
+            let c = count[i];
+            count[i] = sum;
+            sum += c;
         }
     }
-    return left;
 }
 
-//11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual core CPUs
+//11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual-core CPUs
 const MAX_BITS_RADIX_SORT = 11;
 
 function reverseListGet(bList, index) {
     return bList[bList.length - 1 - index];
 }
 
-export function getSections(bList) {
+export function getSections(bList, maxBitsDigit) {
     if (!bList || bList.length === 0) {
         return [];
     }
-    let maxBitsDigit = MAX_BITS_RADIX_SORT;
+    if (!maxBitsDigit) {
+        maxBitsDigit = MAX_BITS_RADIX_SORT;
+    }
     let sections = [];
     let b = 0;
     let shift = reverseListGet(bList, b);
@@ -65,13 +58,15 @@ export function getSections(bList) {
         if (bitIndex <= shift + maxBitsDigit - 1) {
             bits = (bitIndex - shift + 1);
         } else {
-            sections.push([bits, shift, shift + bits - 1]);
+            let start = shift + bits - 1;
+            sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
             shift = bitIndex;
             bits = 1;
         }
         b++;
     }
-    sections.push([bits, shift, shift + bits - 1]);
+    let start = shift + bits - 1
+    sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
     return sections;
 }
 
@@ -89,3 +84,11 @@ export function getMaskRangeBits(bStart, bEnd) {
     return ((1 << bStart + 1 - bEnd) - 1) << bEnd;
 }
 
+export function getMaskLastBits(bList, bListStart) {
+    let mask = 0;
+    for (let i = bListStart; i < bList.length; i++) {
+        let bIndex = bList[i];
+        mask = mask | 1 << bIndex;
+    }
+    return mask;
+}

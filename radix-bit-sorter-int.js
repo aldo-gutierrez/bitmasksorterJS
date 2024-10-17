@@ -1,92 +1,8 @@
-import {arrayCopy, getSections, getMaskRangeBits} from "./sorter-utils.js";
-import {partitionReverseNotStableUpperBit} from "./sorter-utils.js";
+import {arrayCopy, calculateSumOffsets, getSections} from "./sorter-utils.js";
+import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
 import {getMaskAsArray} from "./sorter-utils.js";
 
-function calculateMaskInt(array, start, endP1) {
-    let mask = 0x00000000;
-    let inv_mask = 0x00000000;
-    for (let i = start; i < endP1; i++) {
-        let ei = array[i];
-        mask = mask | ei;
-        inv_mask = inv_mask | (~ei);
-    }
-    return mask & inv_mask;
-}
-
-
-function partitionStableInt(array, start, endP1, mask, aux) {
-    let left = start;
-    let right = 0;
-    for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        if ((element & mask) === 0) {
-            array[left] = element;
-            left++;
-        } else {
-            aux[right] = element;
-            right++;
-        }
-    }
-    arrayCopy(aux, 0, array, left, right);
-    return left;
-}
-
-function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux) {
-    let count = Array(dRange).fill(0);
-    for (let i = start; i < endP1; i++) {
-        count[array[i] & mask]++;
-    }
-    for (let i = 0, sum = 0; i < dRange; i++) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
-    }
-    for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        aux[count[element & mask]++] = element;
-    }
-    arrayCopy(aux, 0, array, start, endP1 - start);
-}
-
-function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRange, aux) {
-    let count = Array(dRange).fill(0);
-    for (let i = start; i < endP1; i++) {
-        count[(array[i] & mask) >> shiftRight]++;
-    }
-    for (let i = 0, sum = 0; i < dRange; i++) {
-        let c = count[i];
-        count[i] = sum;
-        sum += c;
-    }
-    for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        aux[count[(element & mask) >> shiftRight]++] = element;
-    }
-    arrayCopy(aux, 0, array, start, endP1 - start);
-}
-
-function radixSortInt(array, start, end, bList, aux) {
-    let sections = getSections(bList);
-    for (let index = 0; index < sections.length; index++) {
-        let res = sections[index];
-        let bits = res[0];
-        let shift = res[1];
-        let bStart = res[2];
-        let mask = getMaskRangeBits(bStart, shift);
-        if (bits === 1) {
-            partitionStableInt(array, start, end, mask, aux);
-        } else {
-            let dRange = 1 << bits;
-            if (shift === 0) {
-                partitionStableLastBitsInt(array, start, end, mask, dRange, aux);
-            } else {
-                partitionStableGroupBitsInt(array, start, end, mask, shift, dRange, aux);
-            }
-        }
-    }
-}
-
-export function sortInt(array, start, endP1) {
+export function radixBitSorterInt(array, start, endP1) {
     if (!start) {
         start = 0;
     }
@@ -132,5 +48,69 @@ export function sortInt(array, start, endP1) {
     } else {
         let aux = Array(endP1 - start);
         radixSortInt(array, start, endP1, bList, aux);
+    }
+}
+
+
+function partitionStableInt(array, start, endP1, mask, aux) {
+    let left = start;
+    let right = 0;
+    for (let i = start; i < endP1; i++) {
+        let element = array[i];
+        if ((element & mask) === 0) {
+            array[left] = element;
+            left++;
+        } else {
+            aux[right] = element;
+            right++;
+        }
+    }
+    arrayCopy(aux, 0, array, left, right);
+    return left;
+}
+
+function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux) {
+    let count = Array(dRange).fill(0);
+    for (let i = start; i < endP1; i++) {
+        count[array[i] & mask]++;
+    }
+    calculateSumOffsets(true, count, dRange);
+    for (let i = start; i < endP1; i++) {
+        let element = array[i];
+        aux[count[element & mask]++] = element;
+    }
+    arrayCopy(aux, 0, array, start, endP1 - start);
+}
+
+function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRange, aux) {
+    let count = Array(dRange).fill(0);
+    for (let i = start; i < endP1; i++) {
+        count[(array[i] & mask) >> shiftRight]++;
+    }
+    calculateSumOffsets(true, count, dRange);
+    for (let i = start; i < endP1; i++) {
+        let element = array[i];
+        aux[count[(element & mask) >> shiftRight]++] = element;
+    }
+    arrayCopy(aux, 0, array, start, endP1 - start);
+}
+
+function radixSortInt(array, start, end, bList, aux) {
+    let sections = getSections(bList);
+    for (let index = 0; index < sections.length; index++) {
+        let section = sections[index];
+        let bits = section.bits;
+        let shift = section.shift;
+        let mask = section.mask;
+        if (bits === 1) {
+            partitionStableInt(array, start, end, mask, aux);
+        } else {
+            let dRange = 1 << bits;
+            if (shift === 0) {
+                partitionStableLastBitsInt(array, start, end, mask, dRange, aux);
+            } else {
+                partitionStableGroupBitsInt(array, start, end, mask, shift, dRange, aux);
+            }
+        }
     }
 }

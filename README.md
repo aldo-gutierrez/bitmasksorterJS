@@ -4,7 +4,7 @@ The first implemented algorithms is a Radix Sort utilizing a BitMask to minimize
 
 This Radix sort can be from 4x to 16x times faster than standard Javascript sort
 
-The following code demonstrates the calculation of the BitMask of a 32 bit number:
+The following code demonstrates the calculation of the BitMask of a 32-bit number:
 
 ```javascript
     function calculateMaskInt(array, start, endP1) {
@@ -88,16 +88,16 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                274 |
-| RadixBitIntSorter       |                 20 |
-| RadixBitNumberSorter    |                 39 |
+| Javascript sort         |                270 |
+| RadixBitIntSorter       |                 21 | 
+| RadixBitNumberSorter    |                 42 |
 
 ### Comparison for sorting 1 million integer elements ranging from 0 to 1000.
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                223 |
-| RadixBitIntSorter       |                 12 |
+| Javascript sort         |                224 |
+| RadixBitIntSorter       |                 11 |
 | RadixBitNumberSorter    |                 30 |
 
 
@@ -105,8 +105,8 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm               | avg. CPU time [ms] |
 |-------------------------|-------------------:|
-| Javascript sort         |                277 |
-| RadixBitIntSorter       |                 30 |
+| Javascript sort         |                267 |
+| RadixBitIntSorter       |                 29 |
 | RadixBitNumberSorter    |                 51 |
 
 
@@ -114,9 +114,9 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 
 | Algorithm            | avg. CPU time [ms] |
 |----------------------|-------------------:|
-| Javascript sort      |              13647 |
-| RadixBitIntSorter    |              11008 |
-| RadixBitNumberSorter |              11892 |
+| Javascript sort      |              13569 |
+| RadixBitIntSorter    |              11123 |
+| RadixBitNumberSorter |               4539 |
 
 ## Speed Floating Point Numbers
 
@@ -205,9 +205,9 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 - [X] Test object sorting stability
 - [ ] Try WebAssembly
 - [ ] Try SIMD
-- [ ] Try QuickSort with Bitmask
+- [X] Try QuickSort with Bitmask
 - [X] Implement Pigeonhole sort
-- [ ] Integrate Pigeonhole sort with Bitmask
+- [X] Integrate Pigeonhole sort with Bitmask
 - [ ] Implement Bucket sort
 - [ ] Optimization for small lists (like in java version)
 - [ ] Support asc, desc options
