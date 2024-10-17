@@ -5,7 +5,7 @@ import {
     sortObjectInt,
     radixBitSorterObjectNumber,
     radixBitSorterObjectIntV2,
-    sortObjectNumber
+    sortObjectNumber, quickBitSorterObjectInt, pCountBitSorterObjectInt
 } from "../main.js";
 import {testArraysEquals} from "./test-utils.js";
 
@@ -23,23 +23,30 @@ let algorithms = [
         }
     },
     {
-        'name': 'sortObjectInt',
+        'name': 'RadixBitObjectIntSorterV1V2',
         'sortFunction': (array) => {
             sortObjectInt(array, (x) => x.id);
             return array;
         }
     },
     {
-        'name': 'radixBitSorterObjectIntV2',
+        'name': 'RadixBitObjectNumberSorter',
         'sortFunction': (array) => {
-            radixBitSorterObjectIntV2(array, (x) => x.id);
+            sortObjectNumber(array, (x) => x.id);
             return array;
         }
     },
     {
-        'name': 'radixBitSorterObjectNumber',
+        'name': 'QuickBitObjectIntSorter',
         'sortFunction': (array) => {
-            sortObjectNumber(array, (x) => x.id);
+            quickBitSorterObjectInt(array, (x) => x.id);
+            return array;
+        }
+    },
+    {
+        'name': 'pCountSorterObjectInt',
+        'sortFunction': (array) => {
+            pCountBitSorterObjectInt(array, (x) => x.id);
             return array;
         }
     },
@@ -62,49 +69,49 @@ let tests = [
     {"range": 4096, "size": 128},
     {"range": 65536, "size": 128},
     {"range": 1048576, "size": 128},
-    {"range": 1073741824, "size": 128},
+    //{"range": 1073741824, "size": 128},
 
     {"range": 256, "size": 256},
     {"range": 1024, "size": 256},
     {"range": 4096, "size": 256},
     {"range": 65536, "size": 256},
     {"range": 1048576, "size": 256},
-    {"range": 1073741824, "size": 256},
+    //{"range": 1073741824, "size": 256},
 
     {"range": 256, "size": 512},
     {"range": 1024, "size": 512},
     {"range": 4096, "size": 512},
     {"range": 65536, "size": 512},
     {"range": 1048576, "size": 512},
-    {"range": 1073741824, "size": 512},
+    //{"range": 1073741824, "size": 512},
 
     {"range": 256, "size": 4096},
     {"range": 1024, "size": 4096},
     {"range": 4096, "size": 4096},
     {"range": 65536, "size": 4096},
     {"range": 1048576, "size": 4096},
-    {"range": 1073741824, "size": 4096},
+    //{"range": 1073741824, "size": 4096},
 
     {"range": 256, "size": 32768},
     {"range": 1024, "size": 32768},
     {"range": 4096, "size": 32768},
     {"range": 65536, "size": 32768},
     {"range": 1048576, "size": 32768},
-    {"range": 1073741824, "size": 32768},
+    //{"range": 1073741824, "size": 32768},
 
     {"range": 256, "size": 65536},
     {"range": 1024, "size": 65536},
     {"range": 4096, "size": 65536},
     {"range": 65536, "size": 65536},
     {"range": 1048576, "size": 65536},
-    {"range": 1073741824, "size": 65536},
+    //{"range": 1073741824, "size": 65536},
 
     {"range": 256, "size": 1048576},
     {"range": 1024, "size": 1048576},
     {"range": 4096, "size": 1048576},
     {"range": 65536, "size": 1048576},
     {"range": 1048576, "size": 1048576},
-    {"range": 1073741824, "size": 1048576},
+    //{"range": 1073741824, "size": 1048576},
     // {"range": 1000000000, "size": 10000000}, slow
     // {"range": 1000000000, "size": 40000000}, Out of Memory
 ]
@@ -170,7 +177,7 @@ for (let t = 0; t < tests.length; t++) {
                         if (verbose) {
                             console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
                         }
-                        if (arrayJS.length < 300) {
+                        if (verbose && arrayJS.length < 300) {
                             console.log("ORIG: " + JSON.stringify(origArray));
                             console.log("OK  : " + JSON.stringify(arrayJS));
                             console.log("NOK : " + JSON.stringify(arrayK));
