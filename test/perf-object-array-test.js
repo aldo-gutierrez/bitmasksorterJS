@@ -5,7 +5,7 @@ import {
     sortObjectInt,
     radixBitSorterObjectNumber,
     radixBitSorterObjectIntV2,
-    sortObjectNumber
+    sortObjectNumber, quickBitSorterObjectInt
 } from "../main.js";
 import {testArraysEquals} from "./test-utils.js";
 
@@ -40,6 +40,13 @@ let algorithms = [
         'name': 'radixBitSorterObjectNumber',
         'sortFunction': (array) => {
             sortObjectNumber(array, (x) => x.id);
+            return array;
+        }
+    },
+    {
+        'name': 'quickBitSorterObjectInt',
+        'sortFunction': (array) => {
+            quickBitSorterObjectInt(array, (x) => x.id);
             return array;
         }
     },
@@ -170,7 +177,7 @@ for (let t = 0; t < tests.length; t++) {
                         if (verbose) {
                             console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
                         }
-                        if (arrayJS.length < 300) {
+                        if (verbose && arrayJS.length < 300) {
                             console.log("ORIG: " + JSON.stringify(origArray));
                             console.log("OK  : " + JSON.stringify(arrayJS));
                             console.log("NOK : " + JSON.stringify(arrayK));
@@ -193,7 +200,11 @@ for (let t = 0; t < tests.length; t++) {
         console.log(`AVG Times for test: ${generator.name}`);
         for (let a = 0; a < algorithms.length; a++) {
             let algorithm = algorithms[a];
-            console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            if (algorithm.totalElapsed >0) {
+                console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            } else {
+                console.log(`${algorithm.name.padEnd(28)} with errors.`);
+            }
         }
     }
 }
