@@ -1,6 +1,12 @@
 // import {arrayCopy, sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
 //import {sort} from 'fast-sort';
-import {arrayCopy, sortObjectInt, sortObjectNumber} from "../main.js";
+import {
+    arrayCopy,
+    sortObjectInt,
+    radixBitSorterObjectNumber,
+    radixBitSorterObjectIntV2,
+    sortObjectNumber
+} from "../main.js";
 
 console.log("Comparing Sorters\n");
 
@@ -42,10 +48,55 @@ let algorithms = [
 let verbose = false;
 
 let tests = [
-    {"range": 1000, "size": 5000},
-    {"range": 1000, "size": 1000000},
-    {"range": 1000000, "size": 1000000},
-    {"range": 1000000000, "size": 1000000},
+
+    {"range": 256, "size": 128},
+    {"range": 1024, "size": 128},
+    {"range": 4096, "size": 128},
+    {"range": 65536, "size": 128},
+    {"range": 1048576, "size": 128},
+    {"range": 1073741824, "size": 128},
+
+    {"range": 256, "size": 256},
+    {"range": 1024, "size": 256},
+    {"range": 4096, "size": 256},
+    {"range": 65536, "size": 256},
+    {"range": 1048576, "size": 256},
+    {"range": 1073741824, "size": 256},
+
+    {"range": 256, "size": 512},
+    {"range": 1024, "size": 512},
+    {"range": 4096, "size": 512},
+    {"range": 65536, "size": 512},
+    {"range": 1048576, "size": 512},
+    {"range": 1073741824, "size": 512},
+
+    {"range": 256, "size": 4096},
+    {"range": 1024, "size": 4096},
+    {"range": 4096, "size": 4096},
+    {"range": 65536, "size": 4096},
+    {"range": 1048576, "size": 4096},
+    {"range": 1073741824, "size": 4096},
+
+    {"range": 256, "size": 32768},
+    {"range": 1024, "size": 32768},
+    {"range": 4096, "size": 32768},
+    {"range": 65536, "size": 32768},
+    {"range": 1048576, "size": 32768},
+    {"range": 1073741824, "size": 32768},
+
+    {"range": 256, "size": 65536},
+    {"range": 1024, "size": 65536},
+    {"range": 4096, "size": 65536},
+    {"range": 65536, "size": 65536},
+    {"range": 1048576, "size": 65536},
+    {"range": 1073741824, "size": 65536},
+
+    {"range": 256, "size": 1048576},
+    {"range": 1024, "size": 1048576},
+    {"range": 4096, "size": 1048576},
+    {"range": 65536, "size": 1048576},
+    {"range": 1048576, "size": 1048576},
+    {"range": 1073741824, "size": 1048576},
     // {"range": 1000000000, "size": 10000000}, slow
     // {"range": 1000000000, "size": 40000000}, Out of Memeory
 ]
@@ -70,10 +121,10 @@ for (let t = 0; t < tests.length; t++) {
             "name": `Negative/Positive Integer Numbers, range:${range}, size: ${size}`,
             "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2))
         },
-        {
-            "name": `Negative/Positive Floating Point Numbers, range:${range}, size: ${size}`,
-            "genFunction": () => Array.from({length: size}, () => Math.random() * range - range / 2)
-        }
+        // {
+        //     "name": `Negative/Positive Floating Point Numbers, range:${range}, size: ${size}`,
+        //     "genFunction": () => Array.from({length: size}, () => Math.random() * range - range / 2)
+        // }
     ]
 
     for (let g = 0; g < generators.length; g++) {
