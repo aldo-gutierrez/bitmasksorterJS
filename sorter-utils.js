@@ -18,6 +18,52 @@ export function reverse(array, start, endP1) {
     }
 }
 
+export function rotateLeft(array, start, endP1, d) {
+    let n = endP1 - start;
+    d = d % n;
+    if (d === 0) {
+        return;
+    }
+    if (n - d < d) {
+        rotateRight(array, start, endP1, n - d);
+        return;
+    }
+    if (d === 1) {
+        let aux = array[start];
+        for (let i = start + 1; i < endP1; i++) {
+            array[i - 1] = array[i];
+        }
+        array[endP1 - 1] = aux;
+    } else {
+        reverse(array, start, start + d);
+        reverse(array, start + d, endP1);
+        reverse(array, start, endP1);
+    }
+}
+
+export function rotateRight(array, start, endP1, d) {
+    let n = endP1 - start;
+    d = d % n;
+    if (d === 0) {
+        return;
+    }
+    if (n - d < d) {
+        rotateLeft(array, start, endP1, n - d);
+        return;
+    }
+    if (d === 1) {
+        let aux = array[endP1 - 1];
+        for (let i = endP1 - 1; i > start; i--) {
+            array[i] = array[i - 1];
+        }
+        array[start] = aux;
+    } else {
+        reverse(array, start, endP1);
+        reverse(array, start, start + d);
+        reverse(array, start + d, endP1);
+    }
+}
+
 export function calculateSumOffsets(asc, count, countLength) {
     if (asc) {
         for (let i = 0, sum = 0; i < countLength; ++i) {
