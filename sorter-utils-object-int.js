@@ -80,22 +80,27 @@ export function calculateMaskInt(array, start, endP1, mapper) {
     return mask & inv_mask;
 }
 
+const BUFFER_SIZE = 2;
+
 export function partitionStableLowMemInt(array, start, endP1, mask, mapper) {
     ///Skip what is already sorted
     let i = start;
-    while ((mapper(array[i]) & mask) === 0 && i < endP1) {
+    while (i < endP1 && (mapper(array[i]) & mask) === 0) {
         i++;
     }
     start = i;
     i = endP1 - 1;
-    while (!((mapper(array[i]) & mask) === 0) && i > start) {
+    while (i > start && !((mapper(array[i]) & mask) === 0)) {
         i--;
     }
     endP1 = i + 1;
+    
+    if (endP1 - start < 2) {
+        return start;
+    }
 
     ///Create Buffer >=1
-    let bufferSize = 1;
-    let aux = new Array(bufferSize);
+    let aux = new Array(BUFFER_SIZE);
 
     ///Stable Partition with Buffer
     generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
@@ -120,19 +125,22 @@ export function partitionStableLowMemInt(array, start, endP1, mask, mapper) {
 export function partitionReverseStableLowMemInt(array, start, endP1, mask, mapper) {
     ///Skip what is already sorted
     let i = start;
-    while (!((mapper(array[i]) & mask) === 0) && i < endP1) {
+    while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
         i++;
     }
     start = i;
     i = endP1 - 1;
-    while (((mapper(array[i]) & mask) === 0) && i > start) {
+    while (i > start && ((mapper(array[i]) & mask) === 0)) {
         i--;
     }
     endP1 = i + 1;
 
+    if (endP1 - start < 2) {
+        return start;
+    }
+    
     ///Create Buffer >=1
-    let bufferSize = 1;
-    let aux = new Array(bufferSize);
+    let aux = new Array(BUFFER_SIZE);
 
     ///Stable Partition with Buffer
     generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
