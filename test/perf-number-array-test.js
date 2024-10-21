@@ -43,8 +43,8 @@ let algorithms = [
     {
         'name': 'pCountSortInt',
         'sortFunction': (array) => {
-           pCountSortInt(array);
-           return array
+            pCountSortInt(array);
+            return array
         }
     },
     {
@@ -123,7 +123,7 @@ for (let t = 0; t < tests.length; t++) {
                             console.log("OK  : " + JSON.stringify(arrayJS));
                             console.log("NOK : " + JSON.stringify(arrayK));
                         }
-                    }); 
+                    });
                 }
                 if (equal) {
                     if (verbose) {
@@ -142,7 +142,11 @@ for (let t = 0; t < tests.length; t++) {
         console.log(`AVG Times for test: ${generator.name}`);
         for (let a = 0; a < algorithms.length; a++) {
             let algorithm = algorithms[a];
-            console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            if (algorithm.totalElapsed > 0) {
+                console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            } else {
+                console.log(`${algorithm.name.padEnd(28)} with errors.`);
+            }
         }
     }
 }
