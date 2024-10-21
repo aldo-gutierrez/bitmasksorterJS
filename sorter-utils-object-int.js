@@ -97,6 +97,10 @@ export function partitionStableLowMemInt(array, start, endP1, mask, mapper, aux)
         return start;
     }
     
+    if (!aux) {
+        aux = Array(1);
+    }
+    
     ///Stable Partition with Buffer
     generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
 
@@ -133,9 +137,13 @@ export function partitionReverseStableLowMemInt(array, start, endP1, mask, mappe
     if (endP1 - start < 2) {
         return start;
     }
+
+    if (!aux) {
+        aux = Array(1);
+    }
     
     ///Stable Partition with Buffer
-    generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
+    generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, false);
 
     ///Test first element
     i = start;
