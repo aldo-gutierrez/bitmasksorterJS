@@ -3,7 +3,7 @@
 // import {arrayCopy} from "@aldogg/sorter";
 //import {pgCountSortInt} from "@aldogg/sorter";
 
-import {arrayCopy, pCountSortInt, quickBitSorterInt, sortInt, sortNumber} from "../main.js";
+import {arrayCopy, pCountBitSorterInt, quickBitSorterInt, sortInt, sortNumber} from "../main.js";
 import {testArraysEquals} from "./test-utils.js";
 
 console.log("Comparing Sorters\n");
@@ -41,16 +41,23 @@ let algorithms = [
         }
     },
     {
-        'name': 'pCountSortInt',
+        'name': 'pCountBitSorterInt',
         'sortFunction': (array) => {
-            pCountSortInt(array);
-            return array
+           pCountBitSorterInt(array);
+           return array
         }
     },
     {
         'name': 'Float64Array.sort',
         'sortFunction': (array) => {
             return new Float64Array(array).sort();
+        }
+    },
+   {
+        'name': 'aFlagBitSorterInt',
+        'sortFunction': (array) => {
+            aFlagBitSorterInt(array);
+            return array
         }
     },
 ]
@@ -118,12 +125,12 @@ for (let t = 0; t < tests.length; t++) {
                         if (verbose) {
                             console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
                         }
-                        if (arrayJS.length < 300) {
+                        if (verbose && arrayJS.length < 300) {
                             console.log("ORIG: " + JSON.stringify(origArray));
                             console.log("OK  : " + JSON.stringify(arrayJS));
                             console.log("NOK : " + JSON.stringify(arrayK));
                         }
-                    });
+                    }); 
                 }
                 if (equal) {
                     if (verbose) {

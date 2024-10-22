@@ -7,7 +7,7 @@ import {calculateMaskInt} from "./sorter-utils-int.js";
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
 
-export function pCountSortInt(array, start, endP1, bList, bListStart) {
+export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
     if (!start) {
         start = 0;
     }
@@ -51,7 +51,7 @@ export function pCountSortInt(array, start, endP1, bList, bListStart) {
 //  * when max-min (range > 2**25 is slower than javascript sorter)
 //  *    and when n (endP1-start) 2^17..2^20 (other ranges not tested yet)
 //  */
-export function pCountSortIntNoMask(array, start, endP1, min, max) {
+export function pCountNoMaskSorterInt(array, start, endP1, min, max) {
     if (!start) {
         start = 0;
     }

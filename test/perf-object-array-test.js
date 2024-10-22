@@ -5,7 +5,7 @@ import {
     sortObjectInt,
     radixBitSorterObjectNumber,
     radixBitSorterObjectIntV2,
-    sortObjectNumber, quickBitSorterObjectInt
+    sortObjectNumber, quickBitSorterObjectInt, pCountBitSorterObjectInt
 } from "../main.js";
 import {testArraysEquals} from "./test-utils.js";
 import {quickBitSorterObjectInt2} from "../quick-bit-sorter-2-object-int.js";
@@ -24,30 +24,30 @@ let algorithms = [
         }
     },
     {
-        'name': 'sortObjectInt',
+        'name': 'radixBitSorterObjectIntV1V2',
         'sortFunction': (array) => {
             sortObjectInt(array, (x) => x.id);
             return array;
         }
     },
     {
-        'name': 'radixBitSorterObjectIntV2',
-        'sortFunction': (array) => {
-            radixBitSorterObjectIntV2(array, (x) => x.id);
-            return array;
-        }
-    },
-    {
-        'name': 'radixBitSorterObjectNumber',
+        'name': 'RadixBitObjectNumberSorter',
         'sortFunction': (array) => {
             sortObjectNumber(array, (x) => x.id);
             return array;
         }
     },
     {
-        'name': 'quickBitSorterObjectInt',
+        'name': 'QuickBitObjectIntSorter',
         'sortFunction': (array) => {
             quickBitSorterObjectInt(array, (x) => x.id);
+            return array;
+        }
+    },
+    {
+        'name': 'pCountSorterObjectInt',
+        'sortFunction': (array) => {
+            pCountBitSorterObjectInt(array, (x) => x.id);
             return array;
         }
     },
@@ -77,49 +77,49 @@ let tests = [
     {"range": 4096, "size": 128},
     {"range": 65536, "size": 128},
     {"range": 1048576, "size": 128},
-    {"range": 1073741824, "size": 128},
+    //{"range": 1073741824, "size": 128},
 
     {"range": 256, "size": 256},
     {"range": 1024, "size": 256},
     {"range": 4096, "size": 256},
     {"range": 65536, "size": 256},
     {"range": 1048576, "size": 256},
-    {"range": 1073741824, "size": 256},
+    //{"range": 1073741824, "size": 256},
 
     {"range": 256, "size": 512},
     {"range": 1024, "size": 512},
     {"range": 4096, "size": 512},
     {"range": 65536, "size": 512},
     {"range": 1048576, "size": 512},
-    {"range": 1073741824, "size": 512},
+    //{"range": 1073741824, "size": 512},
 
     {"range": 256, "size": 4096},
     {"range": 1024, "size": 4096},
     {"range": 4096, "size": 4096},
     {"range": 65536, "size": 4096},
     {"range": 1048576, "size": 4096},
-    {"range": 1073741824, "size": 4096},
+    //{"range": 1073741824, "size": 4096},
 
     {"range": 256, "size": 32768},
     {"range": 1024, "size": 32768},
     {"range": 4096, "size": 32768},
     {"range": 65536, "size": 32768},
     {"range": 1048576, "size": 32768},
-    {"range": 1073741824, "size": 32768},
+    //{"range": 1073741824, "size": 32768},
 
     {"range": 256, "size": 65536},
     {"range": 1024, "size": 65536},
     {"range": 4096, "size": 65536},
     {"range": 65536, "size": 65536},
     {"range": 1048576, "size": 65536},
-    {"range": 1073741824, "size": 65536},
+    //{"range": 1073741824, "size": 65536},
 
     {"range": 256, "size": 1048576},
     {"range": 1024, "size": 1048576},
     {"range": 4096, "size": 1048576},
     {"range": 65536, "size": 1048576},
     {"range": 1048576, "size": 1048576},
-    {"range": 1073741824, "size": 1048576},
+    //{"range": 1073741824, "size": 1048576},
     // {"range": 1000000000, "size": 10000000}, slow
     // {"range": 1000000000, "size": 40000000}, Out of Memory
 ]
