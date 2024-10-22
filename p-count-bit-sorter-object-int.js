@@ -2,7 +2,7 @@ import {arrayCopy, getMaskAsArray, getSections} from "./sorter-utils.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
 import {getKeySN, getSectionsBits, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
 
-export function pCountSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
+export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
         start = 0;
     }
