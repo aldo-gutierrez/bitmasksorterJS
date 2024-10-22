@@ -80,23 +80,27 @@ export function calculateMaskInt(array, start, endP1, mapper) {
     return mask & inv_mask;
 }
 
-export function partitionStableLowMemInt(array, start, endP1, mask, mapper) {
+export function partitionStableLowMemInt(array, start, endP1, mask, mapper, aux) {
     ///Skip what is already sorted
     let i = start;
-    while ((mapper(array[i]) & mask) === 0 && i < endP1) {
+    while (i < endP1 && (mapper(array[i]) & mask) === 0) {
         i++;
     }
     start = i;
     i = endP1 - 1;
-    while (!((mapper(array[i]) & mask) === 0) && i > start) {
+    while (i > start && !((mapper(array[i]) & mask) === 0)) {
         i--;
     }
     endP1 = i + 1;
-
-    ///Create Buffer >=1
-    let bufferSize = 1;
-    let aux = new Array(bufferSize);
-
+    
+    if (endP1 - start < 2) {
+        return start;
+    }
+    
+    if (!aux) {
+        aux = Array(1);
+    }
+    
     ///Stable Partition with Buffer
     generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
 
@@ -117,25 +121,29 @@ export function partitionStableLowMemInt(array, start, endP1, mask, mapper) {
     }
 }
 
-export function partitionReverseStableLowMemInt(array, start, endP1, mask, mapper) {
+export function partitionReverseStableLowMemInt(array, start, endP1, mask, mapper, aux) {
     ///Skip what is already sorted
     let i = start;
-    while (!((mapper(array[i]) & mask) === 0) && i < endP1) {
+    while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
         i++;
     }
     start = i;
     i = endP1 - 1;
-    while (((mapper(array[i]) & mask) === 0) && i > start) {
+    while (i > start && ((mapper(array[i]) & mask) === 0)) {
         i--;
     }
     endP1 = i + 1;
 
-    ///Create Buffer >=1
-    let bufferSize = 1;
-    let aux = new Array(bufferSize);
+    if (endP1 - start < 2) {
+        return start;
+    }
 
+    if (!aux) {
+        aux = Array(1);
+    }
+    
     ///Stable Partition with Buffer
-    generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, true);
+    generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, false);
 
     ///Test first element
     i = start;
@@ -157,44 +165,53 @@ export function partitionReverseStableLowMemInt(array, start, endP1, mask, mappe
 
 function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, whiteBefore) {
     //generate black/white or white/black blocks with aux buffer
+    
     let bufferSize = aux.length;
     let i = start;
+    let res;
     for (; i < endP1;) {
         let white = 0;
         let black = 0;
-        //maybe by 4 instead of by 2
         let j = i;
         for (; j < endP1; j++) {
             if ((mapper(array[j]) & mask) === 0) {
                 white++;
+                if (Math.min(black, white) > bufferSize) {
+                    white --;
+                    break;
+                }
             } else {
                 black++;
-            }
-            if (Math.min(black, white) > bufferSize) {
-                break;
+                if (Math.min(black, white) > bufferSize) {
+                    black --;
+                    break;
+                }
             }
         }
         let maxjP1 = j;
         if (white > black) {
             if (whiteBefore) {
                 //white - white - black -->
-                partitionStableInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionStableInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = false;
             } else {
                 //black  - black - white <--
-                partitionReverseStableBInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionReverseStableBInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = true;
             }
         } else {
             if (!whiteBefore) {
                 //black - black - white -->
-                partitionReverseStableInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionReverseStableInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = true;
             } else {
                 //white - white - black <--
-                partitionStableBInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionStableBInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = false;
             }
+        }
+        if (i === start && maxjP1 === endP1) {
+            return res;
         }
         i = maxjP1;
     }
@@ -218,6 +235,7 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
     //WBW
 
     i = start;
+    let rounds = 0;
     let nshifts = 0;
     while (i < endP1) {
         let white = (mapper(array[i]) & mask) === 0;
@@ -244,14 +262,20 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             }
             let white2End = i;
             if (white2End - white2Start === 0) {
-                if (nshifts === 0) {
+                if (nshifts === 0) { //TODO  CHECK <=1 this works but the other don't
                     break;
                 }
             }
             rotateRight(array, blackStart, white2End, white2End - white2Start);
+            
             //swap black with white2; 
             nshifts++;
+            
             if (white2End === endP1) {
+                rounds++;
+                if (white1Start === start) {
+                    break;
+                }
                 //start another round
                 i = start;
                 nshifts = 0;
@@ -261,12 +285,12 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
         } else {
             let black1Start = i;
             i = i + 1;
-            while (i < endP1 && (mapper(array[i]) & mask) === 0) {
+            while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
                 i++;
             }
             let black1EndP1 = i;
             let whiteStart = i;
-            while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
+            while (i < endP1 && (mapper(array[i]) & mask) === 0) {
                 i++;
             }
             let whiteEnd = i;
@@ -276,7 +300,7 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
                 }
             }
             let black2Start = i;
-            while (i < endP1 && (mapper(array[i]) & mask) === 0) {
+            while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
                 i++;
             }
             let black2End = i;
@@ -288,7 +312,12 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             rotateRight(array, whiteStart, black2End, black2End - black2Start);
             //swap black with white2;
             nshifts++;
+            
             if (black2End === endP1) {
+                rounds++;
+                if (black1Start === start) {
+                    break;
+                }
                 //start another round
                 i = start;
                 nshifts = 0;
@@ -297,5 +326,4 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             // WWWWWBBB
         }
     }
-    
 }

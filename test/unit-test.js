@@ -36,6 +36,11 @@ describe('Basic Function Test', function () {
             partitionStableLowMemInt(array, 0, array.length, 1, (x) => x);
             expected = [0, 0, 0, 0, 0, 0, 0, 0];
             testArraysEquals(expected, array, onError);
+
+            array = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1];
+            partitionStableLowMemInt(array, 0, array.length, 1, (x) => x);
+            expected = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1];
+            testArraysEquals(expected, array, onError);
         });
     });
     describe('partitionReverseStableLowMemInt', function () {
