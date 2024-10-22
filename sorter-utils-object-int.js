@@ -168,6 +168,7 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
     
     let bufferSize = aux.length;
     let i = start;
+    let res;
     for (; i < endP1;) {
         let white = 0;
         let black = 0;
@@ -191,23 +192,26 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
         if (white > black) {
             if (whiteBefore) {
                 //white - white - black -->
-                partitionStableInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionStableInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = false;
             } else {
                 //black  - black - white <--
-                partitionReverseStableBInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionReverseStableBInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = true;
             }
         } else {
             if (!whiteBefore) {
                 //black - black - white -->
-                partitionReverseStableInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionReverseStableInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = true;
             } else {
                 //white - white - black <--
-                partitionStableBInt(array, i, maxjP1, mask, aux, mapper);
+                res = partitionStableBInt(array, i, maxjP1, mask, aux, mapper);
                 whiteBefore = false;
             }
+        }
+        if (i === start && maxjP1 === endP1) {
+            return res;
         }
         i = maxjP1;
     }
@@ -321,8 +325,5 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             // WWBBBWWW
             // WWWWWBBB
         }
-    }
-    if (rounds > 20) {
-        console.log(rounds);
     }
 }
