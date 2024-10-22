@@ -149,7 +149,11 @@ for (let t = 0; t < tests.length; t++) {
         console.log(`AVG Times for test: ${generator.name}`);
         for (let a = 0; a < algorithms.length; a++) {
             let algorithm = algorithms[a];
-            console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            if (algorithm.totalElapsed > 0) {
+                console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            } else {
+                console.log(`${algorithm.name.padEnd(28)} with errors.`);
+            }
         }
     }
 }

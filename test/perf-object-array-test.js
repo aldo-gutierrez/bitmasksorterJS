@@ -8,6 +8,7 @@ import {
     sortObjectNumber, quickBitSorterObjectInt, pCountBitSorterObjectInt
 } from "../main.js";
 import {testArraysEquals} from "./test-utils.js";
+import {quickBitSorterObjectInt2} from "../quick-bit-sorter-2-object-int.js";
 
 console.log("Comparing Sorters\n");
 
@@ -23,7 +24,7 @@ let algorithms = [
         }
     },
     {
-        'name': 'RadixBitObjectIntSorterV1V2',
+        'name': 'radixBitSorterObjectIntV1V2',
         'sortFunction': (array) => {
             sortObjectInt(array, (x) => x.id);
             return array;
@@ -47,6 +48,13 @@ let algorithms = [
         'name': 'pCountSorterObjectInt',
         'sortFunction': (array) => {
             pCountBitSorterObjectInt(array, (x) => x.id);
+            return array;
+        }
+    },
+    {
+        'name': 'quickBitSorterObjectInt2',
+        'sortFunction': (array) => {
+            quickBitSorterObjectInt2(array, (x) => x.id);
             return array;
         }
     },
@@ -200,7 +208,11 @@ for (let t = 0; t < tests.length; t++) {
         console.log(`AVG Times for test: ${generator.name}`);
         for (let a = 0; a < algorithms.length; a++) {
             let algorithm = algorithms[a];
-            console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            if (algorithm.totalElapsed > 0) {
+                console.log(`${algorithm.name.padEnd(28)} time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+            } else {
+                console.log(`${algorithm.name.padEnd(28)} with errors.`);
+            }
         }
     }
 }
