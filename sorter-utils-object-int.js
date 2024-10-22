@@ -258,7 +258,7 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             }
             let white2End = i;
             if (white2End - white2Start === 0) {
-                if (nshifts === 0) {
+                if (nshifts === 0) { //TODO  CHECK <=1 this works but the other don't
                     break;
                 }
             }
@@ -266,11 +266,15 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             
             //swap black with white2; 
             nshifts++;
+            
             if (white2End === endP1) {
+                rounds++;
+                if (white1Start === start) {
+                    break;
+                }
                 //start another round
                 i = start;
                 nshifts = 0;
-                rounds++;
             }
             // WWBBBWWW
             // WWWWWBBB
@@ -304,11 +308,15 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             rotateRight(array, whiteStart, black2End, black2End - black2Start);
             //swap black with white2;
             nshifts++;
+            
             if (black2End === endP1) {
+                rounds++;
+                if (black1Start === start) {
+                    break;
+                }
                 //start another round
                 i = start;
                 nshifts = 0;
-                rounds++;
             }
             // WWBBBWWW
             // WWWWWBBB
