@@ -5,6 +5,7 @@ import {
     partitionReverseStableLowMemInt
 } from "./sorter-utils-object-int.js";
 import {getKeySN, getSectionsBits, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
+import {radixBitSorterObjectInt} from "./radix-bit-sorter-object-int.js";
 
 export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
@@ -38,7 +39,7 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
         return;
     }
 
-    const maxBitDigitsOnePass = 16;
+    const maxBitDigitsOnePass = 8;
     let sections = getSections(bListNew, maxBitDigitsOnePass);
 
     if (sections.length === 1) {
@@ -73,8 +74,8 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
         }
     } else if (sections.length > 1) {
         sections = getSections(bListNew, 8);
-        const range = 1 << getSectionsBits(sections);
-        if (range <= 1 << maxBitDigitsOnePass) {
+        let range = 1 << getSectionsBits(sections);
+        if (range <= (1 << maxBitDigitsOnePass)) {
             if (range >= N) {
                 pCountSortSectionsV2(array, mapper, start, endP1, sections);
             } else {
