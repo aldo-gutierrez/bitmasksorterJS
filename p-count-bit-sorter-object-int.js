@@ -19,6 +19,9 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
     }
     let N = endP1 - start
     let bListNew = bList.slice(bListStart);
+    if (bListNew.length === 0) {
+        return;
+    }
 
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
         let aux = Array(endP1 - start);
@@ -35,7 +38,9 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
         return;
     }
 
-    let sections = getSections(bListNew, 32);
+    const maxBitDigitsOnePass = 16;
+    let sections = getSections(bListNew, maxBitDigitsOnePass);
+
     if (sections.length === 1) {
         let section = sections[0];
         let shift = section.shift;
@@ -67,11 +72,30 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
             }
         }
     } else if (sections.length > 1) {
+        sections = getSections(bListNew, 8);
         const range = 1 << getSectionsBits(sections);
-        if (range >= N) {
-            pCountSortSectionsV2(array, mapper, start, endP1, sections);
+        if (range <= 1 << maxBitDigitsOnePass) {
+            if (range >= N) {
+                pCountSortSectionsV2(array, mapper, start, endP1, sections);
+            } else {
+                pCountSortSectionsV1(array, mapper, start, endP1, sections);
+            }
         } else {
-            pCountSortSectionsV1(array, mapper, start, endP1, sections);
+            let section = sections[sections.length - 1];
+            let range = 1 << section.bits;
+            if (range >= N) {
+                pCountSortSectionV2(array, mapper, start, endP1, section, (arrayX, mapperX, startX, endX) => {
+                    if (endX - startX > 1) {
+                        pCountBitSorterObjectInt(arrayX, mapperX, startX, endX);
+                    }
+                });
+            } else {
+                pCountSortSectionV1(array, mapper, start, endP1, section, (arrayX, mapperX, startX, endX) => {
+                    if (endX - startX > 1) {
+                        pCountBitSorterObjectInt(arrayX, mapperX, startX, endX);
+                    }
+                });
+            }
         }
     }
 }
@@ -158,7 +182,7 @@ function pCountSortEndingMaskV2(array, mapper, start, endP1, mask) {
     })
 }
 
-function pCountSortSectionV1(array, mapper, start, endP1, section) {
+function pCountSortSectionV1(array, mapper, start, endP1, section, f) {
     const range = 1 << section.bits;
     validatePCountSortRange(range)
     const count = new Array(range)
@@ -175,12 +199,15 @@ function pCountSortSectionV1(array, mapper, start, endP1, section) {
         let countJ = count[j];
         if (countJ.length > 0) {
             arrayCopy(countJ, 0, array, i, countJ.length);
+            if (f) {
+                f(array, mapper, i, i + countJ.length);
+            }
             i += countJ.length;
         }
     }
 }
 
-function pCountSortSectionV2(array, mapper, start, endP1, section) {
+function pCountSortSectionV2(array, mapper, start, endP1, section, f) {
     const range = 1 << section.bits;
     validatePCountSortRange(range);
     const count = new Array(range);
@@ -197,6 +224,9 @@ function pCountSortSectionV2(array, mapper, start, endP1, section) {
     let i = start;
     count.forEach((countJ, j) => {
         arrayCopy(countJ, 0, array, i, countJ.length);
+        if (f) {
+            f(array, mapper, i, i + countJ.length);
+        }
         i += countJ.length;
     })
 }
