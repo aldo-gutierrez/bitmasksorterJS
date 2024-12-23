@@ -1,8 +1,8 @@
-# BitMask Sorters in Java Script
-This project explores various sorting algorithms employing a BitMask approach.
-The first implemented algorithms is a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
+# BitMask Sorters in Java Script from 2x up to 20x times faster
 
-This Radix sort can be from 4x to 16x times faster than standard Javascript sort
+[Repository] (https://github.com/aldo-gutierrez/bitmasksorterJS)
+
+This project explores various sorting algorithms employing a BitMask optimization approach.
 
 The following code demonstrates the calculation of the BitMask of a 32-bit number:
 
@@ -19,7 +19,8 @@ The following code demonstrates the calculation of the BitMask of a 32-bit numbe
     }
 ```
 JavaScript Numbers are stored as double-precision floating-point numbers, adhering to the international IEEE 754 standard.
-so for numbers out of the integer range -2^31 ... 2^31 -1 and also for floating point numbers two mask are extracted for the lower 32 bits and upper 32 bits 
+In JavaScript bit operations are performed on 32-bit numbers.
+So we need to handle two masks one for the lower 32 bits and one for the upper 32 bits 
 
 For further details, refer to the initial Java implementation
 [Java Version and Documentation] (https://github.com/aldo-gutierrez/bitmasksorter)
@@ -28,53 +29,56 @@ For further details, refer to the initial Java implementation
 
 sortInt() executes the radix sort in an array of numbers that are integers in the range -2^31 ... 2^31 -1. Unstable sort
 
-sortNumber() executes the radix sort in an array of numbers that contains integer and floating point numbers. Unstable sort
+sortNumber() executes the radix sort in an array of numbers. Unstable sort
 
 sortObjectInt() executes the radix sort in an array of objects with number keys that are integers in the range -2^31 ... 2^31 -1. Stable sort
 
-sortObjectNumber() executes the radix sort in an array of objects with number keys that contains integer and floating point numbers. Stable sort
+sortObjectNumber() executes the radix sort in an array of objects with number keys. Stable sort
 
 ## Usage
 
 ### For sorting array of numbers
 
+This methods automatically use the best algorithm depending on the size of the array and the range of the array
+
 ```javascript
 import {sortInt} from "@aldogg/sorter";
 import {sortNumber} from "@aldogg/sorter";
 
-// sortInt can sort negative and positive integer numbers in the range -2^31 ... 2^31-1 ONLY
+// sortInt can sort negative and positive integer numbers in the range -2^31 ... 2^31-1
 // array can be: a normal array, Int8Array, Int16Array, Int32Array(), Uint8Array(), Uint16Array()
 //    limited support for all integers in the range  -2^31 ... 2^31-1 for Float32Array, Float64Array, Uint32Array
-//    No support for BintInt64 or BigInt64Array();
+//    No support for BigInt64 or BigInt64Array();
 sortInt(array);
 
-//sortNumber can sort negative and positive decimal numbers in the range supported by a Float64 IIEE 754
-// arrayF can be a normal array, Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint16Array, Uint32Array;
-//   No support for BintInt64 or BigInt64Array();
-
-sortNumber(arrayF)
+//sortNumber can sort negative and positive IIEE 754 64 bit numbers
+// array can be a normal array, Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint16Array, Uint32Array;
+//   No support for BigInt64 or BigInt64Array();
+sortNumber(array)
 
 ```
 ### For sorting array of objects
 
+This methods automatically use the best algorithm depending on the size of the array and the range of the array
+
 ```javascript
 import {sortObjectInt, sortObjectNumber} from "@aldogg/sorter";
 
-//sortObjectInt can sort objects with negative and positive integer fields in the range -2^31 ... 2^31-1 ONLY
-
+//sortObjectInt can sort objects with negative and positive integer keys in the range -2^31 ... 2^31-1 ONLY
 sortObjectInt(orig, (x) => x.id);
 
-//sortObjectNumber can sort objects with negative and positive decimal fields in the range of IEEE 754
-
+//sortObjectNumber can sort objects with IEEE 754 number keys
 sortObjectNumber(orig2, (x) => x.id);
 
 ```
 
 ## RadixBitSorter:
 
-RadixBitSorter is the implementation of a Radix Sort utilizing a BitMask to minimize the number of Count Sort iterations required.
+RadixBitSorter is a Radix Sort that utilizes a BitMask to minimize the number of Count Sort iterations required.
+This modified Radix sort can be from 2x to 20x times faster than standard Javascript sort
 
 RadixBitSorter is an LSD Radix Sorter. 
+
 The number of bits per iteration has been increased to 11, departing from the standard 8.
 For a dual-core machine or lower, it is recommended to use 8 bits.
 
@@ -206,11 +210,12 @@ Environment: AMD Ryzen 7 4800H processor, node v16.13.2
 - [ ] Try WebAssembly
 - [ ] Try SIMD
 - [X] Try QuickSort with Bitmask
-- [X] Implement Pigeonhole sort
 - [X] Integrate Pigeonhole sort with Bitmask
-- [ ] Implement Bucket sort
+- [X] Implement Bucket sort with Bitmask
 - [ ] Optimization for small lists (like in java version)
 - [ ] Support asc, desc options
-- [ ] Implement Ska Sort
+- [X] Implement American Flag Sort with Bitmask
 - [ ] Implement Ska Sort with BitMask
 - [ ] Implement String sorting
+- [ ] Create Better tests
+- [ ] Full Code Coverage
