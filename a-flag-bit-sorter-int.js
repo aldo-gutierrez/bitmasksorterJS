@@ -49,7 +49,7 @@ export function aFlagBitSorterInt(array, start, endP1) {
 }
 
 function aFlagSortInt(array, start, endP1, bList) {
-    let sections = getSections(bList, 12);
+    let sections = getSections(bList, 4);
     aFlagSortIntAux(array, start, endP1, sections, sections.length - 1);
 }
 
@@ -80,11 +80,12 @@ function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
         nextFree[elementHash]++;
     }
     if (sectionIndex > 0) {
+        let N = endP1 - start;
         for (let i = 0; i < offsets.length; i++) {
             let start2 = offsets[i];
-            let end2 = i + 1 < offsets.length ? offsets[i + 1] : endP1;
+            let end2 = i + 1 < offsets.length ? offsets[i + 1] : N;
             if (end2 - start2 > 1) {
-                aFlagSortIntAux(array, start2, end2, sections, sectionIndex - 1);
+                aFlagSortIntAux(array, start2 + start, end2 + start, sections, sectionIndex - 1);
             }
         }
     }

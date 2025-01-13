@@ -2,7 +2,7 @@ import {
     getMaskAsArray,
     getSections,
 } from "./sorter-utils.js";
-import {calculateMaskInt} from "./sorter-utils-int.js";
+import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
 
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
@@ -18,7 +18,22 @@ export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1));
         bListStart = 0;
     }
+    let N = endP1 - start
     let bListNew = bList.slice(bListStart);
+
+    if (bListNew[0] === 31) { //there are negative numbers and positive numbers
+        let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1,);
+        let n1 = finalLeft - start;
+        let n2 = endP1 - finalLeft;
+        if (n1 > 1) { //sort negative numbers
+            pCountBitSorterInt(array, start, finalLeft);
+        }
+        if (n2 > 1) { //sort positive numbers
+            pCountBitSorterInt(array, finalLeft, endP1);
+        }
+        return;
+    }
+    
     let sections = getSections(bListNew, 32);
     if (sections.length === 1) {
         let section = sections[0];

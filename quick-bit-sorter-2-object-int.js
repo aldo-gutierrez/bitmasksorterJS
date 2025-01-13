@@ -2,14 +2,15 @@ import {
     getMaskAsArray,
 } from "./sorter-utils.js";
 import {
-    partitionReverseStableInt,
-    partitionStableInt,
     calculateMaskInt,
     partitionStableLowMemInt, partitionReverseStableLowMemInt
 } from "./sorter-utils-object-int.js";
 
-
-export function quickBitSorterObjectInt2(array, mapper, start, endP1) {
+/**
+ * No extra memory or limited size extra memory Quick Bit Sort
+ *   No optimization for small n and small range implemented yet
+ */
+export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }
