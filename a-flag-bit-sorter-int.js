@@ -1,11 +1,11 @@
-import {calculateSumOffsets, getMaskAsArray, getSections, swap} from "./sorter-utils.js";
-import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
+import { calculateSumOffsets, getMaskAsArray, getSections, swap } from "./sorter-utils.js";
+import { calculateMaskInt, partitionReverseNotStableUpperBit } from "./sorter-utils-int.js";
 
 export function aFlagBitSorterInt(array, start, endP1) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
@@ -58,17 +58,17 @@ function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
     let bits = section.bits;
     let shift = section.shift;
     let mask = section.mask;
-    let dRange = 1 << bits;
-    let nextFree = Array(dRange).fill(0);
+    let range = 1 << bits;
+    let nextFree = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         nextFree[(array[i] & mask) >> shift]++;
     }
-    calculateSumOffsets(true, nextFree, dRange);
+    calculateSumOffsets(true, nextFree, range);
     let offsets = nextFree.slice();
     let curBlock = 0;
-    while (curBlock < dRange) {
+    while (curBlock < range) {
         let i = nextFree[curBlock] + start;
-        if (i >= endP1 || ((curBlock + 1 < dRange) && i >= offsets[curBlock + 1] + start)) {
+        if (i >= endP1 || ((curBlock + 1 < range) && i >= offsets[curBlock + 1] + start)) {
             curBlock = curBlock + 1;
             continue;
         }

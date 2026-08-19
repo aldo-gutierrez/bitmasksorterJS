@@ -1,23 +1,26 @@
 import {
-    arrayCopy, calculateSumOffsets,
+    arrayCopy, arrayCopyTypedArray, calculateSumOffsets,
     getSections,
     reverse
 } from "./sorter-utils.js";
-import {calculateMaskNumber, getMaskAsArrayNumber} from "./sorter-utils-number.js";
-import {partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
+import {
+    calculateMaskNumber,
+    getMaskAsArrayNumber,
+    partitionReverseF64NotStableUpperBit
+} from "./sorter-utils-number.js";
 
 export function radixBitSorterNumber(array, start, endP1) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let arrayFloat64 = array instanceof  Float64Array ? array : new Float64Array(array);
+    let arrayFloat64 = array instanceof Float64Array ? array : new Float64Array(array);
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
@@ -27,7 +30,7 @@ export function radixBitSorterNumber(array, start, endP1) {
         return;
     }
     if (bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseNotStableUpperBit(arrayFloat64, start, endP1);
+        let finalLeft = partitionReverseF64NotStableUpperBit(arrayFloat64, arrayInt32, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let bList1;
@@ -44,23 +47,23 @@ export function radixBitSorterNumber(array, start, endP1) {
                 n2 = 0;
             }
         }
-        let auxFloat64= new Float64Array(Math.max(n1, n2));
-        if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
+        let auxFloat64 = new Float64Array(Math.max(n1, n2));
+        if (n1 > 1) {
             radixSortNumber(arrayInt32, arrayFloat64, start, finalLeft, bList1, auxFloat64);
             reverse(arrayFloat64, start, finalLeft);
         }
-        if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
+        if (n2 > 1) {
             radixSortNumber(arrayInt32, arrayFloat64, finalLeft, endP1, bList2, auxFloat64);
         }
     } else {
-        let auxFloat64= new Float64Array(endP1 - start);
+        let auxFloat64 = new Float64Array(endP1 - start);
         radixSortNumber(arrayInt32, arrayFloat64, start, endP1, bList, auxFloat64);
         if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
             reverse(arrayFloat64, start, endP1);
         }
     }
 
-    arrayCopy(arrayFloat64, 0, array, start, endP1 - start);
+    arrayCopy(arrayFloat64, start, array, start, endP1 - start);
 }
 
 function partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64) {
@@ -76,16 +79,18 @@ function partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIn
             right++;
         }
     }
-    arrayCopy(auxF64, 0, arrayF64, left, right);
+    arrayCopyTypedArray(auxF64, 0, arrayF64, left, right);
     return left;
 }
 
-function partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, dRange, auxF64) {
-    let count = Array(dRange).fill(0);
+function partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, elementIndex, section, auxF64) {
+    const mask = section.mask;
+    const range = section.range;
+    const count = new Int32Array(range);
     for (let i = start; i < endP1; ++i) {
         count[arrayI32[i * 2 + elementIndex] & mask]++;
     }
-    calculateSumOffsets(true, count, dRange);
+    calculateSumOffsets(true, count, range);
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
         let elementShiftMasked = arrayI32[i * 2 + elementIndex] & mask;
@@ -93,23 +98,26 @@ function partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, e
         count[elementShiftMasked]++;
         auxF64[index] = element;
     }
-    arrayCopy(auxF64, 0, arrayF64, start, (endP1 - start));
+    arrayCopyTypedArray(auxF64, 0, arrayF64, start, (endP1 - start));
 }
 
-function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shiftRight, dRange, auxF64) {
-    let count = Array(dRange).fill(0);
+function partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, elementIndex, section, auxF64) {
+    const mask = section.mask;
+    const shift = section.shift;
+    const range = section.range;
+    const count = new Int32Array(range);
     for (let i = start; i < endP1; ++i) {
-        count[(arrayI32[i * 2 + elementIndex] & mask) >>> shiftRight]++;
+        count[(arrayI32[i * 2 + elementIndex] & mask) >>> shift]++;
     }
-    calculateSumOffsets(true, count, dRange);
+    calculateSumOffsets(true, count, range);
     for (let i = start; i < endP1; ++i) {
         let element = arrayF64[i];
-        let elementShiftMasked = (arrayI32[i * 2 + elementIndex] & mask) >>> shiftRight;
+        let elementShiftMasked = (arrayI32[i * 2 + elementIndex] & mask) >>> shift;
         let index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxF64[index] = element;
     }
-    arrayCopy(auxF64, 0, arrayF64, start, (endP1 - start));
+    arrayCopyTypedArray(auxF64, 0, arrayF64, start, (endP1 - start));
 }
 
 
@@ -124,11 +132,10 @@ function radixSortNumber(arrayI32, arrayF64, start, endP1, bList, auxF64) {
             if (bits === 1) {
                 partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64);
             } else {
-                let dRange = 1 << bits;
                 if (shift === 0) {
-                    partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, dRange, auxF64);
+                    partitionStableLastBitsNumber(arrayI32, arrayF64, start, endP1, elementIndex, section, auxF64);
                 } else {
-                    partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, shift, dRange, auxF64);
+                    partitionStableGroupBitsNumber(arrayI32, arrayF64, start, endP1, elementIndex, section, auxF64);
                 }
             }
         }

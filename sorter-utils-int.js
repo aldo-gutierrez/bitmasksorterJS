@@ -1,4 +1,4 @@
-import {swap} from "./sorter-utils.js";
+import { swap } from "./sorter-utils.js";
 
 export function calculateMaskInt(array, start, endP1) {
     let mask = 0x00000000;
