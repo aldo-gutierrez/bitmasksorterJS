@@ -2,7 +2,7 @@ import {
     getMaskAsArray,
     getSections,
 } from "./sorter-utils.js";
-import {calculateMaskInt, partitionReverseNotStableUpperBit} from "./sorter-utils-int.js";
+import { calculateMaskInt, partitionReverseNotStableUpperBit } from "./sorter-utils-int.js";
 
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
@@ -11,7 +11,7 @@ export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     if (!bList) {
@@ -33,7 +33,7 @@ export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
         }
         return;
     }
-    
+
     let sections = getSections(bListNew, 32);
     if (sections.length === 1) {
         let section = sections[0];
@@ -70,14 +70,14 @@ export function pCountNoMaskSorterInt(array, start, endP1, min, max) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
     if (n < 2) {
         return;
     }
-    if (!min || !max) {
+    if (min === undefined || max === undefined) {
         min = array[start];
         max = array[start];
         for (let i = start + 1; i < endP1; i++) {
@@ -96,7 +96,7 @@ export function pCountNoMaskSorterInt(array, start, endP1, min, max) {
         console.error("Pigeonhole Count sort only works on integers")
         return;
     }
-    let count = new Array(range).fill(0);
+    const count = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         count[array[i] - min]++
     }
@@ -119,13 +119,13 @@ export function pCountNoMaskSorterInt(array, start, endP1, min, max) {
 
 function pCountSortPositive(array, start, endP1, range) {
     validatePCountSortRange(range);
-    let count = new Array(range).fill(0);
+    const count = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         count[array[i]]++
     }
     let i = start;
     let j = 0;
-    for (; j <= count.length; j++) {
+    for (; j < count.length; j++) {
         let countJ = count[j];
         if (countJ > 0) {
             for (let c = 0; c < countJ; c++) {
@@ -142,14 +142,14 @@ function pCountSortPositive(array, start, endP1, range) {
 function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
     let range = mask + 1;
     validatePCountSortRange(range);
-    let count = new Array(range).fill(0);
+    const count = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         count[array[i] & mask]++
     }
 
     let i = start;
     let j = 0;
-    for (; j <= count.length; j++) {
+    for (; j < count.length; j++) {
         let countJ = count[j];
         if (countJ > 0) {
             let value = j | elementSample;
@@ -167,7 +167,7 @@ function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
 function pCountSortSection(array, start, endP1, section) {
     let range = 1 << section.bits;
     validatePCountSortRange(range);
-    let count = new Array(range).fill(0);
+    const count = new Int32Array(range);
     let number = new Array(range);
     let mask = section.mask;
     for (let i = start; i < endP1; i++) {
@@ -179,7 +179,7 @@ function pCountSortSection(array, start, endP1, section) {
 
     let i = start;
     let j = 0;
-    for (; j <= count.length; j++) {
+    for (; j < count.length; j++) {
         let countJ = count[j];
         if (countJ > 0) {
             let value = number[j];
@@ -197,7 +197,7 @@ function pCountSortSection(array, start, endP1, section) {
 function pCountSortSections(array, start, endP1, sections) {
     let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
-    let count = new Array(range).fill(0);
+    const count = new Int32Array(range);
     let number = new Array(range);
 
     for (let i = start; i < endP1; i++) {
@@ -209,7 +209,7 @@ function pCountSortSections(array, start, endP1, sections) {
 
     let i = start;
     let j = 0;
-    for (; j <= count.length; j++) {
+    for (; j < count.length; j++) {
         let countJ = count[j];
         if (countJ > 0) {
             let value = number[j];

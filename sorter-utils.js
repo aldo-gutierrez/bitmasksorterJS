@@ -3,6 +3,10 @@ export function arrayCopy(src, srcPos, dst, dstPos, length) {
     return dst;
 }
 
+export function arrayCopyTypedArray(src, srcPos, dst, dstPos, length) {
+    dst.set(src.subarray(srcPos, srcPos + length), dstPos);
+}
+
 export function swap(array, left, right) {
     let aux = array[left];
     array[left] = array[right];
@@ -105,14 +109,14 @@ export function getSections(bList, maxBitsDigit) {
             bits = (bitIndex - shift + 1);
         } else {
             let start = shift + bits - 1;
-            sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
+            sections.push({ bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift), range: (1 << bits) });
             shift = bitIndex;
             bits = 1;
         }
         b++;
     }
     let start = shift + bits - 1
-    sections.push({bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift)});
+    sections.push({ bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift), range: (1 << bits) });
     return sections;
 }
 
@@ -127,7 +131,9 @@ export function getMaskAsArray(mask) {
 }
 
 export function getMaskRangeBits(bStart, bEnd) {
-    return ((1 << bStart + 1 - bEnd) - 1) << bEnd;
+    let bits = bStart + 1 - bEnd;
+    if (bits >= 32) return -1;
+    return ((1 << bits) - 1) << bEnd;
 }
 
 export function getMaskLastBits(bList, bListStart) {

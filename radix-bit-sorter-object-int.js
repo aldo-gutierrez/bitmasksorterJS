@@ -13,7 +13,7 @@ export function radixBitSorterObjectInt(array, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
@@ -67,40 +67,46 @@ function radixSortInt(array, start, end, bList, aux, mapper) {
         if (bits === 1) {
             partitionStableInt(array, start, end, mask, aux, mapper);
         } else {
-            let dRange = 1 << bits;
             if (shift === 0) {
-                partitionStableLastBitsInt(array, start, end, mask, dRange, aux, mapper);
+                partitionStableLastBitsInt(array, start, end, section, aux, mapper);
             } else {
-                partitionStableGroupBitsInt(array, start, end, mask, shift, dRange, aux, mapper);
+                partitionStableGroupBitsInt(array, start, end, section, aux, mapper);
             }
         }
     }
 }
 
-function partitionStableLastBitsInt(array, start, endP1, mask, dRange, aux, mapper) {
-    let count = Array(dRange).fill(0);
+function partitionStableLastBitsInt(array, start, endP1, section, aux, mapper) {
+    const mask = section.mask;
+    const range = section.range;
+    const count = new Int32Array(range);
+    let n = endP1 - start;
     for (let i = start; i < endP1; i++) {
         count[mapper(array[i]) & mask]++;
     }
-    calculateSumOffsets(true, count, dRange);
+    calculateSumOffsets(true, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
         aux[count[element & mask]++] = array[i];
     }
-    arrayCopy(aux, 0, array, start, endP1 - start);
+    arrayCopy(aux, 0, array, start, n);
 }
 
-function partitionStableGroupBitsInt(array, start, endP1, mask, shiftRight, dRange, aux, mapper) {
-    let count = Array(dRange).fill(0);
+function partitionStableGroupBitsInt(array, start, endP1, section, aux, mapper) {
+    const mask = section.mask;
+    const shift = section.shift;
+    const range = section.range;
+    const count = new Int32Array(range);
+    let n = endP1 - start;
     for (let i = start; i < endP1; i++) {
-        count[(mapper(array[i]) & mask) >> shiftRight]++;
+        count[(mapper(array[i]) & mask) >> shift]++;
     }
-    calculateSumOffsets(true, count, dRange);
+    calculateSumOffsets(true, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
-        aux[count[(element & mask) >> shiftRight]++] = array[i];
+        aux[count[(element & mask) >> shift]++] = array[i];
     }
-    arrayCopy(aux, 0, array, start, endP1 - start);
+    arrayCopy(aux, 0, array, start, n);
 }
 
 

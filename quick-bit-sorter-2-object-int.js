@@ -14,7 +14,7 @@ export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
@@ -27,7 +27,7 @@ export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
         return;
     }
 
-    let aux = Array(256);
+    let aux = Array(Math.ceil(Math.log2(n) * Math.sqrt(n)));
     if (bList[0] === 31) { //there are negative numbers and positive numbers
         let finalLeft = partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
         let n1 = finalLeft - start;

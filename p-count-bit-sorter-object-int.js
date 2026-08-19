@@ -1,16 +1,16 @@
-import {arrayCopy, getMaskAsArray, getSections} from "./sorter-utils.js";
+import { arrayCopy, getMaskAsArray, getSections } from "./sorter-utils.js";
 import {
     calculateMaskInt,
     partitionReverseStableInt,
     partitionReverseStableLowMemInt
 } from "./sorter-utils-object-int.js";
-import {getKeySN, getSectionsBits, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
+import { getKeySN, getSectionsBits, validatePCountSortRange } from "./p-count-bit-sorter-int.js";
 
 export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bListStart) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     if (!bList) {
@@ -23,7 +23,7 @@ export function pCountBitSorterObjectInt(array, mapper, start, endP1, bList, bLi
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
         let aux = Array(endP1 - start);
         //let finalLeft =partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
-        let finalLeft =partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper);
+        let finalLeft = partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers

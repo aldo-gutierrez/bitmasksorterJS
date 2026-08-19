@@ -1,14 +1,14 @@
 import {
     getMaskAsArray,
 } from "./sorter-utils.js";
-import {partitionReverseStableInt, partitionStableInt, calculateMaskInt} from "./sorter-utils-object-int.js";
+import { partitionReverseStableInt, partitionStableInt, calculateMaskInt } from "./sorter-utils-object-int.js";
 
 
 export function quickBitSorterObjectInt(array, mapper, start, endP1) {
     if (!start) {
         start = 0;
     }
-    if (!endP1) {
+    if (endP1 === undefined) {
         endP1 = array.length;
     }
     let n = endP1 - start;
