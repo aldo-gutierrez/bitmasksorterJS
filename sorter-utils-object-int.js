@@ -69,15 +69,66 @@ export function partitionReverseStableBInt(array, start, endP1, mask, aux, mappe
 }
 
 
-export function calculateMaskInt(array, start, endP1, mapper) {
-    let mask = 0x00000000;
-    let inv_mask = 0x00000000;
-    for (let i = start; i < endP1; i++) {
-        let ei = mapper(array[i]);
-        mask = mask | ei;
-        inv_mask = inv_mask | (~ei);
+/**
+ * Optimized version of calculateMaskInt with early exit checks and loop unrolling.
+ */
+export function calculateMaskInt(array, start, endP1, mapper, exitMask) {
+    // Fallback for default parameter
+    if (exitMask === undefined) {
+        exitMask =  ~0;
     }
-    return mask & inv_mask;
+
+    let mask = 0;
+    let and_mask = ~0;
+
+    let i = start;
+    let length = endP1 - start;
+
+    // Unsigned right shift is vastly faster than Math.floor(length / 1024)
+    let numBlocks = length >>> 10;
+
+    // 1. Process in blocks of 1024
+    for (let b = 0; b < numBlocks; b++) {
+        let blockEnd = i + 1024;
+
+        // Inner loop: unrolled by 4 (executes 256 times per block)
+        for (; i < blockEnd; i += 4) {
+            const e1 = mapper(array[i]);
+            const e2 = mapper(array[i + 1]);
+            const e3 = mapper(array[i + 2]);
+            const e4 = mapper(array[i + 3]);
+
+            mask |= (e1 | e2) | (e3 | e4);
+            and_mask &= (e1 & e2) & (e3 & e4);
+        }
+
+        // Early exit check ONLY at the end of the 1024 block
+        if ((mask & exitMask) === exitMask && (and_mask & exitMask) === 0) {
+            //return exitMask;
+            return mask & ~and_mask;
+        }
+    }
+
+    // 2. Handle remaining elements (can still unroll by 4 for speed)
+    let remainEnd = endP1 - 4;
+    for (; i <= remainEnd; i += 4) {
+        const e1 = mapper(array[i]);
+        const e2 = mapper(array[i + 1]);
+        const e3 = mapper(array[i + 2]);
+        const e4 = mapper(array[i + 3]);
+
+        mask |= (e1 | e2) | (e3 | e4);
+        and_mask &= (e1 & e2) & (e3 & e4);
+    }
+
+    // 3. Final tail elements (0 to 3 elements left) - no early checks
+    for (; i < endP1; i++) {
+        const ei = mapper(array[i]);
+        mask |= ei;
+        and_mask &= ei;
+    }
+
+    return mask & ~and_mask;
 }
 
 export function partitionStableLowMemInt(array, start, endP1, mask, mapper, aux) {
