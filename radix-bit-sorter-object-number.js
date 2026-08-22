@@ -57,7 +57,7 @@ export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = calculateMaskNumber(arrayInt32, start, endP1, mapper);
+    let mask = calculateMaskNumber(arrayInt32, start, endP1);
     let bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;
