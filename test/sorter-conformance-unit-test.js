@@ -41,6 +41,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
         { name: 'mixed positive and negative numbers', data: [-5, 10, 0, -2, 3, -15, 8, 0, -1] },
         { name: 'powers of two', data: [64, 1, 32, 2, 16, 4, 8, 128] },
         { name: 'alternating values', data: [1, 0, 1, 0, 1, 0, 1, 0, 1] },
+        { name: 'high collision with partial duplicates', data: [3, 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2, 1, 3, 2, 1] },
         { name: 'small range with duplicates', data: [3, 1, 2, 3, 1, 2, 3, 1, 2] },
     ];
 
@@ -67,6 +68,73 @@ describe('General Sorter Conformance & Correctness Tests', function () {
                     });
                 }
 
+                it('should handle integer type-specific edge cases', function () {
+                    const vectors = [
+                        { name: 'zero values', data: [0, -1, 1], expected: [-1, 0, 1] },
+                        { name: 'multiple zeroes', data: [0, 0, 0], expected: [0, 0, 0] },
+                        { name: 'negative numbers only', data: [-5, -12, -1, -3], expected: [-12, -5, -3, -1] },
+                        { name: 'mixed positive and negative numbers', data: [-10, 5, 0, -2, 8], expected: [-10, -2, 0, 5, 8] },
+                        { name: 'boundary limits', data: [-2147483648, -1, 0, 1, 2147483647], expected: [-2147483648, -1, 0, 1, 2147483647] },
+                        { name: 'large sequential inputs', data: Array.from({ length: 1001 }, (_, idx) => 1000 + idx), expected: Array.from({ length: 1001 }, (_, idx) => 1000 + idx) },
+                    ];
+
+                    const supportedVectors = vectors.filter(vector => {
+                        if (vector.name === 'boundary limits' && /pCount/i.test(sorter.name)) {
+                            return false;
+                        }
+                        return true;
+                    });
+
+                    for (const vector of supportedVectors) {
+                        const actual = [...vector.data];
+                        sorter.fn(actual);
+                        assert.deepStrictEqual(actual, vector.expected, `Failed on ${vector.name}`);
+                    }
+                });
+
+                it('should sort even and odd length arrays correctly', function () {
+                    for (const size of [1, 2, 3, 4, 100, 101]) {
+                        const original = Array.from({ length: size }, (_, idx) => ((size - idx) * 7 + 3) % 19);
+                        const actual = [...original];
+                        const expected = [...original].sort((a, b) => a - b);
+                        sorter.fn(actual);
+                        assert.deepStrictEqual(actual, expected, `Failed on length ${size}`);
+                    }
+                });
+
+                it('should sort all supported sub-range parity patterns without disturbing outside elements', function () {
+                    const original = [99, 0, 8, 15, 3, 12, 20, 7, 2, 18, 4, 10, 1];
+                    const scenarios = [
+                        { name: 'even start / even end', start: 2, endP1: 6 },
+                        { name: 'even start / odd end', start: 2, endP1: 7 },
+                        { name: 'odd start / even end', start: 3, endP1: 8 },
+                        { name: 'odd start / odd end', start: 3, endP1: 7 },
+                        { name: 'odd-length window', start: 2, endP1: 5 },
+                        { name: 'even-length window', start: 3, endP1: 7 },
+                        { name: 'prefix range', start: 0, endP1: original.length - 1 },
+                        { name: 'suffix range', start: 2, endP1: original.length },
+                        { name: 'middle range', start: 2, endP1: original.length - 1 },
+                        { name: 'single element range', start: 5, endP1: 5 }
+                    ];
+
+                    for (const scenario of scenarios) {
+                        const actual = [...original];
+                        const expected = [...original];
+                        const slice = expected.slice(scenario.start, scenario.endP1).sort((a, b) => a - b);
+                        expected.splice(scenario.start, slice.length, ...slice);
+
+                        sorter.fn(actual, scenario.start, scenario.endP1);
+                        assert.deepStrictEqual(actual, expected, `Failed on ${scenario.name}`);
+                    }
+                });
+
+                it('should reject invalid range arguments with RangeError', function () {
+                    const arr = [5, 3, 1, 2, 4];
+                    assert.throws(() => sorter.fn(arr, 3, 1), { name: 'RangeError' });
+                    assert.throws(() => sorter.fn(arr, -1, 3), { name: 'RangeError' });
+                    assert.throws(() => sorter.fn(arr, 0, arr.length + 1), { name: 'RangeError' });
+                });
+
                 it('should correctly sort a subslice [2, 7) leaving other elements untouched', function () {
                     const original = [99, 88, 15, 3, 42, 8, 23, 77, 66];
                     const actual = [...original];
@@ -75,6 +143,13 @@ describe('General Sorter Conformance & Correctness Tests', function () {
 
                     sorter.fn(actual, 2, 7);
                     assert.deepStrictEqual(actual, expected);
+                });
+
+                it('should do nothing for an empty range [0, 0) without sorting the full array', function () {
+                    const original = [5, 4, 3, 2, 1];
+                    const actual = [...original];
+                    sorter.fn(actual, 0, 0);
+                    assert.deepStrictEqual(actual, original);
                 });
 
                 it('should sort pseudo-random integer arrays of various sizes', function () {
@@ -116,6 +191,89 @@ describe('General Sorter Conformance & Correctness Tests', function () {
                         assert.deepStrictEqual(actual, expected);
                     });
                 }
+
+                it('should handle float type-specific edge cases', function () {
+                    const vectors = [
+                        { name: 'epsilon precision differences', data: [0.0000001, 0.0000002], expected: [0.0000001, 0.0000002] },
+                        { name: 'negative floats and mixed signs', data: [-0.5, -0.001, 0.0, 0.5], expected: [-0.5, -0.001, 0, 0.5] },
+                        { name: 'signed zeros', data: [-0.0, 0.0, 1.5, -1.5], expected: [-1.5, -0, 0, 1.5] },
+                        { name: 'infinities', data: [-Infinity, 0.0, Infinity], expected: [-Infinity, 0, Infinity] },
+                        { name: 'NaN values', data: [NaN, 0.0, -1.5, 2.5], expected: [-1.5, 0, 2.5, NaN] },
+                        { name: 'subnormal values', data: [5e-324, 1e-323, 2e-323, 0, -5e-324], expected: [-5e-324, 0, 5e-324, 1e-323, 2e-323] },
+                        { name: 'orders of magnitude variance', data: [1e-30, 1e30, -1e30], expected: [-1e30, 1e-30, 1e30] },
+                    ];
+
+                    for (const vector of vectors) {
+                        const actual = [...vector.data];
+                        sorter.fn(actual);
+                        assert.deepStrictEqual(actual, vector.expected, `Failed on ${vector.name}`);
+                    }
+                });
+
+                it('should sort arrays with exactly one negative or one positive value', function () {
+                    const cases = [
+                        { data: [-5, 2, 8, 1, 4], expected: [-5, 1, 2, 4, 8] },
+                        { data: [5, 4, 3, 2, -1], expected: [-1, 2, 3, 4, 5] },
+                        { data: [-5, -4, -3, -2, 1], expected: [-5, -4, -3, -2, 1] },
+                        { data: [-1, 0, 1], expected: [-1, 0, 1] }
+                    ];
+
+                    for (const testCase of cases) {
+                        const actual = [...testCase.data];
+                        sorter.fn(actual);
+                        assert.deepStrictEqual(actual, testCase.expected, `Failed on ${JSON.stringify(testCase.data)}`);
+                    }
+                });
+
+                it('should do nothing for an empty range [0, 0) without sorting the full array', function () {
+                    const original = [5.5, 4.4, 3.3, 2.2, 1.1];
+                    const actual = [...original];
+                    sorter.fn(actual, 0, 0);
+                    assert.deepStrictEqual(actual, original);
+                });
+
+                it('should sort even and odd length arrays correctly', function () {
+                    for (const size of [1, 2, 3, 4, 100, 101]) {
+                        const original = Array.from({ length: size }, (_, idx) => ((size - idx) * 7 + 3) % 19);
+                        const actual = [...original];
+                        const expected = [...original].sort((a, b) => a - b);
+                        sorter.fn(actual);
+                        assert.deepStrictEqual(actual, expected, `Failed on length ${size}`);
+                    }
+                });
+
+                it('should sort all supported sub-range parity patterns without disturbing outside elements', function () {
+                    const original = [99, 0, 8, 15, 3, 12, 20, 7, 2, 18, 4, 10, 1];
+                    const scenarios = [
+                        { name: 'even start / even end', start: 2, endP1: 6 },
+                        { name: 'even start / odd end', start: 2, endP1: 7 },
+                        { name: 'odd start / even end', start: 3, endP1: 8 },
+                        { name: 'odd start / odd end', start: 3, endP1: 7 },
+                        { name: 'odd-length window', start: 2, endP1: 5 },
+                        { name: 'even-length window', start: 3, endP1: 7 },
+                        { name: 'prefix range', start: 0, endP1: original.length - 1 },
+                        { name: 'suffix range', start: 2, endP1: original.length },
+                        { name: 'middle range', start: 2, endP1: original.length - 1 },
+                        { name: 'single element range', start: 5, endP1: 5 }
+                    ];
+
+                    for (const scenario of scenarios) {
+                        const actual = [...original];
+                        const expected = [...original];
+                        const slice = expected.slice(scenario.start, scenario.endP1).sort((a, b) => a - b);
+                        expected.splice(scenario.start, slice.length, ...slice);
+
+                        sorter.fn(actual, scenario.start, scenario.endP1);
+                        assert.deepStrictEqual(actual, expected, `Failed on ${scenario.name}`);
+                    }
+                });
+
+                it('should reject invalid range arguments with RangeError', function () {
+                    const arr = [5, 3, 1, 2, 4];
+                    assert.throws(() => sorter.fn(arr, 3, 1), { name: 'RangeError' });
+                    assert.throws(() => sorter.fn(arr, -1, 3), { name: 'RangeError' });
+                    assert.throws(() => sorter.fn(arr, 0, arr.length + 1), { name: 'RangeError' });
+                });
 
                 it('should correctly sort a subslice [2, 6)', function () {
                     const original = [99.9, 88.8, 15.5, 3.2, 42.1, 8.7, 77.7];

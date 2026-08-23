@@ -1,14 +1,10 @@
-import { radixBitSorterObjectIntV2 } from "./radix-bit-sorter-object-int-v2.js";
+import {radixBitSorterObjectIntV2} from "./radix-bit-sorter-object-int-v2.js";
 import { radixBitSorterObjectInt } from "./radix-bit-sorter-object-int.js";
+import { validateSortRange } from "./sorter-utils.js";
 
 //TODO choose algorithm not only by N, but also by Range
 export function sortObjectInt(array, mapper, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = array.length;
-    }
+    ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;

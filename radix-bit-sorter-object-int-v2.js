@@ -1,15 +1,11 @@
 import {
     arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getMaskAsArray, getSections,
+    validateSortRange,
 } from "./sorter-utils.js";
 import { calculateMaskInt } from "./sorter-utils-int.js";
 
 export function radixBitSorterObjectIntV2(arrayObj, mapper, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = arrayObj.length;
-    }
+    ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;

@@ -21,32 +21,6 @@ import { getMaskRangeBits } from '../sorter-utils.js';
 
 describe('Regression & Bug Fix Tests', function () {
 
-    describe('Bug 1: radixBitSorterNumber with 1 Negative or 1 Positive Number', function () {
-        it('should sort array with exactly 1 negative number', function () {
-            let arr = [-5, 2, 8, 1, 4];
-            radixBitSorterNumber(arr);
-            assert.deepStrictEqual(arr, [-5, 1, 2, 4, 8]);
-        });
-
-        it('should sort array with exactly 1 negative number at the end', function () {
-            let arr = [5, 4, 3, 2, -1];
-            radixBitSorterNumber(arr);
-            assert.deepStrictEqual(arr, [-1, 2, 3, 4, 5]);
-        });
-
-        it('should sort array with exactly 1 positive number', function () {
-            let arr = [-5, -4, -3, -2, 1];
-            radixBitSorterNumber(arr);
-            assert.deepStrictEqual(arr, [-5, -4, -3, -2, 1]);
-        });
-
-        it('should sort 3-element array with [-1, 0, 1]', function () {
-            let arr = [-1, 0, 1];
-            radixBitSorterNumber(arr);
-            assert.deepStrictEqual(arr, [-1, 0, 1]);
-        });
-    });
-
     describe('Bug 2: sortObjectInt with Custom Mapper and N < 512', function () {
         it('should sort by custom mapper (not hardcoded .id)', function () {
             let items = [{ val: 30 }, { val: 10 }, { val: 20 }];
@@ -78,26 +52,6 @@ describe('Regression & Bug Fix Tests', function () {
             assert.strictEqual(getMaskRangeBits(3, 0), 15);
             assert.strictEqual(getMaskRangeBits(7, 4), 0xF0);
             assert.strictEqual(getMaskRangeBits(30, 0), 0x7FFFFFFF);
-        });
-    });
-
-    describe('Bug 4: Empty Range [0, 0) should not sort entire array', function () {
-        it('radixBitSorterInt should do nothing when start=0, endP1=0', function () {
-            let arr = [5, 4, 3, 2, 1];
-            radixBitSorterInt(arr, 0, 0);
-            assert.deepStrictEqual(arr, [5, 4, 3, 2, 1]);
-        });
-
-        it('quickBitSorterInt should do nothing when start=0, endP1=0', function () {
-            let arr = [5, 4, 3, 2, 1];
-            quickBitSorterInt(arr, 0, 0);
-            assert.deepStrictEqual(arr, [5, 4, 3, 2, 1]);
-        });
-
-        it('radixBitSorterNumber should do nothing when start=0, endP1=0', function () {
-            let arr = [5.5, 4.4, 3.3, 2.2, 1.1];
-            radixBitSorterNumber(arr, 0, 0);
-            assert.deepStrictEqual(arr, [5.5, 4.4, 3.3, 2.2, 1.1]);
         });
     });
 

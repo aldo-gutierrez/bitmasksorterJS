@@ -144,3 +144,22 @@ export function getMaskLastBits(bList, bListStart) {
     }
     return mask;
 }
+
+export function validateSortRange(array, start, endP1) {
+    if (start === undefined) {
+        start = 0;
+    }
+    if (endP1 === undefined) {
+        endP1 = array.length;
+    }
+    if (!Number.isInteger(start) || !Number.isInteger(endP1)) {
+        throw new RangeError('start and endP1 must be integers');
+    }
+    if (start < 0 || start > array.length) {
+        throw new RangeError(`start ${start} is out of bounds for array length ${array.length}`);
+    }
+    if (endP1 < start || endP1 > array.length) {
+        throw new RangeError(`endP1 ${endP1} is out of bounds for array length ${array.length}`);
+    }
+    return { start, endP1 };
+}

@@ -1,7 +1,8 @@
 import {
     arrayCopy, calculateSumOffsets,
     getMaskAsArray,
-    getSections
+    getSections,
+    validateSortRange
 } from "./sorter-utils.js";
 import {
     partitionReverseStableInt,
@@ -10,12 +11,7 @@ import {
 } from "./sorter-utils-object-int.js";
 
 export function radixBitSorterObjectInt(array, mapper, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = array.length;
-    }
+    ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;
