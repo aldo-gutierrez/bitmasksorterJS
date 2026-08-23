@@ -1,13 +1,8 @@
-import { calculateSumOffsets, getMaskAsArray, getSections, swap } from "./sorter-utils.js";
+import { calculateSumOffsets, getMaskAsArray, getSections, swap, validateSortRange } from "./sorter-utils.js";
 import { calculateMaskInt, partitionReverseNotStableUpperBit } from "./sorter-utils-int.js";
 
 export function aFlagBitSorterInt(array, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = array.length;
-    }
+    ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;
