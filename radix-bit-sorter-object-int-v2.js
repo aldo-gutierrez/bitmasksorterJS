@@ -1,10 +1,12 @@
 import {
     arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getMaskAsArray, getSections,
+    getSortOptions,
     validateSortRange,
 } from "./sorter-utils.js";
 import { calculateMaskInt } from "./sorter-utils-int.js";
 
-export function radixBitSorterObjectIntV2(arrayObj, mapper, start, endP1) {
+export function radixBitSorterObjectIntV2(arrayObj, mapper, options) {
+    let { start, endP1, asc } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
@@ -62,23 +64,24 @@ export function radixBitSorterObjectIntV2(arrayObj, mapper, start, endP1) {
     let auxObj = Array(n).fill(null);
 
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj);
+        let finalLeft = asc ? partitionReverseStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj)
+            : partitionStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
             let bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, start, finalLeft));
             if (!(bList1.length === 0)) {
-                radixSortObjectI32(true, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
+                radixSortObjectI32(asc, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
             }
         }
         if (n2 > 1) { //sort positive numbers
             let bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, finalLeft, endP1));
             if (!(bList2.length === 0)) {
-                radixSortObjectI32(true, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
+                radixSortObjectI32(asc, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
             }
         }
     } else {
-        radixSortObjectI32(true, arrayObj, start, n, bList, arrayInt32, 0, auxInt32, auxObj, 0);
+        radixSortObjectI32(asc, arrayObj, start, n, bList, arrayInt32, 0, auxInt32, auxObj, 0);
     }
 }
 

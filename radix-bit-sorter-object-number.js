@@ -1,15 +1,13 @@
 import {
-    arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getSections,
+    arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getMaskAsArray, getSections,
+    getSortOptions,
+    validateSortRange,
 } from "./sorter-utils.js";
 import { calculateMaskNumber, getMaskAsArrayNumber } from "./sorter-utils-number.js";
 
-export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = arrayObj.length;
-    }
+export function radixBitSorterObjectNumber(arrayObj, mapper, options) {
+    let { start, endP1, asc } = getSortOptions(options);
+    ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;
@@ -66,16 +64,17 @@ export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
     let auxObj = Array(endP1 - start).fill(null);
 
     if (bList[1].length > 0 && bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj);
+        let finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj)
+            : partitionStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
-        if (n1 > 1) { //sort negative numbers
+        if (n1 > 1) {
             let bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
             if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
                 radixSortNumber(false, arrayObj, start, n1, arrayInt32, arrayFloat64, 0, bList1, auxFloat64, auxObj, 0);
             }
         }
-        if (n2 > 1) { //sort positive numbers
+        if (n2 > 1) {
             let bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
             if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
                 radixSortNumber(true, arrayObj, finalLeft, n2, arrayInt32, arrayFloat64, n1, bList2, auxFloat64, auxObj, 0);
@@ -83,9 +82,9 @@ export function radixBitSorterObjectNumber(arrayObj, mapper, start, endP1) {
         }
     } else {
         if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
-            radixSortNumber(false, arrayObj, start, n, arrayInt32, arrayFloat64, 0, bList, auxFloat64, auxObj, 0);
+            radixSortNumber(!asc, arrayObj, start, n, arrayInt32, arrayFloat64, 0, bList, auxFloat64, auxObj, 0);
         } else {
-            radixSortNumber(true, arrayObj, start, n, arrayInt32, arrayFloat64, 0, bList, auxFloat64, auxObj, 0);
+            radixSortNumber(asc, arrayObj, start, n, arrayInt32, arrayFloat64, 0, bList, auxFloat64, auxObj, 0);
         }
     }
 }

@@ -1,7 +1,13 @@
-import { calculateMaskInt, partitionNotStable, partitionReverseNotStableUpperBit } from "./sorter-utils-int.js";
-import { getMaskAsArray, validateSortRange } from "./sorter-utils.js";
+import {
+    calculateMaskInt,
+    partitionNotStable,
+    partitionReverseNotStable,
+    partitionReverseNotStableUpperBit
+} from "./sorter-utils-int.js";
+import {getMaskAsArray, getSortOptions, validateSortRange} from "./sorter-utils.js";
 
-export function quickBitSorterInt(array, start, endP1) {
+export function quickBitSorterInt(array, options) {
+    let { start, endP1, asc } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
@@ -14,7 +20,8 @@ export function quickBitSorterInt(array, start, endP1) {
     }
 
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
+        let finalLeft = asc ? partitionReverseNotStableUpperBit(array, start, endP1)
+        : partitionNotStable(array, start, endP1, 1 << 31);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;
@@ -33,18 +40,18 @@ export function quickBitSorterInt(array, start, endP1) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            qbSortInt(array, start, finalLeft, bList, 0, false);
+            qbSortInt(asc, array, start, finalLeft, bList, 0, false);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            qbSortInt(array, finalLeft, endP1, bList, 0, false);
+            qbSortInt(asc, array, finalLeft, endP1, bList, 0, false);
         }
     } else {
-        qbSortInt(array, start, endP1, bList, 0, false);
+        qbSortInt(asc, array, start, endP1, bList, 0, false);
     }
 }
 
-function qbSortInt(array, start, endP1, bList, bListIndex, recalculate) {
+function qbSortInt(asc, array, start, endP1, bList, bListIndex, recalculate) {
     let n = endP1 - start;
     if (recalculate && bListIndex < 3) {
         let mask = calculateMaskInt(array, start, endP1);
@@ -57,12 +64,13 @@ function qbSortInt(array, start, endP1, bList, bListIndex, recalculate) {
     }
 
     let sortMask = 1 << bList[bListIndex];
-    let finalLeft = partitionNotStable(array, start, endP1, sortMask);
+    let finalLeft = asc ? partitionNotStable(array, start, endP1, sortMask)
+        : partitionReverseNotStable(array, start, endP1, sortMask);
     let recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
     if (finalLeft - start > 1) {
-        qbSortInt(array, start, finalLeft, bList, bListIndex + 1, recalculateBitMask);
+        qbSortInt(asc, array, start, finalLeft, bList, bListIndex + 1, recalculateBitMask);
     }
     if (endP1 - finalLeft > 1) {
-        qbSortInt(array, finalLeft, endP1, bList, bListIndex + 1, recalculateBitMask);
+        qbSortInt(asc, array, finalLeft, endP1, bList, bListIndex + 1, recalculateBitMask);
     }
 }

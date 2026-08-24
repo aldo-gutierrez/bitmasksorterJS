@@ -145,6 +145,43 @@ export function getMaskLastBits(bList, bListStart) {
     return mask;
 }
 
+function normalizeSortOrder(order) {
+    if (typeof order === 'boolean') {
+        return order;
+    }
+    if (typeof order === 'string') {
+        switch (order.trim().toUpperCase()) {
+            case 'DESC':
+            case 'DECREASING':
+            case 'DOWN':
+                return false;
+            case 'ASC':
+            case 'ASCENDING':
+            case 'UP':
+            case 'INCREASING':
+            default:
+                return true;
+        }
+    }
+    return true;
+}
+
+export function getSortOptions(options, start, endP1) {
+    let asc = true;
+    if (options && typeof options === 'object' && !Array.isArray(options)) {
+        start = options.start;
+        endP1 = options.end;
+        if (options.order !== undefined) {
+            asc = normalizeSortOrder(options.order);
+        }
+    } else if (options !== undefined) {
+        start = options;
+    }
+    return { start, endP1, asc };
+}
+
+export const getSortRangeOptions = getSortOptions;
+
 export function validateSortRange(array, start, endP1) {
     if (start === undefined) {
         start = 0;

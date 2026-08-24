@@ -1,5 +1,7 @@
 import {
     getMaskAsArray,
+    getSortOptions,
+    validateSortRange,
 } from "./sorter-utils.js";
 import {
     calculateMaskInt,
@@ -10,13 +12,9 @@ import {
  * No extra memory or limited size extra memory Quick Bit Sort
  *   No optimization for small n and small range implemented yet
  */
-export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
-    if (!start) {
-        start = 0;
-    }
-    if (endP1 === undefined) {
-        endP1 = array.length;
-    }
+export function quickBitSorterObjectIntLowMem(array, mapper, options) {
+    let { start, endP1, asc } = getSortOptions(options);
+    ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;
@@ -29,7 +27,8 @@ export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
 
     let aux = Array(Math.ceil(Math.log2(n) * Math.sqrt(n)));
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
+        let finalLeft = asc ? partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux)
+            : partitionStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;
@@ -48,18 +47,18 @@ export function quickBitSorterObjectIntLowMem(array, mapper, start, endP1) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            qbSortInt(array, mapper, start, finalLeft, bList, 0, aux, false);
+            qbSortInt(asc, array, mapper, start, finalLeft, bList, 0, aux, false);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            qbSortInt(array, mapper, finalLeft, endP1, bList, 0, aux, false);
+            qbSortInt(asc, array, mapper, finalLeft, endP1, bList, 0, aux, false);
         }
     } else {
-        qbSortInt(array, mapper, start, endP1, bList, 0, aux, false);
+        qbSortInt(asc, array, mapper, start, endP1, bList, 0, aux, false);
     }
 }
 
-function qbSortInt(array, mapper, start, endP1, bList, bListIndex, aux, recalculate) {
+function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, aux, recalculate) {
     let n = endP1 - start;
     if (recalculate && bListIndex < 3) {
         let mask = calculateMaskInt(array, start, endP1, mapper);
@@ -71,12 +70,13 @@ function qbSortInt(array, mapper, start, endP1, bList, bListIndex, aux, recalcul
         return;
     }
     let sortMask = 1 << bList[bListIndex];
-    let finalLeft = partitionStableLowMemInt(array, start, endP1, sortMask, mapper, aux);
+    let finalLeft = asc ? partitionStableLowMemInt(array, start, endP1, sortMask, mapper, aux)
+        : partitionReverseStableLowMemInt(array, start, endP1, sortMask, mapper, aux);
     let recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
     if (finalLeft - start > 1) {
-        qbSortInt(array, mapper, start, finalLeft, bList, bListIndex + 1, aux, recalculateBitMask);
+        qbSortInt(asc, array, mapper, start, finalLeft, bList, bListIndex + 1, aux, recalculateBitMask);
     }
     if (endP1 - finalLeft > 1) {
-        qbSortInt(array, mapper, finalLeft, endP1, bList, bListIndex + 1, aux, recalculateBitMask);
+        qbSortInt(asc, array, mapper, finalLeft, endP1, bList, bListIndex + 1, aux, recalculateBitMask);
     }
 }
