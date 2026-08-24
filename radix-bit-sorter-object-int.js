@@ -2,6 +2,7 @@ import {
     arrayCopy, calculateSumOffsets,
     getMaskAsArray,
     getSections,
+    getSortOptions,
     validateSortRange
 } from "./sorter-utils.js";
 import {
@@ -10,7 +11,8 @@ import {
     calculateMaskInt,
 } from "./sorter-utils-object-int.js";
 
-export function radixBitSorterObjectInt(array, mapper, start, endP1) {
+export function radixBitSorterObjectInt(array, mapper, options) {
+    let { start, endP1, asc } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
@@ -23,7 +25,8 @@ export function radixBitSorterObjectInt(array, mapper, start, endP1) {
     }
     let aux = Array(endP1 - start);
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper);
+        let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
+            :partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;
@@ -42,18 +45,18 @@ export function radixBitSorterObjectInt(array, mapper, start, endP1) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            radixSortInt(array, start, finalLeft, bList, aux, mapper);
+            radixSortInt(asc, array, start, finalLeft, bList, aux, mapper);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            radixSortInt(array, finalLeft, endP1, bList, aux, mapper);
+            radixSortInt(asc, array, finalLeft, endP1, bList, aux, mapper);
         }
     } else {
-        radixSortInt(array, start, endP1, bList, aux, mapper);
+        radixSortInt(asc, array, start, endP1, bList, aux, mapper);
     }
 }
 
-function radixSortInt(array, start, end, bList, aux, mapper) {
+function radixSortInt(asc, array, start, end, bList, aux, mapper) {
     let sections = getSections(bList);
     for (let index = 0; index < sections.length; index++) {
         let section = sections[index];
@@ -61,18 +64,22 @@ function radixSortInt(array, start, end, bList, aux, mapper) {
         let shift = section.shift;
         let mask = section.mask
         if (bits === 1) {
-            partitionStableInt(array, start, end, mask, aux, mapper);
+            if (asc) {
+                partitionStableInt(array, start, end, mask, aux, mapper);
+            } else {
+                partitionReverseStableInt(array, start, end, mask, aux, mapper);
+            }
         } else {
             if (shift === 0) {
-                partitionStableLastBitsInt(array, start, end, section, aux, mapper);
+                partitionStableLastBitsInt(asc, array, start, end, section, aux, mapper);
             } else {
-                partitionStableGroupBitsInt(array, start, end, section, aux, mapper);
+                partitionStableGroupBitsInt(asc, array, start, end, section, aux, mapper);
             }
         }
     }
 }
 
-function partitionStableLastBitsInt(array, start, endP1, section, aux, mapper) {
+function partitionStableLastBitsInt(asc, array, start, endP1, section, aux, mapper) {
     const mask = section.mask;
     const range = section.range;
     const count = new Int32Array(range);
@@ -80,7 +87,7 @@ function partitionStableLastBitsInt(array, start, endP1, section, aux, mapper) {
     for (let i = start; i < endP1; i++) {
         count[mapper(array[i]) & mask]++;
     }
-    calculateSumOffsets(true, count, range);
+    calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
         aux[count[element & mask]++] = array[i];
@@ -88,7 +95,7 @@ function partitionStableLastBitsInt(array, start, endP1, section, aux, mapper) {
     arrayCopy(aux, 0, array, start, n);
 }
 
-function partitionStableGroupBitsInt(array, start, endP1, section, aux, mapper) {
+function partitionStableGroupBitsInt(asc, array, start, endP1, section, aux, mapper) {
     const mask = section.mask;
     const shift = section.shift;
     const range = section.range;
@@ -97,7 +104,7 @@ function partitionStableGroupBitsInt(array, start, endP1, section, aux, mapper) 
     for (let i = start; i < endP1; i++) {
         count[(mapper(array[i]) & mask) >> shift]++;
     }
-    calculateSumOffsets(true, count, range);
+    calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
         aux[count[(element & mask) >> shift]++] = array[i];

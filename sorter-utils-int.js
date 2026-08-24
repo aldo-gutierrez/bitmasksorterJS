@@ -133,3 +133,28 @@ export function partitionNotStable(array, start, endP1, mask) {
     }
     return left;
 }
+
+export function partitionReverseNotStable(array, start, endP1, mask) {
+    let left = start;
+    let right = endP1 - 1;
+
+    while (left <= right) {
+        let element = array[left];
+        if ((element & mask) === 0) {
+            while (left <= right) {
+                element = array[right];
+                if ((element & mask) === 0) {
+                    right--;
+                } else {
+                    swap(array, left, right);
+                    left++;
+                    right--;
+                    break;
+                }
+            }
+        } else {
+            left++;
+        }
+    }
+    return left;
+}

@@ -22,7 +22,7 @@ describe('PCountBitSorterInt Off-by-one Bucket Tests', function () {
         const expectedSub = original.slice(1, 4).sort((a, b) => a - b);
         const expected = [99, ...expectedSub, 77];
 
-        pCountBitSorterInt(actual, 1, 4);
+        pCountBitSorterInt(actual, { start: 1, end: 4 });
         assert.deepStrictEqual(actual, expected);
     });
 });

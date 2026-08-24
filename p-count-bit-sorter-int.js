@@ -1,6 +1,7 @@
 import {
     getMaskAsArray,
     getSections,
+    getSortOptions,
     validateSortRange,
 } from "./sorter-utils.js";
 import { calculateMaskInt, partitionReverseNotStableUpperBit } from "./sorter-utils-int.js";
@@ -8,7 +9,8 @@ import { calculateMaskInt, partitionReverseNotStableUpperBit } from "./sorter-ut
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
 
-export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
+export function pCountBitSorterInt(array, options, bList, bListStart) {
+    let { start, endP1, asc } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     if (!bList) {
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1));
@@ -22,10 +24,10 @@ export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            pCountBitSorterInt(array, start, finalLeft);
+            pCountBitSorterInt(array, { start, end: finalLeft });
         }
         if (n2 > 1) { //sort positive numbers
-            pCountBitSorterInt(array, finalLeft, endP1);
+            pCountBitSorterInt(array, { start: finalLeft, end: endP1 });
         }
         return;
     }
@@ -62,7 +64,8 @@ export function pCountBitSorterInt(array, start, endP1, bList, bListStart) {
 //  * when max-min (range > 2**25 is slower than javascript sorter)
 //  *    and when n (endP1-start) 2^17..2^20 (other ranges not tested yet)
 //  */
-export function pCountNoMaskSorterInt(array, start, endP1, min, max) {
+export function pCountNoMaskSorterInt(array, options, min, max) {
+    let { start, endP1, asc } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
     if (n < 2) {

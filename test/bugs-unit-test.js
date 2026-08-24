@@ -30,7 +30,7 @@ describe('Regression & Bug Fix Tests', function () {
 
         it('should sort subslice only and leave elements outside [start, endP1) untouched', function () {
             let items = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
-            sortObjectInt(items, x => x.val, 1, 4);
+            sortObjectInt(items, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(items, [
                 { val: 99 },
                 { val: 1 },
@@ -58,13 +58,13 @@ describe('Regression & Bug Fix Tests', function () {
     describe('Bug 5: pCountNoMaskSorterInt with 0 min or max', function () {
         it('should sort correctly when min is 0', function () {
             let arr = [0, 5, 2, 8, 0, 1];
-            pCountNoMaskSorterInt(arr, 0, 6, 0, 8);
+            pCountNoMaskSorterInt(arr, { start: 0, end: 6 }, 0, 8);
             assert.deepStrictEqual(arr, [0, 0, 1, 2, 5, 8]);
         });
 
         it('should sort correctly when max is 0', function () {
             let arr = [-5, -2, -8, 0, -1];
-            pCountNoMaskSorterInt(arr, 0, 5, -8, 0);
+            pCountNoMaskSorterInt(arr, { start: 0, end: 5 }, -8, 0);
             assert.deepStrictEqual(arr, [-8, -5, -2, -1, 0]);
         });
     });
@@ -72,7 +72,7 @@ describe('Regression & Bug Fix Tests', function () {
     describe('Bug 6: Subslice Sorting with start > 0 in Object Sorters', function () {
         it('radixBitSorterObjectIntV2 should sort only subslice [1, 4)', function () {
             let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
-            radixBitSorterObjectIntV2(arr, x => x.val, 1, 4);
+            radixBitSorterObjectIntV2(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
                 { val: 1 },
@@ -84,7 +84,7 @@ describe('Regression & Bug Fix Tests', function () {
 
         it('radixBitSorterObjectNumber should sort only subslice [1, 4)', function () {
             let arr = [{ val: 99.9 }, { val: 3.3 }, { val: 1.1 }, { val: 2.2 }, { val: 88.8 }];
-            radixBitSorterObjectNumber(arr, x => x.val, 1, 4);
+            radixBitSorterObjectNumber(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99.9 },
                 { val: 1.1 },
@@ -96,7 +96,7 @@ describe('Regression & Bug Fix Tests', function () {
 
         it('quickBitSorterObjectInt should sort only subslice [1, 4)', function () {
             let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
-            quickBitSorterObjectInt(arr, x => x.val, 1, 4);
+            quickBitSorterObjectInt(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
                 { val: 1 },
@@ -108,7 +108,7 @@ describe('Regression & Bug Fix Tests', function () {
 
         it('pCountBitSorterObjectInt should sort only subslice [1, 4)', function () {
             let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
-            pCountBitSorterObjectInt(arr, x => x.val, 1, 4);
+            pCountBitSorterObjectInt(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
                 { val: 1 },

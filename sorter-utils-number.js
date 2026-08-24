@@ -126,3 +126,28 @@ export function partitionReverseF64NotStableUpperBit(arrayf64, arrayf32, start, 
     }
     return left;
 }
+
+export function partitionF64NotStableUpperBit(arrayf64, arrayf32, start, endP1) {
+    let left = start;
+    let right = endP1 - 1;
+
+    while (left <= right) {
+        let element = arrayf32[left * 2 + 1];
+        if (element >= 0) {
+            left++;
+        } else {
+            while (left <= right) {
+                element = arrayf32[right * 2 + 1];
+                if (element >= 0) {
+                    swap(arrayf64, left, right);
+                    left++;
+                    right--;
+                    break;
+                } else {
+                    right--;
+                }
+            }
+        }
+    }
+    return left;
+}
