@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks';
-import { calculateMaskIntOld, calculateMaskInt, calculateMaskIntNew} from '../sorter-utils-int.js';
-import {calculateMaskNumberOld, calculateMaskNumber, calculateMaskNumberNew} from '../sorter-utils-number.js';
+import { calculateMaskIntOld, calculateMaskInt, calculateMaskIntNew} from '../src/utils/sorter-utils-int.js';
+import {calculateMaskNumberOld, calculateMaskNumber, calculateMaskNumberNew} from '../src/utils/sorter-utils-number.js';
 
 // Simple deterministic LCG PRNG for reproducible arrays
 function createSeededRandom(seed) {

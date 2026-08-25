@@ -3,13 +3,18 @@ import {
     partitionNotStable,
     partitionReverseNotStable,
     partitionReverseNotStableUpperBit
-} from "./sorter-utils-int.js";
-import {getMaskAsArray, getSortOptions, validateSortRange} from "./sorter-utils.js";
+} from "../utils/sorter-utils-int.js";
+import {getMaskAsArray, getSortOptions, handleNullsUndefinedAndNans, validateSortRange} from "../utils/sorter-utils.js";
 
-export function quickBitSorterInt(array, options) {
-    let { start, endP1, asc } = getSortOptions(options);
+export function quickBitSortInt32(array, options) {
+    let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     let n = endP1 - start;
+    if (n < 2) {
+        return;
+    }
+    ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
+    n = endP1 - start;
     if (n < 2) {
         return;
     }

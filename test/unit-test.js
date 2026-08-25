@@ -1,6 +1,6 @@
 import assert from 'assert';
-import {partitionStableLowMemInt} from "../sorter-utils-object-int.js";
-import {partitionReverseStableLowMemInt} from "../sorter-utils-object-int.js";
+import {partitionStableLowMemInt} from "../src/utils/sorter-utils-object-int.js";
+import {partitionReverseStableLowMemInt} from "../src/utils/sorter-utils-object-int.js";
 import {testArraysEquals} from "./test-utils.js";
 
 let onError = (firstError) =>  {

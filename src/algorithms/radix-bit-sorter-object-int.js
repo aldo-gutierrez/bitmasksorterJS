@@ -2,18 +2,19 @@ import {
     arrayCopy, calculateSumOffsets,
     getMaskAsArray,
     getSections,
-    getSortOptions,
+    getSortOptions, handleNullsUndefinedAndNans,
     validateSortRange
-} from "./sorter-utils.js";
+} from "../utils/sorter-utils.js";
 import {
     partitionReverseStableInt,
     partitionStableInt,
     calculateMaskInt,
-} from "./sorter-utils-object-int.js";
+} from "../utils/sorter-utils-object-int.js";
 
-export function radixBitSorterObjectInt(array, mapper, options) {
-    let { start, endP1, asc } = getSortOptions(options);
+export function radixBitSortObjectByInt32Key(array, mapper, options) {
+    let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
+    ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
     let n = endP1 - start;
     if (n < 2) {
         return;

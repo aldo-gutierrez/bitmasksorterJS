@@ -1,14 +1,26 @@
-import {arrayCopy, getMaskAsArray, getSections, getSortOptions, validateSortRange} from "./sorter-utils.js";
+import {
+    arrayCopy,
+    getMaskAsArray,
+    getSections,
+    getSortOptions,
+    handleNullsUndefinedAndNans,
+    validateSortRange
+} from "../utils/sorter-utils.js";
 import {
     calculateMaskInt,
     partitionReverseStableInt,
     partitionReverseStableLowMemInt
-} from "./sorter-utils-object-int.js";
+} from "../utils/sorter-utils-object-int.js";
 import { getKeySN, getSectionsBits, validatePCountSortRange } from "./p-count-bit-sorter-int.js";
 
-export function pCountBitSorterObjectInt(array, mapper, options) {
-    let { start, endP1, asc } = getSortOptions(options);
+export function pCountSortObjectByInt32Key(array, mapper, options) {
+    let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
+    ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
+    let n = endP1 - start;
+    if (n < 2) {
+        return;
+    }
     let bList = !options ? undefined : options.bList;
     let bListStart = !options ? undefined : options.bListStart;
     if (!bList) {
@@ -25,10 +37,10 @@ export function pCountBitSorterObjectInt(array, mapper, options) {
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            pCountBitSorterObjectInt(array, mapper, { start, end: finalLeft });
+            pCountSortObjectByInt32Key(array, mapper, { start, end: finalLeft });
         }
         if (n2 > 1) { //sort positive numbers
-            pCountBitSorterObjectInt(array, mapper, { start: finalLeft, end: endP1 });
+            pCountSortObjectByInt32Key(array, mapper, { start: finalLeft, end: endP1 });
         }
         return;
     }

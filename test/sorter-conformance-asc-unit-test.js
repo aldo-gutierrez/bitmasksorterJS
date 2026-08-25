@@ -1,22 +1,22 @@
 import assert from 'assert';
 import {
-    sortInt,
-    radixBitSorterInt,
-    quickBitSorterInt,
-    pCountBitSorterInt,
-    pCountNoMaskSorterInt,
-    aFlagBitSorterInt,
-    sortNumber,
-    radixBitSorterNumber,
-    sortObjectInt,
-    radixBitSorterObjectInt,
-    radixBitSorterObjectIntV2,
-    quickBitSorterObjectInt,
-    quickBitSorterObjectIntLowMem,
-    pCountBitSorterObjectInt,
-    sortObjectNumber,
-    radixBitSorterObjectNumber
-} from '../main.js';
+    sortInt32,
+    radixBitSortInt32,
+    quickBitSortInt32,
+    pCountBitSortInt32,
+    pCountBitMinMaxSortInt32,
+    americanFlagBitSortInt32,
+    sortFloat64,
+    radixBitSortFloat64,
+    sortObjectByInt32Key,
+    radixBitSortObjectByInt32Key,
+    radixBitV2SortObjectByInt32Key,
+    quickBitSortObjectByInt32Key,
+    quickBitLowMemSortObjectByInt32Key,
+    pCountSortObjectByInt32Key,
+    sortObjectByFloat64Key,
+    radixBitSortObjectByFloat64Key
+} from '../src/main.js';
 
 // Deterministic pseudo-random number generator for reproducible tests
 function createLcg(seed = 123456789) {
@@ -25,6 +25,26 @@ function createLcg(seed = 123456789) {
         s = (s * 1664525 + 1013904223) % 4294967296;
         return s / 4294967296;
     };
+}
+
+function nullsLastAscComparator(a, b) {
+    if (a === null && b === null) return 0;
+    if (a === null) return 1;
+    if (b === null) return -1;
+    if (a === undefined && b === undefined) return 0;
+    if (a === undefined) return 1;
+    if (b === undefined) return -1;
+    return a - b;
+}
+
+function nullsFirstAscComparator(a, b) {
+    if (a === null && b === null) return 0;
+    if (a === null) return -1;
+    if (b === null) return 1;
+    if (a === undefined && b === undefined) return 0;
+    if (a === undefined) return -1;
+    if (b === undefined) return 1;
+    return a - b;
 }
 
 describe('General Sorter Conformance & Correctness Tests', function () {
@@ -49,11 +69,11 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // 1. Integer Sorters
     // -------------------------------------------------------------------------
     const intSorters = [
-        { name: 'radixBitSorterInt', fn: (arr, options) => radixBitSorterInt(arr, options) },
-        { name: 'quickBitSorterInt', fn: (arr, options) => quickBitSorterInt(arr, options) },
-        { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSorterInt(arr, options) },
-        { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountNoMaskSorterInt(arr, options) },
-        { name: 'aFlagBitSorterInt', fn: (arr, options) => aFlagBitSorterInt(arr, options) },
+        { name: 'radixBitSorterInt', fn: (arr, options) => radixBitSortInt32(arr, options) },
+        { name: 'quickBitSorterInt', fn: (arr, options) => quickBitSortInt32(arr, options) },
+        { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSortInt32(arr, options) },
+        { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountBitMinMaxSortInt32(arr, options) },
+        { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
     ];
 
     describe('Integer Sorters Correctness', function () {
@@ -67,6 +87,65 @@ describe('General Sorter Conformance & Correctness Tests', function () {
                         assert.deepStrictEqual(actual, expected);
                     });
                 }
+
+                it('should reject null or undefined input containers with TypeError', function () {
+                    assert.throws(() => sorter.fn(null, { nulls: 'last' }), { name: 'TypeError' });
+                    assert.throws(() => sorter.fn(undefined, { nulls: 'last' }), { name: 'TypeError' });
+                });
+
+                it('should place nulls last in collections when nulls policy is set to last', function () {
+                    const actual = [3, null, 1, null, 2];
+                    const expected = [...actual].sort(nullsLastAscComparator);
+                    sorter.fn(actual, { nulls: 'last' });
+                    assert.deepStrictEqual(actual, expected);
+                });
+
+                it('should sort null values within a subslice while leaving outer elements untouched', function () {
+                    const original = [9, 4, null, 6, 1, 2];
+                    const actual = [...original];
+                    const expected = [...original];
+                    const range = expected.slice(1, 5).sort(nullsLastAscComparator);
+                    expected.splice(1, range.length, ...range);
+                    sorter.fn(actual, { start: 1, end: 5, nulls: 'last' });
+                    assert.deepStrictEqual(actual, expected);
+                });
+
+                it('should place undefined after nulls when sorting missing values', function () {
+                    const actual = [3, undefined, null, 1, undefined, 2];
+                    const expected = [...actual].sort(nullsLastAscComparator);
+                    sorter.fn(actual, { nulls: 'last' });
+                    assert.deepStrictEqual(actual, expected);
+                });
+
+                it('should keep null and undefined ordering consistent when both are present', function () {
+                    const actual = [3, null, undefined, 1, null, 2, undefined];
+                    const expected = [...actual].sort(nullsLastAscComparator);
+                    sorter.fn(actual, { nulls: 'last' });
+                    assert.deepStrictEqual(actual, expected);
+                });
+
+                it.skip('should reject nulls immediately before mutation when nulls are forbidden', function () {
+                    const actual = [3, null, 1, undefined, 2];
+                    assert.throws(() => sorter.fn(actual, { nulls: 'ignore' }), { name: 'TypeError' });
+                    assert.deepStrictEqual(actual, [3, null, 1, undefined, 2]);
+                });
+
+                it('should handle sparse arrays by treating uninitialized slots as missing values', function () {
+                    const actual = new Array(5);
+                    actual[0] = 3;
+                    actual[2] = 1;
+                    actual[4] = 2;
+                    const expected = Array.from(actual).sort(nullsLastAscComparator);
+                    sorter.fn(actual, { nulls: 'last' });
+                    assert.deepStrictEqual(actual, expected);
+                });
+
+                it('should support nulls-first placement when explicitly requested', function () {
+                    const actual = [3, null, 1];
+                    const expected = [...actual].sort(nullsFirstAscComparator);
+                    sorter.fn(actual, { nulls: 'first' });
+                    assert.deepStrictEqual(actual, expected);
+                });
 
                 it('should handle integer type-specific edge cases', function () {
                     const vectors = [
@@ -170,7 +249,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // 2. Floating Point / Number Sorters
     // -------------------------------------------------------------------------
     const numberSorters = [
-        { name: 'radixBitSorterNumber', fn: (arr, options) => radixBitSorterNumber(arr, options) },
+        { name: 'radixBitSorterNumber', fn: (arr, options) => radixBitSortFloat64(arr, options) },
     ];
 
     const standardNumberVectors = [
@@ -303,12 +382,12 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // 3. Object Sorters (Integer Values)
     // -------------------------------------------------------------------------
     const objectIntSorters = [
-        { name: 'sortObjectInt', fn: (arr, mapper, options) => sortObjectInt(arr, mapper, options), stable: false },
-        { name: 'radixBitSorterObjectInt', fn: (arr, mapper, options) => radixBitSorterObjectInt(arr, mapper, options), stable: true },
-        { name: 'radixBitSorterObjectIntV2', fn: (arr, mapper, options) => radixBitSorterObjectIntV2(arr, mapper, options), stable: true },
-        { name: 'quickBitSorterObjectInt', fn: (arr, mapper, options) => quickBitSorterObjectInt(arr, mapper, options), stable: true },
-        { name: 'quickBitSorterObjectIntLowMem', fn: (arr, mapper, options) => quickBitSorterObjectIntLowMem(arr, mapper, options), stable: true },
-        { name: 'pCountBitSorterObjectInt', fn: (arr, mapper, options) => pCountBitSorterObjectInt(arr, mapper, options), stable: true },
+        { name: 'sortObjectInt', fn: (arr, mapper, options) => sortObjectByInt32Key(arr, mapper, options), stable: false },
+        { name: 'radixBitSorterObjectInt', fn: (arr, mapper, options) => radixBitSortObjectByInt32Key(arr, mapper, options), stable: true },
+        { name: 'radixBitSorterObjectIntV2', fn: (arr, mapper, options) => radixBitV2SortObjectByInt32Key(arr, mapper, options), stable: true },
+        { name: 'quickBitSorterObjectInt', fn: (arr, mapper, options) => quickBitSortObjectByInt32Key(arr, mapper, options), stable: true },
+        { name: 'quickBitSorterObjectIntLowMem', fn: (arr, mapper, options) => quickBitLowMemSortObjectByInt32Key(arr, mapper, options), stable: true },
+        { name: 'pCountBitSorterObjectInt', fn: (arr, mapper, options) => pCountSortObjectByInt32Key(arr, mapper, options), stable: true },
     ];
 
     describe('Object Sorters (Integer) Correctness & Identity Preservation', function () {
@@ -401,7 +480,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // 4. Object Sorters (Float Values)
     // -------------------------------------------------------------------------
     const objectNumberSorters = [
-        { name: 'radixBitSorterObjectNumber', fn: (arr, mapper, options) => radixBitSorterObjectNumber(arr, mapper, options) },
+        { name: 'radixBitSorterObjectNumber', fn: (arr, mapper, options) => radixBitSortObjectByFloat64Key(arr, mapper, options) },
     ];
 
     describe('Object Sorters (Float Number) Correctness', function () {

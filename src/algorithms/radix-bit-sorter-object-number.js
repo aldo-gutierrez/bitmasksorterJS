@@ -1,57 +1,28 @@
 import {
-    arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getMaskAsArray, getSections,
-    getSortOptions,
+    arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getSections,
+    getSortOptions, handleNullsUndefinedAndNans,
     validateSortRange,
-} from "./sorter-utils.js";
-import { calculateMaskNumber, getMaskAsArrayNumber } from "./sorter-utils-number.js";
+} from "../utils/sorter-utils.js";
+import { calculateMaskNumber, getMaskAsArrayNumber } from "../utils/sorter-utils-number.js";
 
-export function radixBitSorterObjectNumber(arrayObj, mapper, options) {
-    let { start, endP1, asc } = getSortOptions(options);
+export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options) {
+    let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
+    let arrayNative;
+    try {
+        ({
+            start,
+            endP1,
+            arrayNative
+        } = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, (n) => new Float64Array(n), mapper));
+    } catch (e) {
+        throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);
+    }
     let n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let j = 0;
-    let nulls = 0;
-    let undefinedValues = 0;
-    let nans = [];
-    let arrayFloat64 = new Float64Array(n);
-    for (let i = start; i < endP1; i++) {
-        let elementObj = arrayObj[i];
-        if (elementObj === null) {
-            nulls++;
-            continue;
-        }
-        if (elementObj === undefined) {
-            undefinedValues++;
-            continue;
-        }
-        let element = mapper(elementObj);
-        if (isNaN(element)) {
-            nans.push(elementObj);
-            continue;
-        }
-        if (i !== start + j) {
-            arrayObj[start + j] = elementObj;
-        }
-        arrayFloat64[j] = element;
-        j++;
-    }
-    endP1 = endP1 - nans.length - nulls - undefinedValues;
-    arrayCopy(nans, 0, arrayObj, j, nans.length);
-    j += nans.length;
-    while (nulls > 0) {
-        arrayObj[j] = null;
-        nulls--;
-        j++;
-    }
-    while (undefinedValues > 0) {
-        arrayObj[j] = undefined;
-        undefinedValues--;
-        j++;
-    }
-    n = endP1 - start;
+    let arrayFloat64 = arrayNative;
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 

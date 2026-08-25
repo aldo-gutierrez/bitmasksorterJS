@@ -3,7 +3,7 @@
   "version": "0.0.7",
   "description": "Radix, Radix sorter, BitMask, BitMask sorters, RadixBitMask sorter, bitMaskSorter, bitmask-sorter, fastest sorter",
   "type": "module",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "test": "mocha test/*unit-test*.js"
   },
