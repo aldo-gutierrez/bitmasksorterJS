@@ -1,58 +1,20 @@
 import {
     arrayCopy, arrayCopyTypedArray, calculateSumOffsets, getMaskAsArray, getSections,
-    getSortOptions,
+    getSortOptions, handleNullsUndefinedAndNans,
     validateSortRange,
-} from "./sorter-utils.js";
-import { calculateMaskInt } from "./sorter-utils-int.js";
+} from "../utils/sorter-utils.js";
+import { calculateMaskInt } from "../utils/sorter-utils-int.js";
 
-export function radixBitSorterObjectIntV2(arrayObj, mapper, options) {
-    let { start, endP1, asc } = getSortOptions(options);
+export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options) {
+    let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
+    let arrayNative;
+    ({start, endP1, arrayNative} = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, (n) => new Int32Array(n), mapper));
     let n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let j = 0; //iterator of arrayInt32
-    let nulls = 0;
-    let undefinedValues = 0;
-    let nans = [];
-    let arrayInt32 = new Int32Array(n);
-    //i iterator of arrayObj
-    for (let i = start; i < endP1; i++) {
-        let elementObj = arrayObj[i];
-        if (elementObj === null) {
-            nulls++;
-            continue;
-        }
-        if (elementObj === undefined) {
-            undefinedValues++;
-            continue;
-        }
-        let element = mapper(elementObj);
-        if (isNaN(element)) {
-            nans.push(elementObj);
-            continue;
-        }
-        if (i !== start + j) {
-            arrayObj[start + j] = elementObj;
-        }
-        arrayInt32[j] = element;
-        j++;
-    }
-    arrayCopy(nans, 0, arrayObj, j, nans.length);
-    endP1 = endP1 - nans.length - nulls - undefinedValues;
-    j += nans.length;
-    while (nulls > 0) {
-        arrayObj[j] = null;
-        nulls--;
-        j++;
-    }
-    while (undefinedValues > 0) {
-        arrayObj[j] = undefined;
-        undefinedValues--;
-        j++;
-    }
-    n = endP1 - start;
+    let arrayInt32 = arrayNative;
 
     let mask = calculateMaskInt(arrayInt32, 0, n);
     let bList = getMaskAsArray(mask);

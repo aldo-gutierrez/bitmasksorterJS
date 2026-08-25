@@ -1,16 +1,19 @@
-import {arrayCopy, pCountBitSorterInt, quickBitSorterInt, sortInt, sortNumber} from "../main.js";
-import {testArraysEquals} from "./test-utils.js";
-import {aFlagBitSorterInt} from "../a-flag-bit-sorter-int.js";
+import {
+    arrayCopy,
+    sortObjectByInt32Key,
+    sortObjectByFloat64Key, quickBitSortObjectByInt32Key, pCountSortObjectByInt32Key, quickBitLowMemSortObjectByInt32Key
+} from "../src/main.js"; //"@aldogg/sorter"
+import {testArraysEquals} from "../test/test-utils.js";
 
 console.log("Comparing Sorters\n");
 
 const iterations = 4; //use 20 for more accuracy in documented results 
 let algorithms = [
     {
-        'name': 'JavaScriptSorter',
+        'name': 'JavascriptSorter',
         'sortFunction': (array) => {
             array.sort(function (a, b) {
-                return a - b;
+                return a.id - b.id;
             });
             return array;
         },
@@ -18,58 +21,50 @@ let algorithms = [
         'negative' : true,
     },
     {
-        'name': 'QuickBitSorterInt',
+        'name': 'RadixBitSorterObjectIntV1V2',
         'sortFunction': (array) => {
-            quickBitSorterInt(array);
+            sortObjectByInt32Key(array, (x) => x.id);
             return array;
         },
         'floatingPoint' : false,
         'negative' : true,
     },
     {
-        'name': 'RadixBitSorterInt',
+        'name': 'RadixBitObjectNumberSorter',
         'sortFunction': (array) => {
-            sortInt(array);
-            return array;
-        },
-        'floatingPoint' : false,
-        'negative' : true,
-    },
-    {
-        'name': 'RadixBitSorterNumber',
-        'sortFunction': (array) => {
-            sortNumber(array);
+            sortObjectByFloat64Key(array, (x) => x.id);
             return array;
         },
         'floatingPoint' : true,
         'negative' : true,
     },
     {
-        'name': 'PCountBitSorterInt',
+        'name': 'QuickBitObjectIntSorter',
         'sortFunction': (array) => {
-           pCountBitSorterInt(array);
-           return array
+            quickBitSortObjectByInt32Key(array, (x) => x.id);
+            return array;
+        },
+        'floatingPoint' : false,
+        'negative' : true,
+    },
+    {
+        'name': 'PCountSorterObjectInt',
+        'sortFunction': (array) => {
+            pCountSortObjectByInt32Key(array, (x) => x.id);
+            return array;
         },
         'floatingPoint' : false,
         'negative' : true,
         'range' : 2 ** 21,
     },
     {
-        'name': 'Float64Array.sort',
+        'name': 'QuickBitSorterObjectIntLowMem',
         'sortFunction': (array) => {
-            return new Float64Array(array).sort();
+            quickBitLowMemSortObjectByInt32Key(array, (x) => x.id);
+            return array;
         },
-        'floatingPoint' : true,
+        'floatingPoint' : false,
         'negative' : true,
-    },
-   {
-        'name': 'AFlagBitSorterInt',
-        'sortFunction': (array) => {
-            aFlagBitSorterInt(array);
-            return array
-        },
-       'floatingPoint' : false,
-       'negative' : true,        
     },
 ]
 
@@ -77,12 +72,62 @@ let algorithms = [
 let verbose = false;
 
 let tests = [
-    {"range": 1000, "size": 1000000},
-    {"range": 1000000, "size": 1000000},
-    {"range": 1000000000, "size": 1000000},
-    // {"range": 1000000000, "size": 40000000}
+
+    // {"range": 256, "size": 128},
+    {"range": 1024, "size": 128},
+    // {"range": 4096, "size": 128},
+    // {"range": 65536, "size": 128},
+    {"range": 1048576, "size": 128},
+    {"range": 1073741824, "size": 128},
+
+    // {"range": 256, "size": 256},
+    {"range": 1024, "size": 256},
+    // {"range": 4096, "size": 256},
+    // {"range": 65536, "size": 256},
+    {"range": 1048576, "size": 256},
+    {"range": 1073741824, "size": 256},
+
+    // {"range": 256, "size": 512},
+    {"range": 1024, "size": 512},
+    // {"range": 4096, "size": 512},
+    // {"range": 65536, "size": 512},
+    {"range": 1048576, "size": 512},
+    {"range": 1073741824, "size": 512},
+
+    // {"range": 256, "size": 4096},
+    {"range": 1024, "size": 4096},
+    // {"range": 4096, "size": 4096},
+    // {"range": 65536, "size": 4096},
+    {"range": 1048576, "size": 4096},
+    {"range": 1073741824, "size": 4096},
+
+    // {"range": 256, "size": 32768},
+    {"range": 1024, "size": 32768},
+    // {"range": 4096, "size": 32768},
+    // {"range": 65536, "size": 32768},
+    {"range": 1048576, "size": 32768},
+    {"range": 1073741824, "size": 32768},
+
+    // {"range": 256, "size": 65536},
+    {"range": 1024, "size": 65536},
+    // {"range": 4096, "size": 65536},
+    // {"range": 65536, "size": 65536},
+    {"range": 1048576, "size": 65536},
+    {"range": 1073741824, "size": 65536},
+
+    // {"range": 256, "size": 1048576},
+    {"range": 1024, "size": 1048576},
+    // {"range": 4096, "size": 1048576},
+    // {"range": 65536, "size": 1048576},
+    {"range": 1048576, "size": 1048576},
+    {"range": 1073741824, "size": 1048576},
+
+
+    // {"range": 1000000000, "size": 10000000}, slow
+    // {"range": 1000000000, "size": 40000000}, Out of Memory
 ]
 
+//let origInt = [-488,-860,-212,-82,-35,-831,-751,-898,-329,-831,-362,-207,-862,-315,-154,-361,-141,-614,-503,-180] bug for stable
 
 for (let t = 0; t < tests.length; t++) {
     let test = tests[t];
@@ -123,16 +168,23 @@ for (let t = 0; t < tests.length; t++) {
         for (let a = 0; a < algorithms.length; a++) {
             let algorithm = algorithms[a];
             algorithm.totalElapsed = 0;
-            algorithm.iterations = 0;
         }
 
         for (let i = 0; i < iterations; i++) {
+
+            let orig = [];
+            origArray.forEach(x => {
+                orig.push({
+                    "id": x,
+                    "value": "Text " + x
+                })
+            });
 
             for (let a = 0; a < algorithms.length; a++) {
                 let algorithm = algorithms[a];
                 if (!((generator.floatingPoint && !algorithm.floatingPoint) || (generator.negative && !algorithm.negative) || (algorithm.range && algorithm.range < range))) {
                     let arrayK = Array(size);
-                    arrayCopy(origArray, 0, arrayK, 0, size);
+                    arrayCopy(orig, 0, arrayK, 0, size);
                     let start = performance.now();
                     arrayK = algorithm.sortFunction(arrayK);
                     let elapsedP = performance.now() - start;
@@ -145,11 +197,11 @@ for (let t = 0; t < tests.length; t++) {
                             if (verbose) {
                                 console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
                             }
-                        if (verbose && arrayJS.length < 300) {
+                            if (verbose && arrayJS.length < 300) {
                                 console.log("ORIG: " + JSON.stringify(origArray));
                                 console.log("OK  : " + JSON.stringify(arrayJS));
                                 console.log("NOK : " + JSON.stringify(arrayK));
-                        }
+                            }
                         });
                     }
                     if (equal) {
@@ -157,7 +209,6 @@ for (let t = 0; t < tests.length; t++) {
                             console.log(`Elapsed ${algorithm.name} time: ${elapsedP} ms.`);
                         }
                         algorithm.totalElapsed += elapsedP;
-                        algorithm.iterations++;
                     }
                 }
             }

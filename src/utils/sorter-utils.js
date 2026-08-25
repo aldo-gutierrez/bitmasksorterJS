@@ -166,18 +166,46 @@ function normalizeSortOrder(order) {
     return true;
 }
 
-export function getSortOptions(options, start, endP1) {
+function normalizeNullsOrder(nulls) {
+    if (typeof nulls === 'string') {
+        switch (nulls.trim().toLowerCase()) {
+            case 'first':
+            case 'nulls_first':
+            case 'nulls-first':
+                return 'first';
+            case 'last':
+            case 'nulls_last':
+            case 'nulls-last':
+                return 'last';
+            case 'ignore':
+            case 'nulls_ignore':
+            case 'nulls-ignore':
+                return 'ignore';
+            default:
+                return 'last';
+        }
+    }
+    return 'ignore';
+}
+
+export function getSortOptions(options) {
     let asc = true;
+    let nulls = 'ignore';
+    let start;
+    let endP1;
     if (options && typeof options === 'object' && !Array.isArray(options)) {
         start = options.start;
         endP1 = options.end;
         if (options.order !== undefined) {
             asc = normalizeSortOrder(options.order);
         }
-    } else if (options !== undefined) {
-        start = options;
+        if (options.nulls !== undefined) {
+            nulls = normalizeNullsOrder(options.nulls);
+        } else if (options.nullOrder !== undefined) {
+            nulls = normalizeNullsOrder(options.nullOrder);
+        }
     }
-    return { start, endP1, asc };
+    return { start, endP1, asc, nulls };
 }
 
 export const getSortRangeOptions = getSortOptions;
@@ -199,4 +227,69 @@ export function validateSortRange(array, start, endP1) {
         throw new RangeError(`endP1 ${endP1} is out of bounds for array length ${array.length}`);
     }
     return { start, endP1 };
+}
+
+export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, arrayNativeF, mapper) {
+    const isTypedArray = ArrayBuffer.isView(arrayObj) && !(arrayObj instanceof DataView);
+    if (isTypedArray) {
+        return {start, endP1, arrayObj};
+    }
+
+    let j = 0;
+    let nullValues = 0;
+    let undefinedValues = 0;
+
+    if (nulls === "last" || nulls === "first") {
+        for (let i = start; i < endP1; i++) {
+            const elementObj = arrayObj[i];
+            if (elementObj === null) {
+                nullValues++;
+                continue;
+            }
+            if (elementObj === undefined) {
+                undefinedValues++;
+                continue;
+            }
+            if (i !== start + j) arrayObj[start + j] = elementObj;
+            j++;
+        }
+    }
+
+    const n = (endP1 - start) - nullValues - undefinedValues;
+    let arrayNative;
+    if (arrayNativeF) {
+        arrayNative = arrayNativeF(n);
+        // fill native array from compacted block at [start .. start+n-1]
+        for (let i = 0; i < n; i++) {
+            const elementObj = arrayObj[start + i];
+            arrayNative[i] = mapper ? mapper(elementObj) : elementObj;
+        }
+    }
+
+    // adjust arrayObj according to nulls placement and update endP1
+    if (nulls === "last") {
+        // place nulls and undefineds after the compacted block
+        let pos = start + n;
+        for (let t = 0; t < nullValues; t++) { arrayObj[pos++] = null; }
+        for (let t = 0; t < undefinedValues; t++) { arrayObj[pos++] = undefined; }
+        const newEndP1 = start + n;
+        return { start, endP1: newEndP1, arrayNative };
+    } else if (nulls === "first") {
+        // shift compacted block right by nullValues to make space for nulls at start
+        if (nullValues > 0) {
+            for (let i = n - 1; i >= 0; i--) {
+                const elementObj = arrayObj[start + i];
+                arrayObj[start + i + nullValues] = elementObj;
+            }
+        }
+        // write nulls at [start .. start+nullValues-1]
+        for (let i = 0; i < nullValues; i++) arrayObj[start + i] = null;
+        // write undefineds from start + nullValues + n to endP1-1
+        for (let i = start + nullValues + n; i < endP1; i++) arrayObj[i] = undefined;
+        const newStart = start + nullValues;
+        const newEndP1 = start + nullValues + n;
+        return { start: newStart, endP1: newEndP1, arrayNative };
+    } else {
+        return { start, endP1, arrayNative}
+    }
 }
