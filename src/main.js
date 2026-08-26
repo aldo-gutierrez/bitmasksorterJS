@@ -15,6 +15,7 @@ import {pCountBitSortInt32} from "./algorithms/p-count-bit-sorter-int.js";
 import {pCountBitMinMaxSortInt32} from "./algorithms/p-count-bit-sorter-int.js";
 import {pCountSortObjectByInt32Key} from "./algorithms/p-count-bit-sorter-object-int.js";
 import {americanFlagBitSortInt32} from "./algorithms/a-flag-bit-sorter-int.js";
+import {sort} from "./utils/sort.js";
 
 export {
     arrayCopy,
@@ -38,5 +39,7 @@ export {
 
     radixBitSortObjectByFloat64Key,
     sortObjectByFloat64Key,
+
+    sort,
 
 }
