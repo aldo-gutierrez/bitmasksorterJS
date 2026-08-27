@@ -19,7 +19,7 @@ export function quickBitLowMemSortObjectByInt32Key(array, mapper, options) {
     if (n < 2) {
         return;
     }
-    ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
+    ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
     n = endP1 - start;
     if (n < 2) {
         return;

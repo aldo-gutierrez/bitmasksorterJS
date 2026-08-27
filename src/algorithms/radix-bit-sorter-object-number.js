@@ -14,7 +14,7 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options) {
             start,
             endP1,
             arrayNative
-        } = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, (n) => new Float64Array(n), mapper));
+        } = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, (n) => new Float64Array(n)));
     } catch (e) {
         throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);
     }

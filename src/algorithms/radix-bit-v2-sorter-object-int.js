@@ -9,7 +9,7 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let arrayNative;
-    ({start, endP1, arrayNative} = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, (n) => new Int32Array(n), mapper));
+    ({start, endP1, arrayNative} = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, (n) => new Int32Array(n)));
     let n = endP1 - start;
     if (n < 2) {
         return;
