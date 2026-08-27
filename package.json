@@ -1,10 +1,20 @@
 {
   "name": "@aldogg/sorter",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Radix, Radix sorter, BitMask, BitMask sorters, RadixBitMask sorter, bitMaskSorter, bitmask-sorter, fastest sorter",
   "type": "module",
-  "main": "src/main.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.es5.umd.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
   "scripts": {
+    "clean": "rimraf dist",
+    "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap --outDir dist/types",
+    "bundle:types": "dts-bundle-generator -o dist/index.d.ts src/index.ts",
+    "build:rollup": "rollup -c",
+    "build": "npm run clean && npm run build:types && npm run bundle:types && npm run build:rollup",
     "test": "mocha test/*unit-test*.js"
   },
   "repository": {
@@ -23,6 +33,17 @@
   },
   "homepage": "https://github.com/aldo-gutierrez/bitsorterJS#readme",
   "devDependencies": {
-    "mocha": "^10.7.3"
+    "mocha": "^10.7.3",
+    "rollup": "^3.30.0",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-babel": "^7.0.0",
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "dts-bundle-generator": "^6.9.0",
+    "typescript": "^5.4.0",
+    "rimraf": "^5.0.0",
+    "fast-sort": "^3.4.1",
+    "timsort": "^0.3.0"
   }
 }

@@ -229,19 +229,58 @@ export function validateSortRange(array, start, endP1) {
     return { start, endP1 };
 }
 
-export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, arrayNativeF, mapper) {
+export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, arrayNativeF) {
     const isTypedArray = ArrayBuffer.isView(arrayObj) && !(arrayObj instanceof DataView);
     if (isTypedArray) {
-        return {start, endP1, arrayObj};
+        return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
     }
 
-    let j = 0;
-    let nullValues = 0;
-    let undefinedValues = 0;
+    if (nulls === "ignore") {
+        if (!arrayNativeF) {
+            return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
+        }
 
-    if (nulls === "last" || nulls === "first") {
+        const n = endP1 - start;
+        const arrayNative = arrayNativeF(n);
+        if (mapper) {
+            for (let i = 0; i < n; i++) {
+                arrayNative[i] = mapper(arrayObj[start + i]);
+            }
+        } else {
+            for (let i = 0; i < n; i++) {
+                arrayNative[i] = arrayObj[start + i];
+            }
+        }
+        return { start, endP1, arrayNative };
+    }
+
+    if (nulls === "first") {
         for (let i = start; i < endP1; i++) {
             const elementObj = arrayObj[i];
+            if (elementObj === null) {
+                start++;
+            } else {
+                break
+            }
+        }
+    }
+
+    let arrayNative;
+    if (arrayNativeF) {
+        arrayNative = arrayNativeF(endP1 - start);
+    }
+
+    // Counters and collectors - must be declared before use
+    let nullValues = 0;
+    let undefinedValues = 0;
+    const nullKeyObjs = [];
+    const undefinedKeyObjs = [];
+
+    let writeIndex = 0;
+    if (mapper) {
+        for (let i = start; i < endP1; i++) {
+            const elementObj = arrayObj[i];
+            // If the element object itself is null/undefined, treat accordingly without calling mapper
             if (elementObj === null) {
                 nullValues++;
                 continue;
@@ -250,46 +289,74 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, array
                 undefinedValues++;
                 continue;
             }
-            if (i !== start + j) arrayObj[start + j] = elementObj;
-            j++;
+            const valueToCheck = mapper(elementObj);
+            if (valueToCheck === null) {
+                nullKeyObjs.push(elementObj);
+                continue;
+            }
+            if (valueToCheck === undefined) {
+                undefinedKeyObjs.push(elementObj);
+                continue;
+            }
+            if (arrayNative) arrayNative[writeIndex] = valueToCheck;
+            if (i !== start + writeIndex) arrayObj[start + writeIndex] = elementObj;
+            writeIndex++;
+        }
+    } else {
+        for (let i = start; i < endP1; i++) {
+            const elementObj = arrayObj[i];
+            // If the element object itself is null/undefined, treat accordingly without calling mapper
+            if (elementObj === null) {
+                nullValues++;
+                continue;
+            }
+            if (elementObj === undefined) {
+                undefinedValues++;
+                continue;
+            }
+            if (arrayNative) arrayNative[writeIndex] = elementObj;
+            if (i !== start + writeIndex) arrayObj[start + writeIndex] = elementObj;
+            writeIndex++;
         }
     }
 
-    const n = (endP1 - start) - nullValues - undefinedValues;
-    let arrayNative;
-    if (arrayNativeF) {
-        arrayNative = arrayNativeF(n);
-        // fill native array from compacted block at [start .. start+n-1]
-        for (let i = 0; i < n; i++) {
-            const elementObj = arrayObj[start + i];
-            arrayNative[i] = mapper ? mapper(elementObj) : elementObj;
-        }
-    }
+    const n = writeIndex;
 
     // adjust arrayObj according to nulls placement and update endP1
     if (nulls === "last") {
-        // place nulls and undefineds after the compacted block
+        // place nulls and undefineds after the compacted block - restore original objects
         let pos = start + n;
-        for (let t = 0; t < nullValues; t++) { arrayObj[pos++] = null; }
-        for (let t = 0; t < undefinedValues; t++) { arrayObj[pos++] = undefined; }
+        for (let t = 0; t < nullKeyObjs.length; t++) {
+            arrayObj[pos++] = nullKeyObjs[t];
+        }
+        for (let t = 0; t < undefinedKeyObjs.length; t++) {
+            arrayObj[pos++] = undefinedKeyObjs[t];
+        }
+        for (let t = 0; t < nullValues; t++) {
+            arrayObj[pos++] = null;
+        }
+        for (let t = 0; t < undefinedValues; t++) {
+            arrayObj[pos++] = undefined;
+        }
         const newEndP1 = start + n;
-        return { start, endP1: newEndP1, arrayNative };
-    } else if (nulls === "first") {
-        // shift compacted block right by nullValues to make space for nulls at start
-        if (nullValues > 0) {
+        return {start, endP1: newEndP1, arrayNative, start2: start, end2: start + n + nullKeyObjs.length + undefinedKeyObjs.length};
+    } else { // nulls === "first"
+        // shift compacted block right by totalNulls to make space for nulls at start
+        let totalNulls = nullValues + nullKeyObjs.length;
+        if (totalNulls > 0) {
             for (let i = n - 1; i >= 0; i--) {
                 const elementObj = arrayObj[start + i];
-                arrayObj[start + i + nullValues] = elementObj;
+                arrayObj[start + i + totalNulls] = elementObj;
             }
         }
-        // write nulls at [start .. start+nullValues-1]
+        // write null objects at [start .. start+nullValues-1]
         for (let i = 0; i < nullValues; i++) arrayObj[start + i] = null;
-        // write undefineds from start + nullValues + n to endP1-1
-        for (let i = start + nullValues + n; i < endP1; i++) arrayObj[i] = undefined;
-        const newStart = start + nullValues;
-        const newEndP1 = start + nullValues + n;
-        return { start: newStart, endP1: newEndP1, arrayNative };
-    } else {
-        return { start, endP1, arrayNative}
+        for (let i = 0; i < nullKeyObjs.length; i++) arrayObj[start + i + nullValues] = nullKeyObjs[i];
+        // write undefineds from start + totalNulls + n to endP1-1
+        for (let i = start + totalNulls + n, t = 0; i < endP1 && t < undefinedKeyObjs.length; i++, t++) arrayObj[i] = undefinedKeyObjs[t];
+        for (let i = start + totalNulls + n + undefinedKeyObjs.length, t = 0; i < endP1 && t < undefinedValues; i++, t++) arrayObj[i] = undefined;
+        const newStart = start + totalNulls;
+        const newEndP1 = start + totalNulls + n;
+        return {start: newStart, endP1: newEndP1, arrayNative, start2: start + nullValues, end2: start + n + undefinedKeyObjs.length};
     }
 }
