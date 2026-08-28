@@ -1,4 +1,3 @@
-import {arrayCopy} from "./utils/sorter-utils.js";
 import {radixBitSortInt32} from "./algorithms/radix-bit-sorter-int.js";
 import {radixBitSortFloat64} from "./algorithms/radix-bit-sorter-number.js";
 import {radixBitSortObjectByInt32Key} from "./algorithms/radix-bit-sorter-object-int.js";
@@ -18,8 +17,6 @@ import {americanFlagBitSortInt32} from "./algorithms/a-flag-bit-sorter-int.js";
 import {sort} from "./utils/sort.js";
 
 export {
-    arrayCopy,
-
     pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
     quickBitSortInt32,

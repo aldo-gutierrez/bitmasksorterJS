@@ -1,7 +1,7 @@
 import {
-    arrayCopy, pCountBitSortInt32, quickBitSortInt32, americanFlagBitSortInt32,
+    pCountBitSortInt32, quickBitSortInt32, americanFlagBitSortInt32,
     radixBitSortInt32, radixBitSortFloat64, pCountBitMinMaxSortInt32
-} from "../src/main.js";
+} from "../src/main.js"; //"@aldogg/sorter"
 import {testArraysEquals} from "../test/test-utils.js";
 
 let fastSort = null;
@@ -20,9 +20,15 @@ try {
     console.warn('timsort not installed. Install with: npm --save-dev timsort');
 }
 
-console.log("Comparing Sorters\n");
 
-const iterations = 4; //use 20 for more accuracy in documented results 
+//PARAMETERS
+const VERIFY_SORT = process.env.VERIFY_SORT === 'true';
+const runs = 10; //use 20 for more accuracy in documented results
+const verbose = false;
+const sizes = [1000000];
+const ranges = [1000, 100000, 1000000, 1000000000];
+console.log("Comparing Sorters verify:" + VERIFY_SORT + " with " + runs + " runs");
+
 let algorithms = [
     {
         'name': 'Native',
@@ -32,8 +38,8 @@ let algorithms = [
             });
             return array;
         },
-        'floatingPoint' : true,
-        'negative' : true,
+        'floatingPoint': true,
+        'negative': true,
     },
     {
         'name': 'QuickBitSortInt32',
@@ -41,8 +47,8 @@ let algorithms = [
             quickBitSortInt32(array);
             return array;
         },
-        'floatingPoint' : false,
-        'negative' : true,
+        'floatingPoint': false,
+        'negative': true,
     },
     {
         'name': 'RadixBitSortInt32',
@@ -50,8 +56,8 @@ let algorithms = [
             radixBitSortInt32(array);
             return array;
         },
-        'floatingPoint' : false,
-        'negative' : true,
+        'floatingPoint': false,
+        'negative': true,
     },
     {
         'name': 'RadixBitSortFloat64',
@@ -59,18 +65,18 @@ let algorithms = [
             radixBitSortFloat64(array);
             return array;
         },
-        'floatingPoint' : true,
-        'negative' : true,
+        'floatingPoint': true,
+        'negative': true,
     },
     {
         'name': 'PCountBitSortInt32',
         'sortFunction': (array) => {
-           pCountBitSortInt32(array);
-           return array
+            pCountBitSortInt32(array);
+            return array
         },
-        'floatingPoint' : false,
-        'negative' : true,
-        'range' : 2 ** 21,
+        'floatingPoint': false,
+        'negative': true,
+        'range': 2 ** 21,
     },
     {
         'name': 'PCountBitMinMaxSortInt32',
@@ -78,34 +84,34 @@ let algorithms = [
             pCountBitMinMaxSortInt32(array);
             return array
         },
-        'floatingPoint' : false,
-        'negative' : true,
-        'range' : 2 ** 21,
+        'floatingPoint': false,
+        'negative': true,
+        'range': 2 ** 21,
     },
     {
         'name': 'Float64Array.sort',
         'sortFunction': (array) => {
             return new Float64Array(array).sort();
         },
-        'floatingPoint' : true,
-        'negative' : true,
+        'floatingPoint': true,
+        'negative': true,
     },
     {
         'name': 'Int32Array.sort',
         'sortFunction': (array) => {
             return new Int32Array(array).sort();
         },
-        'floatingPoint' : false,
-        'negative' : true,
+        'floatingPoint': false,
+        'negative': true,
     },
-   {
+    {
         'name': 'AmericanFlagBitSortInt32',
         'sortFunction': (array) => {
             americanFlagBitSortInt32(array);
             return array
         },
-       'floatingPoint' : false,
-       'negative' : true,        
+        'floatingPoint': false,
+        'negative': true,
     },
 ]
 
@@ -115,8 +121,8 @@ if (fastSort) {
         'sortFunction': (array) => {
             return fastSort.sort(array).asc();
         },
-        'floatingPoint' : true,
-        'negative' : true,
+        'floatingPoint': true,
+        'negative': true,
     });
 }
 
@@ -128,16 +134,10 @@ if (timsort) {
             timsort.sort(array, compare);
             return array;
         },
-        'floatingPoint' : true,
-        'negative' : true,
+        'floatingPoint': true,
+        'negative': true,
     });
 }
-
-let verbose = false;
-
-let sizes = [1000, 10000, 100000, 1000000];
-let ranges = [1000, 10000, 100000, 1000000, 1000000000];
-
 
 for (let s = 0; s < sizes.length; s++) {
     let size = sizes[s];
@@ -152,19 +152,19 @@ for (let s = 0; s < sizes.length; s++) {
                 "floatingPoint": false
             },
             {
-                "name": `Negative Integer Numbers, range: ${range}, size: ${size}`,
+                "name": `Negative Integer Numbers, size: ${size}, range: ${range},`,
                 "genFunction": () => Array.from({length: size}, () => -Math.floor(Math.random() * range)),
                 "negative": true,
                 "floatingPoint": false
             },
             {
-                "name": `Negative/Positive Integer Numbers, range: ${range}, size: ${size}`,
+                "name": `Negative/Positive Integer Numbers, size: ${size}, range: ${range},`,
                 "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range - range / 2)),
                 "negative": true,
                 "floatingPoint": false
             },
             {
-                "name": `Negative/Positive Floating Point Numbers, range: ${range}, size: ${size}`,
+                "name": `Negative/Positive Floating Point Numbers, size: ${size}, range: ${range}, `,
                 "genFunction": () => Array.from({length: size}, () => Math.random() * range - range / 2),
                 "negative": true,
                 "floatingPoint": true
@@ -181,31 +181,32 @@ for (let s = 0; s < sizes.length; s++) {
                 algorithm.iterations = 0;
             }
 
-            for (let i = 0; i < iterations; i++) {
-
-                for (let a = 0; a < algorithms.length; a++) {
+            for (let a = 0; a < algorithms.length; a++) {
+                for (let i = 0; i < runs; i++) {
                     let algorithm = algorithms[a];
                     if (!((generator.floatingPoint && !algorithm.floatingPoint) || (generator.negative && !algorithm.negative) || (algorithm.range && algorithm.range < range))) {
-                        let arrayK = Array(size);
-                        arrayCopy(origArray, 0, arrayK, 0, size);
+                        //
+                        let arrayK = origArray.slice();
                         let start = performance.now();
                         arrayK = algorithm.sortFunction(arrayK);
                         let elapsedP = performance.now() - start;
                         let equal = true;
-                        if (a === 0) {
-                            algorithm["sortedArray"] = arrayK;
-                        } else {
-                            let arrayJS = algorithms[0]["sortedArray"];
-                            equal = testArraysEquals(arrayJS, arrayK, (firstError) => {
-                                if (verbose) {
-                                    console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
-                                }
-                                if (verbose && arrayJS.length < 300) {
-                                    console.log("ORIG: " + JSON.stringify(origArray));
-                                    console.log("OK  : " + JSON.stringify(arrayJS));
-                                    console.log("NOK : " + JSON.stringify(arrayK));
-                                }
-                            });
+                        if (VERIFY_SORT) {
+                            if (a === 0) {
+                                algorithm["sortedArray"] = arrayK;
+                            } else {
+                                let arrayJS = algorithms[0]["sortedArray"];
+                                equal = testArraysEquals(arrayJS, arrayK, (firstError) => {
+                                    if (verbose) {
+                                        console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
+                                    }
+                                    if (verbose && arrayJS.length < 300) {
+                                        console.log("ORIG: " + JSON.stringify(origArray));
+                                        console.log("OK  : " + JSON.stringify(arrayJS));
+                                        console.log("NOK : " + JSON.stringify(arrayK));
+                                    }
+                                });
+                            }
                         }
                         if (equal) {
                             if (verbose) {
@@ -227,7 +228,8 @@ for (let s = 0; s < sizes.length; s++) {
                 let algorithm = algorithms[a];
                 if (!((generator.floatingPoint && !algorithm.floatingPoint) || (generator.negative && !algorithm.negative) || (algorithm.range && algorithm.range < range))) {
                     if (algorithm.totalElapsed > 0) {
-                        console.log(`${algorithm.name.padEnd(28)} avg time: ${(algorithm.totalElapsed / iterations).toFixed(6).padStart(12)} ms.`);
+                        const avg = algorithm.iterations > 0 ? algorithm.totalElapsed / algorithm.iterations : 0;
+                        console.log(`${algorithm.name.padEnd(28)} avg time: ${(avg).toFixed(6).padStart(12)} ms.`);
                     } else {
                         console.log(`${algorithm.name.padEnd(28)} with errors.`);
                     }
