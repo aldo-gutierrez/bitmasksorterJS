@@ -18,8 +18,8 @@ function median(arr){
 
 function timeFn(fn){
   const start = performance.now();
-  fn();
-  return performance.now()-start;
+  const result = fn();
+  return { elapsed: performance.now()-start, result };
 }
 
 function generateRandom(n, max=1e6){
@@ -36,13 +36,6 @@ function assertSortedAsc(name, arr, keyFn){
       throw new Error(`${name} produced an incorrect order at index ${i}: ${values[i-1]} > ${values[i]}`);
     }
   }
-}
-
-function runAndValidate(name, fn, input, keyFn){
-  const result = fn(input);
-  const sorted = result === undefined ? input : result;
-  if(VERIFY_SORT) assertSortedAsc(name, sorted, keyFn);
-  return sorted;
 }
 
 async function main(){
@@ -111,39 +104,41 @@ async function main(){
       const fnObjInt32 = getExport(localSorter, 'sortObjectByInt32Key');
       const fnObjFloat64 = getExport(localSorter, 'sortObjectByFloat64Key');
 
-      if(typeof fnInt32 === 'function') integerSorters.push({name:'bitmask-sort-int32', fn:(arr)=>{ const c = arr.slice(); fnInt32(c); return c; }});
-      if(typeof fnFloat64 === 'function') integerSorters.push({name:'bitmask-sort-float64', fn:(arr)=>{ const c = arr.slice(); fnFloat64(c); return c; }});
-      if(typeof fnObjInt32 === 'function') objectSorters.push({name:'bitmask-sort-obj-int32', fn:(arr, keyFn)=>{  const  c = arr.slice(); fnObjInt32(c, keyFn); return c; }});
-      if(typeof fnObjFloat64 === 'function') objectSorters.push({name:'bitmask-sort-obj-float64', fn:(arr, keyFn)=>{ const c = arr.slice(); fnObjFloat64(c, keyFn); return c; }});
+      if(typeof fnInt32 === 'function') integerSorters.push({name:'bitmask-sort-int32', fn:(arr)=>{ fnInt32(arr); return arr; }});
+      if(typeof fnFloat64 === 'function') integerSorters.push({name:'bitmask-sort-float64', fn:(arr)=>{ fnFloat64(arr); return arr; }});
+      if(typeof fnObjInt32 === 'function') objectSorters.push({name:'bitmask-sort-obj-int32', fn:(arr, keyFn)=>{  fnObjInt32(arr, keyFn); return arr; }});
+      if(typeof fnObjFloat64 === 'function') objectSorters.push({name:'bitmask-sort-obj-float64', fn:(arr, keyFn)=>{ fnObjFloat64(arr, keyFn); return arr; }});
     }
 
   const sizes = [100, 1000, 10000, 100000, 1000000];
   const runs = 10;
 
   for(const n of sizes){
-    console.log(`\nBenchmark: integers n=${n}`);
+    console.log(`\nBenchmark: integers n=${n} size=${n} runs=${runs}`);
     const base = generateRandom(n);
     for(const s of integerSorters){
       const times = [];
       for(let r=0;r<runs;r++){
         const arr = base.slice();
-        const t = timeFn(()=> runAndValidate(s.name, s.fn, arr));
-        times.push(t);
+        const { elapsed, result } = timeFn(() => s.fn(arr));
+        if(VERIFY_SORT) assertSortedAsc(s.name, result === undefined ? arr : result);
+        times.push(elapsed);
       }
-      console.log(`${s.name.padEnd(24)} median: ${median(times).toFixed(3).padStart(9)} ms (runs: ${runs})`);
+      console.log(`${s.name.padEnd(24)} median: ${median(times).toFixed(3).padStart(9)} ms`);
     }
   }
   for(const n of sizes){
-    console.log(`\nBenchmark: objects n=${n}`);
+    console.log(`\nBenchmark: objects n=${n} size=${n} runs=${runs}`);
     const base = generateRandom(n).map(x=>({value:x}));
     for(const s of objectSorters){
       const times = [];
       for(let r=0;r<runs;r++){
         const arr = base.slice();
-        const t = timeFn(()=> runAndValidate(s.name, (input)=>s.fn(input, x=>x.value), arr, x=>x.value));
-        times.push(t);
+        const { elapsed, result } = timeFn(() => s.fn(arr, x => x.value));
+        if(VERIFY_SORT) assertSortedAsc(s.name, result === undefined ? arr : result, x => x.value);
+        times.push(elapsed);
       }
-      console.log(`${s.name.padEnd(24)} median: ${median(times).toFixed(3).padStart(9)} ms (runs: ${runs})`);
+      console.log(`${s.name.padEnd(24)} median: ${median(times).toFixed(3).padStart(9)} ms`);
     }
   }
 }
