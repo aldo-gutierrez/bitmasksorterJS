@@ -126,12 +126,6 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
                     assert.deepStrictEqual(actual, expected);
                 });
 
-                it.skip('should reject nulls immediately before mutation when nulls are forbidden', function () {
-                    const actual = [3, null, 1, undefined, 2];
-                    assert.throws(() => sorter.fn(actual, { ...descOptions, nulls: 'ignore' }), { name: 'TypeError' });
-                    assert.deepStrictEqual(actual, [3, null, 1, undefined, 2]);
-                });
-
                 it('should handle sparse arrays by treating uninitialized slots as missing values', function () {
                     const actual = new Array(5);
                     actual[0] = 3;

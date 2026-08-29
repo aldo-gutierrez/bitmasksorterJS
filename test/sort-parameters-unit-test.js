@@ -64,9 +64,9 @@ describe('sort wrapper parameter dispatch', function () {
     });
 
     it('throws on invalid parameter types', function () {
-        const items = [{id:1}];
+        const items = [{id:2},{id:1},{id:3}];
         assert.throws(() => sort(items, 123));
-        assert.doesNotThrow(() => sort(items, [1,2,3], {}));
+        assert.throws(() => sort(items, [1,2,3], {}));
         assert.throws(() => sort(items, x => x.id, "notObject"));
     });
 
@@ -110,6 +110,146 @@ describe('sort wrapper parameter dispatch', function () {
             [1, 1],
             [2, 2],
             [2, 1]
+        ]);
+    });
+
+    it('sorts strings in asc and desc order with nulls ignore, last and first', function () {
+        const ascLast = [
+            {value: 'b'},
+            {value: null},
+            {value: 'a'},
+            {value: 'c'},
+            {value: undefined}
+        ];
+
+        sort(ascLast, x => x.value, {order: 'asc', nulls: 'last'});
+        assert.deepStrictEqual(ascLast.map(x => x ? x.value : x), ['a', 'b', 'c', null, undefined]);
+
+        const descFirst = [
+            {value: 'b'},
+            {value: null},
+            {value: 'a'},
+            {value: 'c'},
+            {value: undefined}
+        ];
+
+        sort(descFirst, x => x.value, {order: 'desc', nulls: 'first'});
+        assert.deepStrictEqual(descFirst.map(x => x ? x.value : x), [null, 'c', 'b', 'a', undefined]);
+
+        const ignore = [
+            {value: 'b'},
+            {value: 'a'},
+            {value: 'c'}
+        ];
+
+        sort(ignore, x => x.value, {order: 'asc', nulls: 'ignore'});
+        assert.deepStrictEqual(ignore.map(x => x.value), ['a', 'b', 'c']);
+
+        sort(ignore, x => x.value, {order: 'desc', nulls: 'ignore'});
+        assert.deepStrictEqual(ignore.map(x => x.value), ['c', 'b', 'a']);
+    });
+
+    it('sorts booleans in asc and desc order with null placement and range bounds', function () {
+        const ascLast = [
+            {value: true},
+            {value: null},
+            {value: false},
+            {value: undefined},
+            {value: true}
+        ];
+
+        sort(ascLast, x => x.value, {order: 'asc', nulls: 'last'});
+        assert.deepStrictEqual(ascLast.map(x => x ? x.value : x), [false, true, true, null, undefined]);
+
+        const descFirst = [
+            {value: true},
+            {value: null},
+            {value: false},
+            {value: undefined},
+            {value: false}
+        ];
+
+        sort(descFirst, x => x.value, {order: 'desc', nulls: 'first'});
+        assert.deepStrictEqual(descFirst.map(x => x ? x.value : x), [null, true, false, false, undefined]);
+
+        const range = [true, true, false, true, false, false];
+        sort(range, {type: 'boolean', start: 1, end: 5, order: 'asc'});
+        assert.deepStrictEqual(range, [true, false, false, true, true, false]);
+    });
+
+    it('sorts dates in asc and desc order with null placement and range bounds', function () {
+        const ascLast = [
+            {value: new Date('2020-01-03')},
+            {value: null},
+            {value: new Date('2020-01-01')},
+            {value: undefined},
+            {value: new Date('2020-01-02')}
+        ];
+
+        sort(ascLast, x => x.value, {type: 'date', order: 'asc', nulls: 'last'});
+        assert.deepStrictEqual(ascLast.map(x => x === null || x === undefined ? x : (x.value === null || x.value === undefined ? x.value : x.value.getTime())), [
+            new Date('2020-01-01').getTime(),
+            new Date('2020-01-02').getTime(),
+            new Date('2020-01-03').getTime(),
+            null,
+            undefined
+        ]);
+
+        const descFirst = [
+            {value: new Date('2020-01-03')},
+            {value: null},
+            {value: new Date('2020-01-01')},
+            {value: undefined},
+            {value: new Date('2020-01-02')}
+        ];
+
+        sort(descFirst, x => x.value, {type: 'date', order: 'desc', nulls: 'first'});
+        assert.deepStrictEqual(descFirst.map(x => x === null || x === undefined ? x : (x.value === null || x.value === undefined ? x.value : x.value.getTime())), [
+            null,
+            new Date('2020-01-03').getTime(),
+            new Date('2020-01-02').getTime(),
+            new Date('2020-01-01').getTime(),
+            undefined
+        ]);
+
+        const range = [
+            new Date('2020-01-05'),
+            new Date('2020-01-02'),
+            new Date('2020-01-04'),
+            new Date('2020-01-01'),
+            new Date('2020-01-03'),
+            new Date('2020-01-06')
+        ];
+
+        sort(range, {type: 'date', start: 1, end: 5, order: 'desc'});
+        assert.deepStrictEqual(range.map(x => x.getTime()), [
+            new Date('2020-01-05').getTime(),
+            new Date('2020-01-04').getTime(),
+            new Date('2020-01-03').getTime(),
+            new Date('2020-01-02').getTime(),
+            new Date('2020-01-01').getTime(),
+            new Date('2020-01-06').getTime()
+        ]);
+    });
+
+    it('sorts multiple text fields with primary and secondary key order overrides', function () {
+        const items = [
+            {first: 'b', last: 'alpha'},
+            {first: 'a', last: 'zeta'},
+            {first: 'a', last: 'alpha'},
+            {first: 'b', last: 'beta'}
+        ];
+
+        sort(items, [
+            {key: x => x.first, type: 'string'},
+            {key: x => x.last, type: 'string', order: 'desc'}
+        ], {order: 'asc', nulls: 'last'});
+
+        assert.deepStrictEqual(items.map(x => [x.first, x.last]), [
+            ['a', 'zeta'],
+            ['a', 'alpha'],
+            ['b', 'beta'],
+            ['b', 'alpha']
         ]);
     });
 });

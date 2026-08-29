@@ -254,11 +254,11 @@ Environment: AMD Ryzen 7 4800H processor, Node v16.13.2
 - [x] Test American Flag Sort with BitMask → AmericanBitXXXSorter (Only 32 bits)
 - [x] Full Regression and Smoke Test
 - [x] Benchmark Scripts
+- [x] Support String sorting by falling back to native JavaScript sort
+- [x] Support Boolean sorting by falling back to native JavaScript sort
 
 ## TODO OPENSOURCE VERSION
-- [ ] Create ShortListOrRangeXXXSorter to choose the best algorithm when n <= 2^16 or range <= 2^16. The best algorithm is selected from PCountSort, QuickBitSort, and RadixBitSort.
-- [ ] Support String sorting by falling back to native JavaScript sort
-- [ ] Support Boolean Sorting with a fallback or a fast method
+- [ ] Create ShortListRangeSorter similar to Java Version which will choose the best algorithm when n <= 2^16 or range <= 2^16. The best algorithm is selected from PCountSort, QuickBitSort, RadixBitSort and native Java Script sort.
 
 ## OPEN SOURCE FINAL VERSION
 * RadixBitSorter for all needed types
