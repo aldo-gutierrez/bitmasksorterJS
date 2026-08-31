@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bitmask Sorter — IE11 / Legacy Browser Test</title>
+    <style>
+        body {
+            font-family: Segoe UI, Tahoma, Arial;
+            background: linear-gradient(135deg, #f6f9ff, #eef6ff);
+            color: #0b2340;
+            margin: 0;
+            padding: 32px
+        }
+
+        .card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 6px 30px rgba(11, 35, 64, 0.12)
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 20px
+        }
+
+        p.lead {
+            color: #355;
+            margin-top: 0
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0
+        }
+
+        button {
+            background: #0b6fff;
+            border: none;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        button.secondary {
+            background: #f3f7ff;
+            color: #0b2340
+        }
+
+        pre {
+            background: #f6f9ff;
+            padding: 12px;
+            border-radius: 8px;
+            overflow: auto
+        }
+
+        .result {
+            font-size: 15px;
+            margin-top: 12px
+        }
+
+        .stat {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #f7fbff;
+            margin-right: 8px
+        }
+
+        footer {
+            margin-top: 18px;
+            color: #6b7a90;
+            font-size: 13px
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Bitmask Sorter — IE11 and Legacy Browsers</h1>
+    <p class="lead">Loads the legacy UMD bundle (BitmaskSorter global) and compares it to native Array.sort on 100,000
+        random integer (0..100000). Works on IE11.</p>
+
+    <div class="row">
+        <button id="run">Run benchmark (100,000)</button>
+        <button id="run-quick" class="secondary">Run smaller (10,000)</button>
+        <button id="run-bigger" class="secondary">Run bigger (1,000,000)</button>
+        <button id="clear" class="secondary">Clear</button>
+    </div>
+
+  <div class="row">
+    <label for="algorithm-select" style="align-self:center;margin-left:8px;color:#223;">Algorithm:</label>
+    <select id="algorithm-select" style="padding:6px;border-radius:6px;border:1px solid #d6e7ff;margin-left:6px">
+      <option value="radixBitSortInt32" selected>radixBitSortInt32 (default)</option>
+      <option value="pCountBitSortInt32">pCountBitSortInt32</option>
+      <option value="pCountBitMinMaxSortInt32">pCountBitMinMaxSortInt32</option>
+      <option value="americanFlagBitSortInt32">americanFlagBitSortInt32</option>
+      <option value="quickBitSortInt32">quickBitSortInt32</option>
+      <option value="radixBitSortFloat64">radixBitSortFloat64</option>
+    </select>
+  </div>
+
+  <div id="output">
+        <div class="result" id="status">Idle</div>
+        <div id="stats"></div>
+        <pre id="log" aria-live="polite"></pre>
+    </div>
+
+    <footer>UMD bundle loaded from jsDelivr. Library global: <strong>BitmaskSorter</strong> — <a
+            href="https://www.npmjs.com/package/@aldogg/sorter" target="_blank">npm</a> • <a
+            href="https://github.com/aldo-gutierrez/bitmasksorterJS" target="_blank">GitHub</a></footer>
+</div>
+
+<!-- Legacy UMD build for IE11. Uses global BitmaskSorter (see rollup config). -->
+<script src="https://cdn.jsdelivr.net/npm/@aldogg/sorter@0.0.8/dist/index.es5.umd.js"></script>
+<script>
+
+
+   //Polyfills
+
+    if (!Number.isInteger) {
+      Number.isInteger = function (value) {
+        return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
+      };
+    }
+
+    (function () {
+      var typedConstructors = [
+        Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,
+        Int32Array, Uint32Array, Float32Array, Float64Array
+      ];
+      typedConstructors.forEach(function (C) {
+        if (C && !C.prototype.slice) {
+          Object.defineProperty(C.prototype, 'slice', {
+            configurable: true,
+            writable: true,
+            value: function (begin, end) {
+              return new C(Array.prototype.slice.call(this, begin, end));
+            }
+          });
+        }
+      });
+    })();
+
+    (function () {
+        function now() {
+            return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        }
+
+        function generateInts(n) {
+            var a = new Array(n);
+            for (var i = 0; i < n; i++) {
+                a[i] = Math.floor(Math.random() * 100000);
+            }
+            return a;
+        }
+
+        function generateFloats(n) {
+            var a = new Array(n);
+            for (var i = 0; i < n; i++) {
+                a[i] = Math.random() * 100000;
+            }
+            return a;
+        }
+
+        function isSortedAsc(arr) {
+            for (var i = 1; i < arr.length; i++) {
+                if (arr[i - 1] > arr[i]) return false;
+            }
+            return true;
+        }
+
+        var runBtn = document.getElementById('run');
+        var runQuick = document.getElementById('run-quick');
+        var runBigger = document.getElementById('run-bigger');
+        var clearBtn = document.getElementById('clear');
+        var status = document.getElementById('status');
+        var log = document.getElementById('log');
+        var stats = document.getElementById('stats');
+        var algSelect = document.getElementById('algorithm-select');
+
+        function appendLog(line) {
+            log.textContent = line + '\n' + log.textContent;
+        }
+
+        function runTest(size) {
+            var alg = (algSelect && algSelect.value) || 'radixBitSortInt32';
+            var isFloatAlg = alg === 'radixBitSortFloat64';
+            status.textContent = 'Generating ' + size + ' random ' + (isFloatAlg ? 'floats' : 'integers') + '...';
+            log.textContent = '';
+            stats.innerHTML = '';
+            setTimeout(function () {
+                var arr = isFloatAlg ? generateFloats(size) : generateInts(size);
+                var a1 = arr.slice(0);
+                var a2 = arr.slice(0);
+
+                appendLog('Starting BitmaskSorter (library) — ' + alg + ' ...');
+                var t0 = now();
+                try {
+                    if (!window.BitmaskSorter || typeof window.BitmaskSorter[alg] !== 'function') throw new Error('Algorithm not available: ' + alg);
+                    window.BitmaskSorter[alg](a1, {order: 'asc'});
+                } catch (e) {
+                    appendLog('Library error: ' + (e && e.message));
+                    status.textContent = 'Library error';
+                    return;
+                }
+                var t1 = now();
+                appendLog('Library finished. Verifying...');
+                var libTime = t1 - t0;
+                var libOk = isSortedAsc(a1);
+
+                appendLog('Starting native Array.sort...');
+                var t2 = now();
+                a2.sort(function (x, y) {
+                    return x - y;
+                });
+                var t3 = now();
+                var nativeTime = t3 - t2;
+                var nativeOk = isSortedAsc(a2);
+
+                status.textContent = 'Done';
+                stats.innerHTML = '<span class="stat">Library: ' + libTime.toFixed(2) + ' ms</span>' +
+                    '<span class="stat">Native: ' + nativeTime.toFixed(2) + ' ms</span>' +
+                    '<span class="stat">Ratio (library/native): ' + (nativeTime > 0 ? (libTime / nativeTime).toFixed(2) : 'n/a') + '</span>' +
+                    '<span class="stat">SpeedUp (native/library): ' + (nativeTime > 0 ? (nativeTime / libTime).toFixed(2) + 'X' : 'n/a') + '</span>' +
+                    '<div style="margin-top:8px">Library sorted: ' + (libOk ? 'OK' : 'FAILED') + ' • Native sorted: ' + (nativeOk ? 'OK' : 'FAILED') + '</div>';
+
+                appendLog('Library time: ' + libTime.toFixed(2) + ' ms');
+                appendLog('Native time: ' + nativeTime.toFixed(2) + ' ms');
+                appendLog('Verification: library=' + (libOk ? 'OK' : 'FAIL') + ', native=' + (nativeOk ? 'OK' : 'FAIL'));
+
+            }, 20);
+        }
+
+        runBtn.addEventListener('click', function () {
+            status.textContent = 'Preparing...';
+            setTimeout(function () {
+                runTest(100000);
+            }, 50);
+        });
+        runQuick.addEventListener('click', function () {
+            status.textContent = 'Preparing...';
+            setTimeout(function () {
+                runTest(10000);
+            }, 50);
+        });
+        runBigger.addEventListener('click', function () {
+            status.textContent = 'Preparing...';
+            setTimeout(function () {
+                runTest(1000000);
+            }, 50);
+        });
+        clearBtn.addEventListener('click', function () {
+            log.textContent = '';
+            stats.innerHTML = '';
+            status.textContent = 'Idle';
+        });
+
+    })();
+</script>
+</body>
+</html>
