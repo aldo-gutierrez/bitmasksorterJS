@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Bitmask Sorter — ES Module Test (iOS12 / Modern)</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+            margin: 24px;
+            background: linear-gradient(180deg, #fff, #f4fbff);
+            color: #07203a
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(3, 10, 27, 0.08)
+        }
+
+        h1 {
+            margin: 0 0 6px
+        }
+
+        .lead {
+            color: #1b3a57;
+            margin-top: 6px
+        }
+
+        .controls {
+            margin-top: 16px
+        }
+
+        button {
+            background: #0561ff;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 9px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        button.alt {
+            background: #eef5ff;
+            color: #0561ff
+        }
+
+        .stats {
+            margin-top: 12px
+        }
+
+        .stat {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 12px;
+            background: #f6fbff;
+            border-radius: 8px
+        }
+
+        pre {
+            margin-top: 10px;
+            background: #fbfdff;
+            padding: 12px;
+            border-radius: 8px;
+            overflow: auto
+        }
+
+        footer {
+            margin-top: 16px;
+            color: #6b7a90
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Bitmask Sorter — ES Module (iOS12 / Modern)</h1>
+    <p class="lead">Imports the ESM bundle and compares the library sort to native Array.sort on 100,000 random floats.
+        Designed to work on iOS12 and modern browsers that support ES modules.</p>
+
+    <div class="controls">
+        <button id="run">Run benchmark (100,000)</button>
+        <button id="run-quick" class="alt">Run smaller (10,000)</button>
+        <button id="run-bigger" class="alt">Run bigger (1,000,000)</button>
+        <button id="clear" class="alt">Clear</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <pre id="log"></pre>
+    <footer>ESM import from jsDelivr @aldogg/sorter dist/index.esm.js — <a
+            href="https://www.npmjs.com/package/@aldogg/sorter" target="_blank">npm</a> • <a
+            href="https://github.com/aldo-gutierrez/bitmasksorterJS" target="_blank">GitHub</a></footer>
+</div>
+
+<script type="module">
+    import {sortFloat64} from 'https://cdn.jsdelivr.net/npm/@aldogg/sorter@0.0.8/dist/index.esm.js';
+
+    const logEl = document.getElementById('log');
+    const statsEl = document.getElementById('stats');
+
+    function now() {
+        return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    }
+
+    function generate(n) {
+        const a = new Array(n);
+        for (let i = 0; i < n; i++) a[i] = Math.random() * 100000;
+        return a;
+    }
+
+    function isSortedAsc(arr) {
+        for (let i = 1; i < arr.length; i++) if (arr[i - 1] > arr[i]) return false;
+        return true;
+    }
+
+    function append(msg) {
+        logEl.textContent = msg + '\n' + logEl.textContent;
+    }
+
+    async function runTest(size) {
+        append('Generating ' + size + ' floats...');
+        statsEl.innerHTML = '';
+        await new Promise(r => setTimeout(r, 20));
+        const arr = generate(size);
+        const a1 = arr.slice();
+        const a2 = arr.slice();
+
+        append('Starting library sort...');
+        const t0 = now();
+        try {
+            sortFloat64(a1, {order: 'asc'});
+        } catch (e) {
+            append('Library error: ' + e.message);
+            return;
+        }
+        const t1 = now();
+        const libTime = t1 - t0;
+        const libOk = isSortedAsc(a1);
+
+        append('Starting native sort...');
+        const t2 = now();
+        a2.sort((a, b) => a - b);
+        const t3 = now();
+        const nativeTime = t3 - t2;
+        const nativeOk = isSortedAsc(a2);
+
+        statsEl.innerHTML = '<span class="stat">Library: ' + libTime.toFixed(2) + ' ms</span>' +
+            '<span class="stat">Native: ' + nativeTime.toFixed(2) + ' ms</span>' +
+            '<span class="stat">Ratio: ' + (nativeTime > 0 ? (libTime / nativeTime).toFixed(2) : 'n/a') + '</span>' +
+            '<span class="stat">SpeedUp (native/library): ' + (nativeTime > 0 ? (nativeTime / libTime).toFixed(2) + 'X' : 'n/a') + '</span>' +
+            '<div style="margin-top:8px">Library: ' + (libOk ? 'OK' : 'FAILED') + ' • Native: ' + (nativeOk ? 'OK' : 'FAILED') + '</div>';
+
+        append('Library time: ' + libTime.toFixed(2) + ' ms');
+        append('Native time: ' + nativeTime.toFixed(2) + ' ms');
+        append('Verification: library=' + (libOk ? 'OK' : 'FAIL') + ', native=' + (nativeOk ? 'OK' : 'FAIL'));
+    }
+
+    document.getElementById('run').addEventListener('click', () => runTest(100000));
+    document.getElementById('run-quick').addEventListener('click', () => runTest(10000));
+    document.getElementById('run-bigger').addEventListener('click', () => runTest(1000000));
+    document.getElementById('clear').addEventListener('click', () => {
+        logEl.textContent = '';
+        statsEl.innerHTML = '';
+    });
+</script>
+</body>
+</html>
