@@ -23,7 +23,7 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options) {
     }
 
     let auxInt32 = new Int32Array(n);
-    let auxObj = Array(n).fill(null);
+    let auxObj = Array(n);
 
     if (bList[0] === 31) { //there are negative numbers and positive numbers
         let finalLeft = asc ? partitionReverseStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj)

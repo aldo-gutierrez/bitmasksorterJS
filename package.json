@@ -33,17 +33,13 @@
   },
   "homepage": "https://github.com/aldo-gutierrez/bitsorterJS#readme",
   "devDependencies": {
-    "mocha": "^10.7.3",
-    "rollup": "^3.30.0",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-babel": "^7.0.0",
     "@babel/core": "^7.22.0",
     "@babel/preset-env": "^7.22.0",
     "dts-bundle-generator": "^6.9.0",
     "typescript": "^5.4.0",
     "rimraf": "^5.0.0",
     "fast-sort": "^3.4.1",
-    "timsort": "^0.3.0"
+    "timsort": "^0.3.0",
+    "@rollup/plugin-terser": "^1.0.0"
   }
 }
