@@ -4,6 +4,9 @@
 //   npm run build
 //   npm install --save-dev fast-sort@^3.4.1 timsort@^0.3.0
 //   node benchmarks/benchmark.cjs
+//
+// Requires npm run build to build the local sorter first which requires Node.js 20+
+// Requires Node.js 12+ to run this benchmark
 
 const { performance } = require('perf_hooks');
 const path = require('path');

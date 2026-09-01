@@ -32,7 +32,7 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options) {
         return;
     }
     let auxFloat64 = new Float64Array(endP1 - start);
-    let auxObj = Array(endP1 - start).fill(null);
+    let auxObj = Array(endP1 - start);
 
     if (bList[1].length > 0 && bList[1][0] === 31) { //there are negative numbers and positive numbers
         let finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj)

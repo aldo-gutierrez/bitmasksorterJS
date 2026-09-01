@@ -1,3 +1,4 @@
+// Requires Node.js 16+ to run this benchmark
 import {
     pCountBitSortInt32, quickBitSortInt32, americanFlagBitSortInt32,
     radixBitSortInt32, radixBitSortFloat64, pCountBitMinMaxSortInt32
