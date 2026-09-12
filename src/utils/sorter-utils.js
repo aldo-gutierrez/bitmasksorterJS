@@ -1,3 +1,5 @@
+import {isTypedArray} from "./utils.js";
+
 export function arrayCopy(src, srcPos, dst, dstPos, length) {
     while (length--) dst[dstPos++] = src[srcPos++];
     return dst;
@@ -208,8 +210,6 @@ export function getSortOptions(options) {
     return { start, endP1, asc, nulls };
 }
 
-export const getSortRangeOptions = getSortOptions;
-
 export function validateSortRange(array, start, endP1) {
     if (start === undefined) {
         start = 0;
@@ -230,14 +230,16 @@ export function validateSortRange(array, start, endP1) {
 }
 
 export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, arrayNativeF) {
-    const isTypedArray = ArrayBuffer.isView(arrayObj) && !(arrayObj instanceof DataView);
-    if (isTypedArray) {
-        return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
+    const isTypedA = isTypedArray(arrayObj);
+    if (isTypedA && !mapper) {
+        let arrayNative = arrayObj;
+        return {start, endP1, arrayNative, start2: start, end2: endP1};
     }
 
     if (nulls === "ignore") {
         if (!arrayNativeF) {
-            return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
+            let arrayNative = arrayObj;
+            return {start, endP1, arrayNative, start2: start, end2: endP1};
         }
 
         const n = endP1 - start;
