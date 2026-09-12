@@ -7,7 +7,9 @@
   "module": "dist/index.esm.js",
   "browser": "dist/index.es5.umd.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "clean": "rimraf dist",
@@ -35,11 +37,16 @@
   "devDependencies": {
     "@babel/core": "^7.22.0",
     "@babel/preset-env": "^7.22.0",
+    "@rollup/plugin-babel": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-terser": "^1.0.0",
     "dts-bundle-generator": "^6.9.0",
-    "typescript": "^5.4.0",
-    "rimraf": "^5.0.0",
     "fast-sort": "^3.4.1",
+    "mocha": "^12.0.1",
+    "rimraf": "^5.0.0",
+    "rollup": "^4.18.0",
+    "rollup-plugin-esbuild": "^6.1.1",
     "timsort": "^0.3.0",
-    "@rollup/plugin-terser": "^1.0.0"
+    "typescript": "^5.4.0"
   }
 }
