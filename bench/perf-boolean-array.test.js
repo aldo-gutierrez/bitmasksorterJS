@@ -99,7 +99,7 @@ function benchmarkBooleanArrayCase(label, baseValues) {
             assert: assertBooleanSorted,
         },
         {
-            name: 'sort(array, {type: "boolean"})',
+            name: 'bitmask sort',
             clone: (values) => values.slice(),
             sort: (values) => {
                 sort(values, {type: 'boolean', order: 'asc'});
@@ -121,7 +121,7 @@ function benchmarkBooleanObjectCase(label, baseValues) {
             assert: assertBooleanObjectSorted,
         },
         {
-            name: 'sort(objects, x => x.flag, {type: "boolean"})',
+            name: 'bitmask sort',
             clone: (values) => values.map((entry) => ({...entry})),
             sort: (values) => {
                 sort(values, (entry) => entry.flag, {type: 'boolean', order: 'asc'});

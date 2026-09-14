@@ -3,9 +3,9 @@ import {performance} from 'node:perf_hooks';
 import {sort} from '../src/main.js';
 
 const VERIFY_SORT = process.env.VERIFY_SORT !== 'false';
-const DEFAULT_SIZES = [1000000];
+const DEFAULT_SIZES = [1000, 1000000, 1000000];
 const DEFAULT_RUNS = 5;
-const BIT_RANGES = [10, 20, 50, 53, 63];
+const BIT_RANGES = [11, 22, 53, 63];
 
 const sizes = parseIntegerList(process.env.BIGINT_BENCH_SIZES, DEFAULT_SIZES);
 const runs = Number(process.env.BIGINT_BENCH_RUNS ?? DEFAULT_RUNS);
@@ -132,13 +132,13 @@ function benchmarkBigIntArrayCase(label, baseArray, arrayType) {
 
     if (arrayType === 'plain') {
         algorithms.push({
-            name: 'native-array',
+            name: 'native sort',
             clone: clonePlainBigIntArray,
             sort: sortNativeBigIntArray,
             assert: assertSortedBigIntArray,
         });
         algorithms.push({
-            name: 'sort(a, {type: "bigint"})',
+            name: 'Bitmask sort',
             clone: clonePlainBigIntArray,
             sort: (values) => {
                 sort(values, {type: 'bigint', order: 'asc'});
@@ -156,7 +156,7 @@ function benchmarkBigIntArrayCase(label, baseArray, arrayType) {
             assert: (labelValue, typedValues) => assertSortedBigIntArray(labelValue, Array.from(typedValues)),
         });
         algorithms.push({
-            name: 'sort(a, {type: "int64"})',
+            name: 'Bitmask sort',
             clone: (values) => new BigInt64Array(values),
             sort: (values) => {
                 sort(values, {type: 'int64', order: 'asc'});
@@ -174,7 +174,7 @@ function benchmarkBigIntArrayCase(label, baseArray, arrayType) {
             assert: (labelValue, typedValues) => assertSortedBigIntArray(labelValue, Array.from(typedValues)),
         });
         algorithms.push({
-            name: 'sort(a, {type: "uint64"})',
+            name: 'Bitmask sort',
             clone: (values) => new BigUint64Array(values),
             sort: (values) => {
                 sort(values, {type: 'uint64', order: 'asc'});
@@ -190,13 +190,13 @@ function benchmarkBigIntArrayCase(label, baseArray, arrayType) {
 function benchmarkBigIntObjectCase(label, baseArray) {
     const algorithms = [
         {
-            name: 'native-object',
+            name: 'native sort',
             clone: cloneBigIntObjectArray,
             sort: sortNativeBigIntObjectArray,
             assert: assertSortedObjectBigIntArray,
         },
         {
-            name: 'sort(o, x => x.id, {type: "bigint"})',
+            name: 'Bitmask sort',
             clone: cloneBigIntObjectArray,
             sort: (values) => {
                 sort(values, (value) => value.id, {type: 'bigint', order: 'asc'});
@@ -218,11 +218,11 @@ function runBenchmarks() {
             const uint64Values = generateUnsignedBigIntArray(size, Math.min(bits, 64));
             const objectValues = generateBigIntObjectArray(size, bits, true);
 
-            benchmarkBigIntArrayCase(`Plain bigint array | size=${size} | unsigned | bits=${bits}`, unsignedPlain, 'plain');
-            benchmarkBigIntArrayCase(`Plain bigint array | size=${size} | signed | bits=${bits}`, signedPlain, 'plain');
-            benchmarkBigIntArrayCase(`BigInt64Array      | size=${size} | bits=${Math.min(bits, 63)}`, int64Values, 'BigInt64Array');
-            benchmarkBigIntArrayCase(`BigUint64Array     | size=${size} | bits=${Math.min(bits, 64)}`, uint64Values, 'BigUint64Array');
-            benchmarkBigIntObjectCase(`Bigint-key objects | size=${size} | bits=${bits}`, objectValues);
+            benchmarkBigIntArrayCase(`bigint array            | size=${size} | unsigned | bits=${bits}`, unsignedPlain, 'plain');
+            benchmarkBigIntArrayCase(`bigint array            | size=${size} | signed   | bits=${bits}`, signedPlain, 'plain');
+            benchmarkBigIntArrayCase(`BigInt64Array           | size=${size} | bits=${Math.min(bits, 63)}`, int64Values, 'BigInt64Array');
+            benchmarkBigIntArrayCase(`BigUint64Array          | size=${size} | bits=${Math.min(bits, 64)}`, uint64Values, 'BigUint64Array');
+            benchmarkBigIntObjectCase(`Object Array bigint-key | size=${size} | bits=${bits}`, objectValues);
         }
     }
 }

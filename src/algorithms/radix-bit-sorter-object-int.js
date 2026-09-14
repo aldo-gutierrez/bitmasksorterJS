@@ -1,5 +1,5 @@
 import {
-    arrayCopy, calculateSumOffsets,
+    arrayCopy, arrayCopyTypedArray, calculateSumOffsets,
     getMaskAsArray,
     getSections,
     getSortOptions, handleNullsUndefinedAndNans,
@@ -58,59 +58,57 @@ export function radixBitSortObjectByInt32Key(array, mapper, options) {
 }
 
 function radixSortInt(asc, array, start, end, bList, aux, mapper) {
+    let needsArrayCopy = 0;
+    let auxStart = 0;
     let sections = getSections(bList);
+    let n = end - start;
     for (let index = 0; index < sections.length; index++) {
         let section = sections[index];
-        let bits = section.bits;
         let shift = section.shift;
-        let mask = section.mask
-        if (bits === 1) {
-            if (asc) {
-                partitionStableInt(array, start, end, mask, aux, mapper);
-            } else {
-                partitionReverseStableInt(array, start, end, mask, aux, mapper);
-            }
+        if (shift === 0) {
+            partitionStableLastBitsInt(asc, array, start, n, section, aux, auxStart, mapper);
+            needsArrayCopy++;
         } else {
-            if (shift === 0) {
-                partitionStableLastBitsInt(asc, array, start, end, section, aux, mapper);
-            } else {
-                partitionStableGroupBitsInt(asc, array, start, end, section, aux, mapper);
-            }
+            partitionStableGroupBitsInt(asc, array, start, n, section, aux, auxStart, mapper);
+            needsArrayCopy++;
         }
+        if (index === sections.length - 1 && needsArrayCopy % 2 === 1) {
+            arrayCopy(aux, auxStart, array, start, n);
+        }
+        [array, aux] = [aux, array];
+        [start, auxStart] = [auxStart, start];
     }
 }
 
-function partitionStableLastBitsInt(asc, array, start, endP1, section, aux, mapper) {
+function partitionStableLastBitsInt(asc, array, start, n, section, aux, startAux, mapper) {
     const mask = section.mask;
     const range = section.range;
     const count = new Int32Array(range);
-    let n = endP1 - start;
+    const endP1 = start + n;
     for (let i = start; i < endP1; i++) {
         count[mapper(array[i]) & mask]++;
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
-        aux[count[element & mask]++] = array[i];
+        aux[count[element & mask]++ +startAux] = array[i];
     }
-    arrayCopy(aux, 0, array, start, n);
 }
 
-function partitionStableGroupBitsInt(asc, array, start, endP1, section, aux, mapper) {
+function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAux, mapper) {
     const mask = section.mask;
     const shift = section.shift;
     const range = section.range;
     const count = new Int32Array(range);
-    let n = endP1 - start;
+    const endP1 = start + n;
     for (let i = start; i < endP1; i++) {
         count[(mapper(array[i]) & mask) >> shift]++;
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
         let element = mapper(array[i]);
-        aux[count[(element & mask) >> shift]++] = array[i];
+        aux[count[(element & mask) >> shift]++ + startAux] = array[i];
     }
-    arrayCopy(aux, 0, array, start, n);
 }
 
 
