@@ -5,6 +5,7 @@ import {
     partitionReverseNotStableUpperBit
 } from "../utils/sorter-utils-int.js";
 import {getMaskAsArray, getSortOptions, handleNullsUndefinedAndNans, validateSortRange} from "../utils/sorter-utils.js";
+import {pCountBitSortInt32} from "./p-count-bit-sorter-int.js";
 
 export function quickBitSortInt32(array, options) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
@@ -67,6 +68,16 @@ function qbSortInt(asc, array, start, endP1, bList, bListIndex, recalculate) {
     if (kDiff < 1) {
         return;
     }
+
+    /*
+    if (kDiff < 16) {
+        let bLengthM1 = (bList.length - bListIndex) - 1; //Log2(K)
+        let log2Nm1 = Math.log2(endP1 - start) - 1; //Log2(N)
+        if ( log2Nm1 > bLengthM1) {
+            pCountBitSortInt32(array, {"start": start, "end": endP1, "order": asc?"asc":"desc"}, bList, bListIndex);
+            return;
+        }
+    }*/
 
     let sortMask = 1 << bList[bListIndex];
     let finalLeft = asc ? partitionNotStable(array, start, endP1, sortMask)

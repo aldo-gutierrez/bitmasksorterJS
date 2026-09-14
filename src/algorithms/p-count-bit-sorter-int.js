@@ -167,7 +167,7 @@ function pCountSortSection(array, start, endP1, section) {
     let range = 1 << section.bits;
     validatePCountSortRange(range);
     const count = new Int32Array(range);
-    let number = new Array(range);
+    let number = new array.constructor(range);
     let mask = section.mask;
     for (let i = start; i < endP1; i++) {
         let element = array[i];
@@ -197,7 +197,7 @@ function pCountSortSections(array, start, endP1, sections) {
     let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     const count = new Int32Array(range);
-    let number = new Array(range);
+    let number = new array.constructor(range);
 
     for (let i = start; i < endP1; i++) {
         let element = array[i];

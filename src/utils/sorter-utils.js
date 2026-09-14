@@ -1,12 +1,35 @@
 import {isTypedArray} from "./utils.js";
 
 export function arrayCopy(src, srcPos, dst, dstPos, length) {
-    while (length--) dst[dstPos++] = src[srcPos++];
-    return dst;
+    if (isTypedArray(src) && isTypedArray(dst)) {
+        arrayCopyTypedArray(src, srcPos, dst, dstPos, length);
+    } else {
+        arrayCopyUnrolled(src, srcPos, dst, dstPos, length);
+    }
 }
 
 export function arrayCopyTypedArray(src, srcPos, dst, dstPos, length) {
     dst.set(src.subarray(srcPos, srcPos + length), dstPos);
+}
+
+export function arrayCopyUnrolled(src, srcPos, dst, dstPos, length) {
+    let i = 0;
+    const limit = length - (length % 4);
+
+    // Process blocks of 4
+    while (i < limit) {
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        i += 4;
+    }
+
+    // Process remaining elements (0 to 3)
+    while (i < length) {
+        dst[dstPos++] = src[srcPos++];
+        i++;
+    }
 }
 
 export function swap(array, left, right) {
@@ -253,7 +276,7 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
                 arrayNative[i] = arrayObj[start + i];
             }
         }
-        return { start, endP1, arrayNative };
+        return { start, endP1, arrayNative, start2: start, end2: endP1 };
     }
 
     if (nulls === "first") {

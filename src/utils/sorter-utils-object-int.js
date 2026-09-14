@@ -149,7 +149,8 @@ export function partitionStableLowMemInt(array, start, endP1, mask, mapper, aux)
     }
     
     if (!aux) {
-        aux = Array(1);
+        let n = endP1 - start;
+        aux = Array(Math.ceil(Math.log2(n) * Math.sqrt(n)));
     }
     
     ///Stable Partition with Buffer

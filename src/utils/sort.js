@@ -119,10 +119,14 @@ function sortSubList(array, start, end, comparator, isTyped) {
 }
 
 function sortBigIntArray(array, options) {
-    sortObjectByFloat64Key(array, (x) => {
-        return x === null || x === undefined ? x : Number(x);
-    }, options);
     let isTyped = isTypedArray(array);
+    if (isTyped) {
+        sortObjectByFloat64Key(array, (x) => Number(x), options);
+    } else {
+        sortObjectByFloat64Key(array, (x) => {
+            return x === null || x === undefined ? x : Number(x);
+        }, options);
+    }
 
     //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
     let asc = options.order !== 'desc';
@@ -136,17 +140,38 @@ function sortBigIntArray(array, options) {
         return 0;
     };
     let previousNumber = null;
+    let previousBigInt = null;
     let previousIndex = null;
-    for (let i = 0; i < array.length; i++) {
-        let element = array[i];
-        if (element === null || element === undefined) {
-            continue;
+    if (isTyped) {
+        for (let i = 0; i < array.length; i++) {
+            let bigInt = array[i];
+            if (bigInt === previousBigInt) {
+                continue;
+            }
+            let number = Number(bigInt);
+            if (number !== previousNumber) {
+                sortSubList(array, previousIndex, i, comparator, isTyped);
+                previousNumber = number;
+                previousBigInt = bigInt;
+                previousIndex = i;
+            }
         }
-        let number = Number(element);
-        if (number !== previousNumber) {
-            sortSubList(array, previousIndex, i, comparator, isTyped);
-            previousNumber = number;
-            previousIndex = i;
+    } else {
+        for (let i = 0; i < array.length; i++) {
+            let bigInt = array[i];
+            if (bigInt === null || bigInt === undefined) {
+                continue;
+            }
+            if (bigInt === previousBigInt) {
+                continue;
+            }
+            let number = Number(bigInt);
+            if (number !== previousNumber) {
+                sortSubList(array, previousIndex, i, comparator, isTyped);
+                previousNumber = number;
+                previousBigInt = bigInt;
+                previousIndex = i;
+            }
         }
     }
     // Fix: sort any remaining duplicates at the end
@@ -271,7 +296,7 @@ function detectPrimitiveValueType(list) {
         if (typeof value === "boolean" || value instanceof Boolean) {
             return "boolean";
         }
-        if (typeof value === "number" || Number.isNaN(Number(value))) {
+        if (typeof value === "number") {
             return "float64";
         }
         if (typeof value === "bigint") {
@@ -300,10 +325,10 @@ function detectObjectValueType(list, mapper) {
         if (value instanceof Date) {
             return "date";
         }
-        if (typeof value === "number" || Number.isNaN(Number(value))) {
+        if (typeof value === "number") {
             return  "float64";
         }
-        if (typeof value === "bigint" || Number.isNaN(Number(value))) {
+        if (typeof value === "bigint") {
             return  "bigint";
         }
     }
