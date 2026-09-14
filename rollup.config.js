@@ -1,6 +1,9 @@
+// Rollup configuration for building the library in multiple formats (ESM, CJS, UMD) and targets (modern and legacy browsers)
+// Requires Node 20+ for building
 import resolve from '@rollup/plugin-node-resolve';
 import esbuild from 'rollup-plugin-esbuild';
 import { babel } from '@rollup/plugin-babel';
+import terser from '@rollup/plugin-terser';
 
 const input = 'src/index.ts';
 
@@ -27,6 +30,9 @@ export default [
         presets: [['@babel/preset-env', { targets: { ie: '11' }, modules: false }]]
       })
     ],
-    output: { file: 'dist/index.es5.umd.js', format: 'umd', name: 'BitmaskSorter', sourcemap: true }
+    output: [
+        { file: 'dist/index.es5.umd.js', format: 'umd', name: 'BitmaskSorter', sourcemap: true },
+        { file: 'dist/index.es5.umd.min.js', format: 'umd', name: 'BitmaskSorter', sourcemap: true, plugins: [terser()]}
+        ]
   }
 ];

@@ -1,10 +1,35 @@
+import {isTypedArray} from "./utils.js";
+
 export function arrayCopy(src, srcPos, dst, dstPos, length) {
-    while (length--) dst[dstPos++] = src[srcPos++];
-    return dst;
+    if (isTypedArray(src) && isTypedArray(dst)) {
+        arrayCopyTypedArray(src, srcPos, dst, dstPos, length);
+    } else {
+        arrayCopyUnrolled(src, srcPos, dst, dstPos, length);
+    }
 }
 
 export function arrayCopyTypedArray(src, srcPos, dst, dstPos, length) {
     dst.set(src.subarray(srcPos, srcPos + length), dstPos);
+}
+
+export function arrayCopyUnrolled(src, srcPos, dst, dstPos, length) {
+    let i = 0;
+    const limit = length - (length % 4);
+
+    // Process blocks of 4
+    while (i < limit) {
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        dst[dstPos++] = src[srcPos++];
+        i += 4;
+    }
+
+    // Process remaining elements (0 to 3)
+    while (i < length) {
+        dst[dstPos++] = src[srcPos++];
+        i++;
+    }
 }
 
 export function swap(array, left, right) {
@@ -208,8 +233,6 @@ export function getSortOptions(options) {
     return { start, endP1, asc, nulls };
 }
 
-export const getSortRangeOptions = getSortOptions;
-
 export function validateSortRange(array, start, endP1) {
     if (start === undefined) {
         start = 0;
@@ -230,14 +253,16 @@ export function validateSortRange(array, start, endP1) {
 }
 
 export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, arrayNativeF) {
-    const isTypedArray = ArrayBuffer.isView(arrayObj) && !(arrayObj instanceof DataView);
-    if (isTypedArray) {
-        return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
+    const isTypedA = isTypedArray(arrayObj);
+    if (isTypedA && !mapper) {
+        let arrayNative = arrayObj;
+        return {start, endP1, arrayNative, start2: start, end2: endP1};
     }
 
     if (nulls === "ignore") {
         if (!arrayNativeF) {
-            return {start, endP1, arrayObj, undefined, start2: start, end2: endP1};
+            let arrayNative = arrayObj;
+            return {start, endP1, arrayNative, start2: start, end2: endP1};
         }
 
         const n = endP1 - start;

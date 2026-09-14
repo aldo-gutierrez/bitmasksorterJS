@@ -41,7 +41,7 @@ export function radixBitSortInt32(array, options) {
                 n2 = 0;
             }
         }
-        let aux = Array(Math.max(n1, n2));
+        let aux = new array.constructor(Math.max(n1, n2));
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
             radixSortInt(asc, array, start, finalLeft, bList, aux);
@@ -51,7 +51,7 @@ export function radixBitSortInt32(array, options) {
             radixSortInt(asc, array, finalLeft, endP1, bList, aux);
         }
     } else {
-        let aux = Array(endP1 - start);
+        let aux = new array.constructor(endP1 - start);
         radixSortInt(asc, array, start, endP1, bList, aux);
     }
 }
