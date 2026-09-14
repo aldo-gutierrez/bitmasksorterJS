@@ -3,7 +3,7 @@ import {performance} from 'node:perf_hooks';
 import {sort} from '../src/main.js';
 
 const VERIFY_SORT = process.env.VERIFY_SORT !== 'false';
-const DEFAULT_SIZES = [100000, 500000, 1000000];
+const DEFAULT_SIZES = [1000, 100000, 1000000];
 const DEFAULT_RUNS = 5;
 
 const sizes = parseIntegerList(process.env.TYPED_BENCH_SIZES, DEFAULT_SIZES);
@@ -121,13 +121,25 @@ function assertSorted(label, values, comparator) {
 function benchmarkCase(label, baseValues, caseInfo) {
     const algorithms = [
         {
-            name: 'typed-native-sort',
+            name: 'native sort',
+            clone: (values) => Array.from(values),
+            sort: (values) => values.sort(caseInfo.comparator),
+            assert: (values) => assertSorted(label, values, caseInfo.comparator),
+        },
+        {
+            name: 'TypedArray sort comparator',
             clone: (values) => caseInfo.factory(values),
             sort: (values) => values.sort(caseInfo.comparator),
             assert: (values) => assertSorted(label, Array.from(values), caseInfo.comparator),
         },
         {
-            name: 'sort(array, {type: "..."})',
+            name: 'TypedArray sort no parameters',
+            clone: (values) => caseInfo.factory(values),
+            sort: (values) => values.sort(),
+            assert: (values) => assertSorted(label, Array.from(values), caseInfo.comparator),
+        },
+        {
+            name: 'bitmask sort',
             clone: (values) => caseInfo.factory(values),
             sort: (values) => {
                 sort(values, {type: caseInfo.type, order: 'asc'});
@@ -135,12 +147,6 @@ function benchmarkCase(label, baseValues, caseInfo) {
             },
             assert: (values) => assertSorted(label, Array.from(values), caseInfo.comparator),
         },
-        {
-            name: 'array-default-sort',
-            clone: (values) => Array.from(values),
-            sort: (values) => values.sort(caseInfo.comparator),
-            assert: (values) => assertSorted(label, values, caseInfo.comparator),
-        }
     ];
 
     console.log(`\n${label}`);
@@ -161,7 +167,7 @@ function benchmarkCase(label, baseValues, caseInfo) {
     }
 
     for (const algorithm of algorithms) {
-        console.log(`${algorithm.name.padEnd(28)} median: ${resultMap.get(algorithm.name).toFixed(3).padStart(10)} ms`);
+        console.log(`${algorithm.name.padEnd(30)} median: ${resultMap.get(algorithm.name).toFixed(3).padStart(10)} ms`);
     }
 }
 
