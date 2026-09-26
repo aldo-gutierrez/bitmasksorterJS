@@ -9,7 +9,7 @@ import {
 } from "../utils/sorter-utils.js";
 import {calculateMaskNumber, getMaskAsArrayNumber} from "../utils/sorter-utils-number.js";
 
-export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options) {
+export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let arrayNative;
@@ -30,7 +30,7 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options) {
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = calculateMaskNumber(arrayInt32, start, endP1);
+    let mask = options.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
     let bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;

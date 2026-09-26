@@ -10,7 +10,7 @@ import {calculateMaskInt, partitionNotStable, partitionReverseNotStableUpperBit}
 import { getMaskAsArray } from "../utils/sorter-utils.js";
 import {isTypedArray} from "../utils/utils.js";
 
-export function radixBitSortInt32(array, options) {
+export function radixBitSortInt32(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -21,7 +21,7 @@ export function radixBitSortInt32(array, options) {
     let arrayWasTyped = isTypedArray(array);
     let arrayTyped = arrayWasTyped ? array : new Int32Array(array);
 
-    let mask = calculateMaskInt(arrayTyped, start, endP1);
+    let mask = options.mask ?? calculateMaskInt(arrayTyped, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;

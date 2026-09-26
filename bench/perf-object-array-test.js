@@ -5,7 +5,7 @@ import {
     quickBitLowMemSortObjectByInt32Key,
     radixBitV2SortObjectByInt32Key,
     radixBitSortObjectByInt32Key,
-    radixBitSortObjectByFloat64Key
+    radixBitSortObjectByFloat64Key, sortObjectByInt32Key
 } from "../src/main.js"; //"@aldogg/sorter"
 import {testArraysEquals} from "../test/test-utils.js";
 
@@ -71,7 +71,13 @@ let algorithms = [{
         quickBitLowMemSortObjectByInt32Key(array, (x) => x.id);
         return array;
     }, 'floatingPoint': false, 'negative': true,
-},]
+},{
+    'name': 'SortObjectByInt32Key', 'sortFunction': (array) => {
+        sortObjectByInt32Key(array, (x) => x.id);
+        return array;
+    }, 'floatingPoint': false, 'negative': true,
+},
+]
 
 if (fastSort) {
     algorithms.push({
