@@ -11,7 +11,7 @@ import {
     partitionReverseF64NotStableUpperBit
 } from "../utils/sorter-utils-number.js";
 
-export function radixBitSortFloat64(array, options) {
+export function radixBitSortFloat64(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -24,7 +24,7 @@ export function radixBitSortFloat64(array, options) {
     const buffer = arrayFloat64.buffer
     let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = calculateMaskNumber(arrayInt32, start, endP1);
+    let mask = options.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
     let bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;

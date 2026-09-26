@@ -11,7 +11,7 @@ import {
     calculateMaskInt,
 } from "../utils/sorter-utils-object-int.js";
 
-export function radixBitSortObjectByInt32Key(array, mapper, options) {
+export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
@@ -19,7 +19,7 @@ export function radixBitSortObjectByInt32Key(array, mapper, options) {
     if (n < 2) {
         return;
     }
-    let mask = calculateMaskInt(array, start, endP1, mapper);
+    let mask = options.mask ?? calculateMaskInt(array, start, endP1, mapper);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
