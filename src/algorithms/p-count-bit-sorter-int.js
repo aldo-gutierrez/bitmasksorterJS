@@ -9,7 +9,7 @@ import { calculateMaskInt, partitionReverseNotStableUpperBit } from "../utils/so
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
 
-export function pCountBitSortInt32(array, options, bList, bListStart) {
+export function pCountBitSortInt32(array, options = {}, bList, bListStart) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -17,7 +17,7 @@ export function pCountBitSortInt32(array, options, bList, bListStart) {
     if (n < 2) {
         return;
     }
-    if (!bList) {
+    if (!bList && !options.mask) {
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1));
         bListStart = 0;
     }
@@ -45,15 +45,15 @@ export function pCountBitSortInt32(array, options, bList, bListStart) {
             let elementSample = array[start];
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
-                pCountSortPositive(array, start, endP1, 1 << section.bits);
+                pCountSortPositive(asc, array, start, endP1, 1 << section.bits);
             } else { //last bits but there is a mask for a bigger number
-                pCountSortEndingMask(array, start, endP1, mask, elementSample);
+                pCountSortEndingMask(asc, array, start, endP1, mask, elementSample);
             }
         } else {
-            pCountSortSection(array, start, endP1, section);
+            pCountSortSection(asc, array, start, endP1, section);
         }
     } else if (sections.length > 1) {
-        pCountSortSections(array, start, endP1, sections);
+        pCountSortSections(asc, array, start, endP1, sections);
     }
 }
 
@@ -100,45 +100,71 @@ export function pCountBitMinMaxSortInt32(array, options, min, max) {
         count[array[i] - min]++
     }
     let i = start;
-    let j = min;
-    for (; j <= max; j++) {
-        let countJ = count[j - min];
-        if (countJ > 0) {
-            for (let c = 0; c < countJ; c++) {
-                array[i] = j;
-                i++;
+    if (asc) {
+        for (let j = min; j <= max; j++) {
+            let countJ = count[j - min];
+            if (countJ > 0) {
+                for (let c = 0; c < countJ; c++) {
+                    array[i] = j;
+                    i++;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
-            if (i === endP1) {
-                break;
+        }
+    } else {
+        for (let j = max; j >= min; j--) {
+            const countJ = count[j - min];
+            if (countJ > 0) {
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = j;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
         }
     }
 }
 
 
-function pCountSortPositive(array, start, endP1, range) {
+function pCountSortPositive(asc, array, start, endP1, range) {
     validatePCountSortRange(range);
     const count = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         count[array[i]]++
     }
     let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ > 0) {
-            for (let c = 0; c < countJ; c++) {
-                array[i] = j;
-                i++;
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            let countJ = count[j];
+            if (countJ > 0) {
+                for (let c = 0; c < countJ; c++) {
+                    array[i] = j;
+                    i++;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
-            if (i === endP1) {
-                break;
+        }
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = j;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
         }
     }
 }
 
-function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
+function pCountSortEndingMask(asc, array, start, endP1, mask, elementSample) {
     let range = mask + 1;
     validatePCountSortRange(range);
     const count = new Int32Array(range);
@@ -147,23 +173,37 @@ function pCountSortEndingMask(array, start, endP1, mask, elementSample) {
     }
 
     let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ > 0) {
-            let value = j | elementSample;
-            for (let c = 0; c < countJ; c++) {
-                array[i] = value;
-                i++;
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            let countJ = count[j];
+            if (countJ > 0) {
+                let value = j | elementSample;
+                for (let c = 0; c < countJ; c++) {
+                    array[i] = value;
+                    i++;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
-            if (i === endP1) {
-                break;
+        }
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                const value = j | elementSample;
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = value;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
         }
     }
 }
 
-function pCountSortSection(array, start, endP1, section) {
+function pCountSortSection(asc, array, start, endP1, section) {
     let range = 1 << section.bits;
     validatePCountSortRange(range);
     const count = new Int32Array(range);
@@ -177,23 +217,37 @@ function pCountSortSection(array, start, endP1, section) {
     }
 
     let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ > 0) {
-            let value = number[j];
-            for (let c = 0; c < countJ; c++) {
-                array[i] = value;
-                i++;
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            let countJ = count[j];
+            if (countJ > 0) {
+                let value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i] = value;
+                    i++;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
-            if (i === endP1) {
-                break;
+        }
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                const value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = value;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
         }
     }
 }
 
-function pCountSortSections(array, start, endP1, sections) {
+function pCountSortSections(asc, array, start, endP1, sections) {
     let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     const count = new Int32Array(range);
@@ -207,17 +261,31 @@ function pCountSortSections(array, start, endP1, sections) {
     }
 
     let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ > 0) {
-            let value = number[j];
-            for (let c = 0; c < countJ; c++) {
-                array[i] = value;
-                i++;
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            let countJ = count[j];
+            if (countJ > 0) {
+                let value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i] = value;
+                    i++;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
-            if (i === endP1) {
-                break;
+        }
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                const value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = value;
+                }
+                if (i === endP1) {
+                    break;
+                }
             }
         }
     }
@@ -226,7 +294,7 @@ function pCountSortSections(array, start, endP1, sections) {
 /**
  * Maybe this could be useful when n is short compared to range, Maybe not as better algorithms are available
  */
-function pCountSortSectionsSparse(array, start, endP1, sections) {
+function pCountSortSectionsSparse(asc, array, start, endP1, sections) {
     let range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     let count = [];
@@ -240,13 +308,27 @@ function pCountSortSectionsSparse(array, start, endP1, sections) {
     }
 
     let i = start;
-    count.forEach((countJ, j) => {
-        let value = number[j];
-        for (let c = 0; c < countJ; c++) {
-            array[i] = value;
-            i++;
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                const value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = value;
+                }
+            }
         }
-    })
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const countJ = count[j];
+            if (countJ > 0) {
+                const value = number[j];
+                for (let c = 0; c < countJ; c++) {
+                    array[i++] = value;
+                }
+            }
+        }
+    }
 }
 
 

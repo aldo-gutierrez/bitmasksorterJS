@@ -4,6 +4,13 @@ import {sortObjectByInt32Key} from "./sorter-object-int.js";
 import {sortInt32} from "./sorter-int.js";
 import {getSortOptions, handleNullsUndefinedAndNans, validateSortRange} from "./sorter-utils.js";
 import {isArray, isBigInt64Array, isBigUint64Array, isFunction, isPlainObject, isTypedArray} from "./utils.js";
+import {
+    get64BitComparatorNonNull,
+    getObject64BitKeyComparatorNonNull,
+    getObjectStringKeyComparator,
+    getStringComparator,
+    sortSubList
+} from "../algorithms/native-sorter.js";
 
 /**
  * Sorts an array based on the provided parameters.
@@ -48,21 +55,29 @@ export function sort(array, ...parameters) {
             sortElementArray("", array, {});
         } else if (parameters.length === 1) {
             if (isPlainObject(parameter2)) {
-                let type = parameter2.type ? parameter2.type.toLowerCase() : "";
-                sortElementArray(type, array, parameter2);
+                parameter2.type = parameter2.type?.toLowerCase() || "";
+                sortElementArray(parameter2.type, array, parameter2);
             } else if (isFunction(parameter2)) {
                 sortObjectArrayByKey("", array, parameter2, {})
             } else if (isArray(parameter2)) {
                 let sortByArray = parameter2;
                 for (let i = sortByArray.length -1; i >= 0; i--) {
-                    let options = sortByArray[i];
-                    let type = options.type ? options.type : "";
-                    type = type.toLowerCase();
-                    let key = options.key;
-                    sortObjectArrayByKey(type, array, key, options);
+                    let sortBy = sortByArray[i];
+                    let options;
+                    if (isPlainObject(sortBy)) {
+                        options = sortBy;
+                        options.type = options.type?.toLowerCase() || "";
+                    } else if (isFunction(sortBy)) {
+                        options = {};
+                        options.key = sortBy;
+                        options.type = "";
+                    } else {
+                        throw new Error("Invalid parameter type. Expected an object array or a function array.");
+                    }
+                    sortObjectArrayByKey(options.type, array, options.key, options);
                 }
             } else {
-                throw new Error("Invalid parameter type. Expected an object or a function.");
+                throw new Error("Invalid parameter type. Expected an object a function or an array of objects or functions.");
             }
         } else if (parameters.length === 2) {
             if (!isFunction(parameter2) && !isArray(parameter2)) {
@@ -72,22 +87,38 @@ export function sort(array, ...parameters) {
                 throw new Error("Invalid parameter type. Expected an object as the third parameter.");
             }
             if (isFunction(parameter2)) {
-                let type = parameter3.type ? parameter3.type : (parameter2.type ? parameter2.type : "");
-                type = type.toLowerCase();
-                sortObjectArrayByKey(type, array, parameter2, parameter3);
+                parameter3.type = parameter3.type ? parameter3.type.toLowerCase() : "";
+                sortObjectArrayByKey(parameter3.type, array, parameter2, parameter3);
             } else {
                 let sortByArray = parameter2;
+                let start = parameter3.start ?? undefined;
+                let end = parameter3.end ?? undefined;
                 for (let i = sortByArray.length -1; i >= 0; i--) {
                     let sortBy = sortByArray[i];
-                    let type = sortBy.type ? sortBy.type : "";
-                    type = type.toLowerCase();
-                    let key = sortBy.key;
-                    if (key === null || key === undefined) {
-                        throw new Error("Invalid parameter type. Expected a function (x) ==> x.field");
+                    let key;
+                    let options;
+                    let type;
+                    if (isPlainObject(sortBy)) {
+                        key = sortBy.key;
+                        if (key === null || key === undefined) {
+                            throw new Error("Invalid parameter type. Expected a function (x) ==> x.field");
+                        }
+                        type = sortBy.type ? sortBy.type.toLowerCase() : "";
+                        if (start === undefined || end === undefined) {
+                            start = sortBy.start ?? undefined;
+                            end = sortBy.end ?? undefined;
+                        }
+                        options =  mergeOptions(parameter3, sortBy)
+                    } else if (isFunction(sortBy)) {
+                        type ="";
+                        key = sortBy;
+                        options = parameter3;
+                    } else {
+                        throw new Error("Invalid parameter type. Expected an object array or a function array.");
                     }
-                    let options =  mergeOptions(parameter3, sortBy)
                     sortObjectArrayByKey(type, array, key, options);
                 }
+
             }
         } else {
             throw new Error("Invalid number of parameters. Expected 1, 2, or 3 parameters.");
@@ -106,18 +137,6 @@ function mergeOptions(globalOptions, userOptions) {
     };
 }
 
-function sortSubList(array, start, end, comparator, isTyped) {
-    if (end - start >= 2) {
-        if (isTyped) {
-            array.subarray(start, end).sort(comparator);
-        } else {
-            const subArray = array.slice(start, end);
-            subArray.sort(comparator);
-            array.splice(start, subArray.length, ...subArray);
-        }
-    }
-}
-
 function sortBigIntArray(array, options) {
     let isTyped = isTypedArray(array);
     if (isTyped) {
@@ -130,15 +149,7 @@ function sortBigIntArray(array, options) {
 
     //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
     let asc = options.order !== 'desc';
-    let comparator = (a, b) => {
-        if (a < b) {
-            return asc ? -1 : 1;
-        }
-        if (a > b) {
-            return asc ? 1 : -1;
-        }
-        return 0;
-    };
+    let comparator = get64BitComparatorNonNull(asc);
     let previousNumber = null;
     let previousBigInt = null;
     let previousIndex = null;
@@ -187,19 +198,8 @@ function sortObjectByBigIntKey(array, key, options) {
     }, options);
 
     //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    let isTyped = false;
     let asc = options.order !== 'desc';
-    let comparator = (a, b) => {
-        let ka = key(a);
-        let kb = key(b);
-        if (ka < kb) {
-            return asc ? -1 : 1;
-        }
-        if (ka > kb) {
-            return asc ? 1 : -1;
-        }
-        return 0;
-    };
+    let comparator = getObject64BitKeyComparatorNonNull(asc, key);
     let previousNumber = null;
     let previousIndex = null;
     for (let i = 0; i < array.length; i++) {
@@ -278,7 +278,7 @@ function sortObjectArrayByKey(type, array, key, options) {
                 throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);
             }
             options.start = start;
-            options.endP1 = endP1;
+            options.end = endP1;
             //sort remaining objects, null keys will be handled by sortObjectArrayStringKey
             sortObjectArrayStringKey(array, key, options);
         }
@@ -342,25 +342,7 @@ function sortStringArray(arr, options = {}) {
         nulls = 'ignore', // 'first' | 'last' | 'ignore'
         order = 'asc'    // 'asc' | 'desc'
     } = options;
-
-    let stringComparator = (a, b) => {
-        // undefined always o the end
-        if (a === undefined && b === undefined) return 0;
-        if (a === undefined) return 1;
-        if (b === undefined) return -1;
-
-        // null handling
-        if (nulls !== 'ignore') {
-            if (a === null && b === null) return 0;
-            if (a === null) return nulls === 'first' ? -1 : 1;
-            if (b === null) return nulls === 'first' ? 1 : -1;
-        }
-
-        // String compare
-        const comparison = a.localeCompare(b);
-        return order === 'desc' ? -comparison : comparison;
-    };
-
+    let stringComparator = getStringComparator(order, nulls);
     sortSubList(arr, start,end, stringComparator, false);
     return arr;
 }
@@ -372,29 +354,7 @@ function sortObjectArrayStringKey(arr, key, options = {}) {
         nulls = 'ignore', // 'first' | 'last' | 'ignore'
         order = 'asc'    // 'asc' | 'desc'
     } = options;
-
-    let stringComparator = (itemA, itemB) => {
-        //Extract values
-        const a = key(itemA);
-        const b = key(itemB);
-
-        //Undefined always to the end
-        if (a === undefined && b === undefined) return 0;
-        if (a === undefined) return 1;
-        if (b === undefined) return -1;
-
-        //Null Handling
-        if (nulls !== 'ignore') {
-            if (a === null && b === null) return 0;
-            if (a === null) return nulls === 'first' ? -1 : 1;
-            if (b === null) return nulls === 'first' ? 1 : -1;
-        }
-
-        //String Compare
-        const comparison = String(a).localeCompare(String(b));
-        return order === 'desc' ? -comparison : comparison;
-    };
-
+    let stringComparator = getObjectStringKeyComparator(key, order, nulls);
     sortSubList(arr, start,end, stringComparator, false);
     return arr;
 }

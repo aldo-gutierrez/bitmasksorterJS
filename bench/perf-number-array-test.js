@@ -1,7 +1,7 @@
 // Requires Node.js 16+ to run this benchmark
 import {
     pCountBitSortInt32, quickBitSortInt32, americanFlagBitSortInt32,
-    radixBitSortInt32, radixBitSortFloat64, pCountBitMinMaxSortInt32
+    radixBitSortInt32, radixBitSortFloat64, pCountBitMinMaxSortInt32, sortInt32
 } from "../src/main.js"; //"@aldogg/sorter"
 import {testArraysEquals} from "../test/test-utils.js";
 
@@ -109,6 +109,15 @@ let algorithms = [
         'name': 'AmericanFlagBitSortInt32',
         'sortFunction': (array) => {
             americanFlagBitSortInt32(array);
+            return array
+        },
+        'floatingPoint': false,
+        'negative': true,
+    },
+    {
+        'name': 'SortInt32 ',
+        'sortFunction': (array) => {
+            sortInt32(array);
             return array
         },
         'floatingPoint': false,

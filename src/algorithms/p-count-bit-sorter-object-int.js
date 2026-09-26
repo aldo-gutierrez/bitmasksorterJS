@@ -9,11 +9,11 @@ import {
 import {
     calculateMaskInt,
     partitionReverseStableInt,
-    partitionReverseStableLowMemInt
+    partitionReverseStableLowMemInt, partitionStableInt
 } from "../utils/sorter-utils-object-int.js";
 import { getKeySN, getSectionsBits, validatePCountSortRange } from "./p-count-bit-sorter-int.js";
 
-export function pCountSortObjectByInt32Key(array, mapper, options) {
+export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
@@ -21,8 +21,8 @@ export function pCountSortObjectByInt32Key(array, mapper, options) {
     if (n < 2) {
         return;
     }
-    let bList = !options ? undefined : options.bList;
-    let bListStart = !options ? undefined : options.bListStart;
+    let bList = options.bList;
+    let bListStart = options.bListStart;
     if (!bList) {
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1, mapper));
         bListStart = 0;
@@ -32,8 +32,8 @@ export function pCountSortObjectByInt32Key(array, mapper, options) {
 
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
         let aux = Array(endP1 - start);
-        //let finalLeft =partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
-        let finalLeft = partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper);
+        let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
+            : partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
@@ -56,37 +56,37 @@ export function pCountSortObjectByInt32Key(array, mapper, options) {
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
                 const range = 1 << section.bits;
                 if (range >= N) {
-                    pCountSortPositiveV2(array, mapper, start, endP1, range);
+                    pCountSortPositiveV2(asc, array, mapper, start, endP1, range);
                 } else {
-                    pCountSortPositiveV1(array, mapper, start, endP1, range);
+                    pCountSortPositiveV1(asc, array, mapper, start, endP1, range);
                 }
             } else { //last bits but there is a mask for a bigger number
                 const range = mask + 1;
                 if (range >= N) {
-                    pCountSortEndingMaskV2(array, mapper, start, endP1, mask);
+                    pCountSortEndingMaskV2(asc, array, mapper, start, endP1, mask);
                 } else {
-                    pCountSortEndingMaskV1(array, mapper, start, endP1, mask);
+                    pCountSortEndingMaskV1(asc, array, mapper, start, endP1, mask);
                 }
             }
         } else {
             let range = 1 << section.bits;
             if (range >= N) {
-                pCountSortSectionV2(array, mapper, start, endP1, section);
+                pCountSortSectionV2(asc, array, mapper, start, endP1, section);
             } else {
-                pCountSortSectionV1(array, mapper, start, endP1, section);
+                pCountSortSectionV1(asc, array, mapper, start, endP1, section);
             }
         }
     } else if (sections.length > 1) {
         const range = 1 << getSectionsBits(sections);
         if (range >= N) {
-            pCountSortSectionsV2(array, mapper, start, endP1, sections);
+            pCountSortSectionsV2(asc, array, mapper, start, endP1, sections);
         } else {
-            pCountSortSectionsV1(array, mapper, start, endP1, sections);
+            pCountSortSectionsV1(asc, array, mapper, start, endP1, sections);
         }
     }
 }
 
-function pCountSortPositiveV1(array, mapper, start, endP1, range) {
+function pCountSortPositiveV1(asc, array, mapper, start, endP1, range) {
     validatePCountSortRange(range);
     const count = new Array(range)
     for (let i = 0; i < range; i++) {
@@ -96,18 +96,10 @@ function pCountSortPositiveV1(array, mapper, start, endP1, range) {
         const element = array[i];
         count[mapper(element)].push(element);
     }
-    let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ.length > 0) {
-            arrayCopy(countJ, 0, array, i, countJ.length);
-            i += countJ.length;
-        }
-    }
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortPositiveV2(array, mapper, start, endP1, range) {
+function pCountSortPositiveV2(asc, array, mapper, start, endP1, range) {
     validatePCountSortRange(range);
     const count = new Array(range);
     for (let i = start; i < endP1; i++) {
@@ -120,14 +112,10 @@ function pCountSortPositiveV2(array, mapper, start, endP1, range) {
         }
         aux.push(element);
     }
-    let i = start;
-    count.forEach((countJ, j) => {
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    })
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortEndingMaskV1(array, mapper, start, endP1, mask) {
+function pCountSortEndingMaskV1(asc, array, mapper, start, endP1, mask) {
     const range = mask + 1;
     validatePCountSortRange(range)
     const count = new Array(range)
@@ -138,16 +126,10 @@ function pCountSortEndingMaskV1(array, mapper, start, endP1, mask) {
         const element = array[i];
         count[mapper(element) & mask].push(element);
     }
-    let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    }
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortEndingMaskV2(array, mapper, start, endP1, mask) {
+function pCountSortEndingMaskV2(asc, array, mapper, start, endP1, mask) {
     const range = mask + 1;
     validatePCountSortRange(range);
     const count = new Array(range);
@@ -161,14 +143,10 @@ function pCountSortEndingMaskV2(array, mapper, start, endP1, mask) {
         }
         aux.push(element);
     }
-    let i = start;
-    count.forEach((countJ, j) => {
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    })
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortSectionV1(array, mapper, start, endP1, section) {
+function pCountSortSectionV1(asc, array, mapper, start, endP1, section) {
     const range = 1 << section.bits;
     validatePCountSortRange(range)
     const count = new Array(range)
@@ -179,18 +157,10 @@ function pCountSortSectionV1(array, mapper, start, endP1, section) {
         const element = array[i];
         count[(mapper(element) & section.mask) >> section.shift].push(element);
     }
-    let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ.length > 0) {
-            arrayCopy(countJ, 0, array, i, countJ.length);
-            i += countJ.length;
-        }
-    }
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortSectionV2(array, mapper, start, endP1, section) {
+function pCountSortSectionV2(asc, array, mapper, start, endP1, section) {
     const range = 1 << section.bits;
     validatePCountSortRange(range);
     const count = new Array(range);
@@ -204,14 +174,10 @@ function pCountSortSectionV2(array, mapper, start, endP1, section) {
         }
         aux.push(element);
     }
-    let i = start;
-    count.forEach((countJ, j) => {
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    })
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortSectionsV1(array, mapper, start, endP1, sections) {
+function pCountSortSectionsV1(asc, array, mapper, start, endP1, sections) {
     const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range)
     const count = new Array(range)
@@ -223,18 +189,10 @@ function pCountSortSectionsV1(array, mapper, start, endP1, sections) {
         const key = getKeySN(mapper(element), sections);
         count[key].push(element);
     }
-    let i = start;
-    let j = 0;
-    for (; j < count.length; j++) {
-        let countJ = count[j];
-        if (countJ.length > 0) {
-            arrayCopy(countJ, 0, array, i, countJ.length);
-            i += countJ.length;
-        }
-    }
+    copyCountBucketsToArray(asc, start, count, array);
 }
 
-function pCountSortSectionsV2(array, mapper, start, endP1, sections) {
+function pCountSortSectionsV2(asc, array, mapper, start, endP1, sections) {
     const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range)
     const count = new Array(range);
@@ -248,9 +206,26 @@ function pCountSortSectionsV2(array, mapper, start, endP1, sections) {
         }
         aux.push(element);
     }
+    copyCountBucketsToArray(asc, start, count, array);
+}
+
+function copyCountBucketsToArray(asc, start, count, array) {
     let i = start;
-    count.forEach((countJ, j) => {
-        arrayCopy(countJ, 0, array, i, countJ.length);
-        i += countJ.length;
-    })
+    if (asc) {
+        for (let j = 0; j < count.length; j++) {
+            const bucket = count[j];
+            if (bucket?.length) {
+                arrayCopy(bucket, 0, array, i, bucket.length);
+                i += bucket.length;
+            }
+        }
+    } else {
+        for (let j = count.length - 1; j >= 0; j--) {
+            const bucket = count[j];
+            if (bucket?.length) {
+                arrayCopy(bucket, 0, array, i, bucket.length);
+                i += bucket.length;
+            }
+        }
+    }
 }
