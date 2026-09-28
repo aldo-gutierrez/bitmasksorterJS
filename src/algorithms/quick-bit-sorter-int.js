@@ -8,6 +8,7 @@ import {getMaskAsArray, getSortOptions, handleNullsUndefinedAndNans, validateSor
 import {pCountBitSortInt32} from "./p-count-bit-sorter-int.js";
 
 export function quickBitSortInt32(array, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -15,7 +16,7 @@ export function quickBitSortInt32(array, options = {}) {
     if (n < 2) {
         return;
     }
-    let mask = options.mask ?? calculateMaskInt(array, start, endP1);
+    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;

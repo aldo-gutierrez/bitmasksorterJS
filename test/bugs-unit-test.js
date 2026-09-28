@@ -129,27 +129,27 @@ describe('Regression & Bug Fix Tests', function () {
     });
 
     describe('Bug 7: Preserving Object References with NaNs, Nulls, Undefined', function () {
-        it.skip('radixBitSorterObjectIntV2 should keep object references and position nulls/undefined/NaNs', function () {
+        it('radixBitSorterObjectIntV2 should keep object references and position nulls/undefined/NaNs', function () {
             let o1 = { id: 3 };
             let o2 = { id: 1 };
             let o3 = { id: NaN };
             let arr = [o1, null, o2, o3, undefined];
-            radixBitV2SortObjectByInt32Key(arr, x => x ? x.id : x);
+            radixBitV2SortObjectByInt32Key(arr, x => x ? x.id : x, {"nulls":"last"});
             
             // Valid elements sorted first, NaN objects next, nulls/undefined at the end
-            assert.strictEqual(arr[0], o); // {id: 1}
+            assert.strictEqual(arr[0], o2); // {id: 1}
             assert.strictEqual(arr[1], o1); // {id: 3}
             assert.strictEqual(arr[2], o3); // {id: NaN}
             assert.strictEqual(arr[3], null);
             assert.strictEqual(arr[4], undefined);
         });
 
-        it.skip('radixBitSorterObjectNumber should keep object references with floats and NaNs', function () {
+        it('radixBitSorterObjectNumber should keep object references with floats and NaNs', function () {
             let o1 = { id: 3.5 };
             let o2 = { id: 1.2 };
             let o3 = { id: NaN };
             let arr = [o1, null, o2, o3, undefined];
-            radixBitSortObjectByFloat64Key(arr, x => x ? x.id : x);
+            radixBitSortObjectByFloat64Key(arr, x => x ? x.id : x, {"nulls":"last"});
 
             assert.strictEqual(arr[0], o2); // {id: 1.2}
             assert.strictEqual(arr[1], o1); // {id: 3.5}

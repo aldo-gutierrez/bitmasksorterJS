@@ -47,6 +47,29 @@ describe('sort wrapper parameter dispatch', function () {
         ]);
     });
 
+    it('applies global range options to every key in a multi-key sort', function () {
+        const players = [
+            {name: 'Rae', score: 12},
+            {name: 'Ken', score: 18},
+            {name: 'Sam', score: 12},
+            {name: 'Kai', score: 18},
+        ];
+
+        sort(players, [{
+            type: 'int32',
+            order: 'desc',
+            key: x => x.score
+        }, {
+            type: 'string',
+            key: x => x.name
+        }], {
+            start: 1,
+            end: 4
+        });
+
+        assert.deepStrictEqual(players.map(player => player.name), ['Rae', 'Kai', 'Ken', 'Sam']);
+    });
+
     it('defaults to numeric sort for plain number arrays when no parameters provided', function () {
         const arr = [3, 1, 2];
         sort(arr);

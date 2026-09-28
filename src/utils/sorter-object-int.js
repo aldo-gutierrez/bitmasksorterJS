@@ -1,12 +1,12 @@
 import {radixBitV2SortObjectByInt32Key} from "../algorithms/radix-bit-v2-sorter-object-int.js";
 import { radixBitSortObjectByInt32Key } from "../algorithms/radix-bit-sorter-object-int.js";
 import {getMaskAsArray, getSortOptions, handleNullsUndefinedAndNans, validateSortRange} from "./sorter-utils.js";
-import {sortSubList} from "../algorithms/native-sorter.js";
+import {getComparatorObjectInt32, sortSubList} from "../algorithms/native-sorter.js";
 import {isTypedArray} from "./utils.js";
 import {pCountSortObjectByInt32Key, quickBitSortObjectByInt32Key} from "../main.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
 
-let sortMap =
+export let sorterMapObjectInt32 =
 [
     //2
     [ "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N" ],
@@ -57,9 +57,10 @@ let sortMap =
     //16777216
     [ "Q", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ]
 ]
+
 //Choose algorithm not only by N, but also by Range
-export function sortObjectByInt32Key(array, mapper, options) {
-    options = options || {};
+export function sortObjectByInt32Key(array, mapper, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
@@ -75,26 +76,33 @@ export function sortObjectByInt32Key(array, mapper, options) {
     options.start = start;
     options.end = endP1;
     options.order = asc ? "asc" : "desc";
-    options.mask = mask;
+    options.runtime.mask = mask;
+    options.nulls = "ignore";
 
-    let log2Range = bList.length - 1; //Log2(K)
-    let log2Size = Math.ceil(Math.log2(n)) - 1; //Log2(N)
-    let log2RangePadded = bList[0] - bList[bList.length - 1] - 1;
+    let log2RangeM1 = bList.length - 1; //Log2(K)
+    let log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
+    let log2RangeM1Padded = bList[0] - bList[bList.length - 1] - 1;
 
     let sorter;
     if (n <= 16) {
         sorter = "N"
     } else {
-        if (log2Range <= 23 && log2Size <= 23) {
-            sorter = sortMap[log2Size][log2Range];
+        if (log2RangeM1 <= 23 && log2SizeM1 <= 23) {
+            sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];
         } else {
-            if (log2RangePadded > 11) {
+            if (log2RangeM1Padded > 11) {
                 sorter = "R";
             } else {
                 sorter = "X";
             }
         }
     }
+    executeSorterObjectInt32Key(sorter, asc, array, start, endP1, mapper, options);
+}
+
+
+
+function executeSorterObjectInt32Key(sorter, asc, array, start, endP1, mapper, options) {
     if (sorter === "Q") {
         quickBitSortObjectByInt32Key(array, mapper, options);
     } else if (sorter === "P") {
@@ -104,35 +112,9 @@ export function sortObjectByInt32Key(array, mapper, options) {
     } else if (sorter === "X") {
         radixBitSortObjectByInt32Key(array, mapper, options);
     } else if (sorter === "N") {
-        let comparator;
-        if (options.nulls === "ignore") {
-            comparator = asc ? (a, b) => mapper(a) - mapper(b) : (a, b) => mapper(b) - mapper(a);
-        } else {
-            let nullsFirst = options.nulls === "first";
-            comparator = (a, b) => {
-                const aKey = mapper(a);
-                const bKey = mapper(b);
-
-                const aUndefined = aKey === undefined;
-                const bUndefined = bKey === undefined;
-
-                if (aUndefined || bUndefined) {
-                    if (aUndefined && bUndefined) return 0;
-                    return aUndefined ? 1 : -1;
-                }
-
-                const aNull = aKey === null || Number.isNaN(aKey);
-                const bNull = bKey === null || Number.isNaN(bKey);
-
-                if (aNull || bNull) {
-                    if (aNull && bNull) return 0;
-                    return aNull === nullsFirst ? -1 : 1;
-                }
-
-                return asc ? aKey - bKey : bKey - aKey;
-            };
-        }
-        sortSubList(array, start, endP1, comparator, isTypedArray(array));
+        options.nulls = "ignore";
+        let comparator = getComparatorObjectInt32(asc, options.nulls, mapper);
+        sortSubList(array, start, endP1, comparator, false);
     } else {
         console.error("sortInt32: invalid sorter type: " + sorter);
     }

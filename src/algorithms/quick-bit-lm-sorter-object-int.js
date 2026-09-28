@@ -13,6 +13,7 @@ import {
  *   No optimization for small n and small range implemented yet
  */
 export function quickBitLowMemSortObjectByInt32Key(array, mapper, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
@@ -20,7 +21,7 @@ export function quickBitLowMemSortObjectByInt32Key(array, mapper, options = {}) 
     if (n < 2) {
         return;
     }
-    let mask = options.mask ?? calculateMaskInt(array, start, endP1, mapper);
+    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
@@ -70,6 +71,23 @@ function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, aux, rec
     if (kDiff < 1) {
         return;
     }
+    /*
+    let log2RangeM1 = bList.length - 1; //Log2(K)
+    if (log2RangeM1 <=17 && log2RangeM1 > 0 && aux.length > n && n <= 262144) {
+        let sorter;
+        if (n <= 32) {
+            sorter = "N";
+        } else {
+            let log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
+            sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];
+        }
+        if (sorter !== "Q") {
+            executeSorterSmall(asc, array, start, endP1, mapper, bList, bListIndex);
+            return;
+        }
+    }
+    }*/
+
     let sortMask = 1 << bList[bListIndex];
     let finalLeft = asc ? partitionStableLowMemInt(array, start, endP1, sortMask, mapper, aux)
         : partitionReverseStableLowMemInt(array, start, endP1, sortMask, mapper, aux);

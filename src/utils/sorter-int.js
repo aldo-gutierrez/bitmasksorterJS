@@ -58,8 +58,8 @@ let sortMap =
     [ "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P" ]
 ];
 
-export function sortInt32(array, options) {
-    options = options || {};
+export function sortInt32(array, options = {}) {
+    options.runtime = options.runtime || {};
     let {start, endP1, asc, nulls} = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -77,8 +77,7 @@ export function sortInt32(array, options) {
     options.end = endP1;
     options.order = asc ? "asc" : "desc";
     options.nulls = "ignore";
-    options.nans = "ignore";
-    options.mask = mask;
+    options.runtime.mask = mask;
 
     let log2Range = bList.length - 1; //Log2(K)
     let log2Size = Math.ceil(Math.log2(n)) - 1; //Log2(N)
@@ -104,6 +103,12 @@ export function sortInt32(array, options) {
             }
         }
     }
+    executeSorterInt32(sorter, array, options, asc, start, endP1);
+
+}
+
+
+function executeSorterInt32(sorter, array, options, asc, start, endP1) {
     if (sorter === "Q") {
         quickBitSortInt32(array, options);
     } else if (sorter === "P") {
@@ -116,5 +121,4 @@ export function sortInt32(array, options) {
     } else {
         console.error("sortInt32: invalid sorter type: " + sorter);
     }
-
 }

@@ -5,12 +5,13 @@ import {
     getMaskAsArray,
     getSections,
     getSortOptions,
-    handleNullsUndefinedAndNans,
+    handleNullsUndefinedAndNans, MAX_BITS_RADIX_SORT,
     validateSortRange,
 } from "../utils/sorter-utils.js";
 import {calculateMaskInt} from "../utils/sorter-utils-int.js";
 
 export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let arrayNative;
@@ -21,7 +22,7 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
     }
     let arrayInt32 = arrayNative;
 
-    let mask = options.mask ?? calculateMaskInt(arrayInt32, 0, n);
+    let mask = options.runtime.mask ?? calculateMaskInt(arrayInt32, 0, n);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
@@ -53,9 +54,10 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
 }
 
 function radixSortObjectI32(asc, arrayObj, oStart, n, bList, arrayI32, aStart, auxI32, auxObj, auxStart) {
+    let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let needsArrayCopy = 0;
     let auxI32Start = auxStart
-    let sections = getSections(bList);
+    let sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
     for (let index = 0; index < sections.length; index++) {
         let section = sections[index];
         let shift = section.shift;
