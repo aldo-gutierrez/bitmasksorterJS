@@ -6,14 +6,11 @@ import {
     handleNullsUndefinedAndNans,
     validateSortRange
 } from "../utils/sorter-utils.js";
-import {
-    calculateMaskInt,
-    partitionReverseStableInt,
-    partitionReverseStableLowMemInt, partitionStableInt
-} from "../utils/sorter-utils-object-int.js";
-import { getKeySN, getSectionsBits, validatePCountSortRange } from "./p-count-bit-sorter-int.js";
+import {calculateMaskInt, partitionReverseStableInt, partitionStableInt} from "../utils/sorter-utils-object-int.js";
+import {getKeySN, getSectionsBits, validatePCountSortRange} from "./p-count-bit-sorter-int.js";
 
 export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
@@ -21,13 +18,13 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let bList = options.bList;
-    let bListStart = options.bListStart;
+    let bList = options.runtime.bList;
+    let bListStart = options.runtime.bListStart;
     if (!bList) {
-        bList = getMaskAsArray(calculateMaskInt(array, start, endP1, mapper));
+        let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
+        bList = getMaskAsArray(mask);
         bListStart = 0;
     }
-    let N = endP1 - start
     let bListNew = bList.slice(bListStart);
 
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
@@ -55,14 +52,14 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
                 const range = 1 << section.bits;
-                if (range >= N) {
+                if (range >= n) {
                     pCountSortPositiveV2(asc, array, mapper, start, endP1, range);
                 } else {
                     pCountSortPositiveV1(asc, array, mapper, start, endP1, range);
                 }
             } else { //last bits but there is a mask for a bigger number
                 const range = mask + 1;
-                if (range >= N) {
+                if (range >= n) {
                     pCountSortEndingMaskV2(asc, array, mapper, start, endP1, mask);
                 } else {
                     pCountSortEndingMaskV1(asc, array, mapper, start, endP1, mask);
@@ -70,7 +67,7 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
             }
         } else {
             let range = 1 << section.bits;
-            if (range >= N) {
+            if (range >= n) {
                 pCountSortSectionV2(asc, array, mapper, start, endP1, section);
             } else {
                 pCountSortSectionV1(asc, array, mapper, start, endP1, section);
@@ -78,7 +75,7 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
         }
     } else if (sections.length > 1) {
         const range = 1 << getSectionsBits(sections);
-        if (range >= N) {
+        if (range >= n) {
             pCountSortSectionsV2(asc, array, mapper, start, endP1, sections);
         } else {
             pCountSortSectionsV1(asc, array, mapper, start, endP1, sections);

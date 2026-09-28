@@ -110,19 +110,19 @@ export function calculateSumOffsets(asc, count, countLength) {
 }
 
 //11bits looks faster than 8 on AMD 4800H, 8 should be faster on dual-core CPUs
-const MAX_BITS_RADIX_SORT = 11;
+export const MAX_BITS_RADIX_SORT = 11;
 
 function reverseListGet(bList, index) {
     return bList[bList.length - 1 - index];
 }
 
-export function getSections(bList, maxBitsDigit) {
+export function getSections(bList, maxBitsDigit = MAX_BITS_RADIX_SORT) {
     if (!bList || bList.length === 0) {
         return [];
     }
-    if (!maxBitsDigit) {
-        maxBitsDigit = MAX_BITS_RADIX_SORT;
-    }
+    let log2Range = bList[0] - bList[bList.length - 1] + 1;
+    let count = Math.ceil(log2Range / maxBitsDigit);
+    maxBitsDigit = Math.ceil(log2Range / count);
     let sections = [];
     let b = 0;
     let shift = reverseListGet(bList, b);
@@ -298,8 +298,10 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
     // Counters and collectors - must be declared before use
     let nullValues = 0;
     let undefinedValues = 0;
+    let nans = 0;
     const nullKeyObjs = [];
     const undefinedKeyObjs = [];
+    const nanKeyObjs = [];
 
     let writeIndex = 0;
     if (mapper) {
@@ -314,6 +316,10 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
                 undefinedValues++;
                 continue;
             }
+            if (elementObj !== elementObj) {
+                nans++;
+                continue;
+            }
             const valueToCheck = mapper(elementObj);
             if (valueToCheck === null) {
                 nullKeyObjs.push(elementObj);
@@ -321,6 +327,10 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
             }
             if (valueToCheck === undefined) {
                 undefinedKeyObjs.push(elementObj);
+                continue;
+            }
+            if (valueToCheck !== valueToCheck) {
+                nanKeyObjs.push(elementObj);
                 continue;
             }
             if (arrayNative) arrayNative[writeIndex] = valueToCheck;
@@ -339,6 +349,10 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
                 undefinedValues++;
                 continue;
             }
+            if (elementObj !== elementObj) {
+                nans++;
+                continue;
+            }
             if (arrayNative) arrayNative[writeIndex] = elementObj;
             if (i !== start + writeIndex) arrayObj[start + writeIndex] = elementObj;
             writeIndex++;
@@ -351,11 +365,17 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
     if (nulls === "last") {
         // place nulls and undefineds after the compacted block - restore original objects
         let pos = start + n;
+        for (let t = 0; t < nanKeyObjs.length; t++) {
+            arrayObj[pos++] = nanKeyObjs[t];
+        }
         for (let t = 0; t < nullKeyObjs.length; t++) {
             arrayObj[pos++] = nullKeyObjs[t];
         }
         for (let t = 0; t < undefinedKeyObjs.length; t++) {
             arrayObj[pos++] = undefinedKeyObjs[t];
+        }
+        for (let t = 0; t < nans; t++) {
+            arrayObj[pos++] = NaN;
         }
         for (let t = 0; t < nullValues; t++) {
             arrayObj[pos++] = null;
@@ -363,8 +383,9 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
         for (let t = 0; t < undefinedValues; t++) {
             arrayObj[pos++] = undefined;
         }
-        const newEndP1 = start + n;
-        return {start, endP1: newEndP1, arrayNative, start2: start, end2: start + n + nullKeyObjs.length + undefinedKeyObjs.length};
+        const newEnd = start + n;
+        let newEnd2 = start + n + nanKeyObjs.length + nullKeyObjs.length + undefinedKeyObjs.length;
+        return {start, endP1: newEnd, arrayNative, start2: start, end2: newEnd2};
     } else { // nulls === "first"
         // shift compacted block right by totalNulls to make space for nulls at start
         let totalNulls = nullValues + nullKeyObjs.length;
@@ -377,11 +398,24 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
         // write null objects at [start .. start+nullValues-1]
         for (let i = 0; i < nullValues; i++) arrayObj[start + i] = null;
         for (let i = 0; i < nullKeyObjs.length; i++) arrayObj[start + i + nullValues] = nullKeyObjs[i];
-        // write undefineds from start + totalNulls + n to endP1-1
-        for (let i = start + totalNulls + n, t = 0; i < endP1 && t < undefinedKeyObjs.length; i++, t++) arrayObj[i] = undefinedKeyObjs[t];
-        for (let i = start + totalNulls + n + undefinedKeyObjs.length, t = 0; i < endP1 && t < undefinedValues; i++, t++) arrayObj[i] = undefined;
+        let pos = start + totalNulls + n;
+
+        for (let t = 0; t < nanKeyObjs.length; t++) {
+            arrayObj[pos++] = nanKeyObjs[t];
+        }
+        for (let t = 0; t < undefinedKeyObjs.length; t++) {
+            arrayObj[pos++] = undefinedKeyObjs[t];
+        }
+        for (let t = 0; t < nans; t++) {
+            arrayObj[pos++] = NaN;
+        }
+        for (let t = 0; t < undefinedValues; t++) {
+            arrayObj[pos++] = undefined;
+        }
         const newStart = start + totalNulls;
-        const newEndP1 = start + totalNulls + n;
-        return {start: newStart, endP1: newEndP1, arrayNative, start2: start + nullValues, end2: start + n + undefinedKeyObjs.length};
+        const newEnd = start + totalNulls + n;
+        const newStart2 = start + nullValues;
+        const newEnd2 = start + totalNulls + n + nanKeyObjs.length + undefinedKeyObjs.length;
+        return {start: newStart, endP1: newEnd, arrayNative, start2: newStart2, end2: newEnd2};
     }
 }

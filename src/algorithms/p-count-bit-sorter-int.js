@@ -10,6 +10,7 @@ let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
 
 export function pCountBitSortInt32(array, options = {}, bList, bListStart) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));

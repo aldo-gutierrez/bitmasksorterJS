@@ -3,6 +3,7 @@ import path from "node:path";
 
 const inputPath = process.argv[2] || path.join("bench", "sort-results.jsonl");
 const format = process.argv[3];
+const nativeAlgorithms = new Set(["nativeArraySort", "nativeObjectArraySort"]);
 
 if (!fs.existsSync(inputPath)) {
     throw new Error(`Results file not found: ${inputPath}`);
@@ -121,6 +122,49 @@ if (format === "array") {
     console.log("]");
 } else if (format === undefined) {
     console.table(report);
+} else if (format === "times") {
+    const multipliersByIntersection = new Map();
+    for (const row of report) {
+        const intersectionKey = `${row.n}:${row.range}`;
+        const intersectionSummaries = summariesByIntersection.get(intersectionKey);
+        const native = intersectionSummaries.find((summary) =>
+            nativeAlgorithms.has(summary.algorithm)
+        );
+        if (!native) {
+            throw new Error(
+                `Native algorithm result not found for n=${row.n}, range=${row.range}`
+            );
+        }
+        const best = intersectionSummaries.find(
+            (summary) => summary.algorithm === row.bestAlgorithm
+        );
+        if (!best) {
+            throw new Error(
+                `Best algorithm result not found for n=${row.n}, range=${row.range}`
+            );
+        }
+        if (best.medianTimeMs <= 0) {
+            throw new Error(
+                `Best algorithm median time must be positive for n=${row.n}, range=${row.range}`
+            );
+        }
+        multipliersByIntersection.set(
+            intersectionKey,
+            Number((native.medianTimeMs / best.medianTimeMs).toFixed(2))
+        );
+    }
+
+    const sizes = [...new Set(report.map((row) => row.n))].sort((a, b) => a - b);
+    const ranges = [...new Set(report.map((row) => row.range))].sort((a, b) => a - b);
+    console.log("[");
+    sizes.forEach((size, index) => {
+        const values = ranges.map((range) =>
+            multipliersByIntersection.get(`${size}:${range}`) ?? null
+        ).map((multiplier) => JSON.stringify(multiplier)).join(", ");
+        const comma = index < sizes.length - 1 ? "," : "";
+        console.log(`    [ ${values} ]${comma}`);
+    });
+    console.log("]");
 } else {
-    throw new Error(`Unsupported format "${format}". Supported formats: array`);
+    throw new Error(`Unsupported format "${format}". Supported formats: array, times`);
 }

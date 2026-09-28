@@ -1,16 +1,18 @@
 import {
-    arrayCopy, arrayCopyTypedArray,
+    arrayCopy,
     calculateSumOffsets,
+    getMaskAsArray,
     getSections,
     getSortOptions,
     handleNullsUndefinedAndNans,
+    MAX_BITS_RADIX_SORT,
     validateSortRange
 } from "../utils/sorter-utils.js";
 import {calculateMaskInt, partitionNotStable, partitionReverseNotStableUpperBit} from "../utils/sorter-utils-int.js";
-import { getMaskAsArray } from "../utils/sorter-utils.js";
 import {isTypedArray} from "../utils/utils.js";
 
 export function radixBitSortInt32(array, options = {}) {
+    options.runtime = options.runtime || {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
@@ -21,7 +23,7 @@ export function radixBitSortInt32(array, options = {}) {
     let arrayWasTyped = isTypedArray(array);
     let arrayTyped = arrayWasTyped ? array : new Int32Array(array);
 
-    let mask = options.mask ?? calculateMaskInt(arrayTyped, start, endP1);
+    let mask = options.runtime.mask ?? calculateMaskInt(arrayTyped, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
@@ -130,9 +132,10 @@ function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAu
 }
 
 function radixSortInt(asc, array, start, endP1, bList, aux) {
-    let sections = getSections(bList);
-    let startAux = 0;
+    let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let n = endP1 - start;
+    let sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+    let startAux = 0;
     let missingArrayCopy = 0;
     for (let index = 0; index < sections.length; index++) {
         let section = sections[index];
