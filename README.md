@@ -8,6 +8,7 @@ Fast sorting utilities for JavaScript arrays and typed arrays, including numeric
 
 [![npm version](https://img.shields.io/npm/v/@aldogg/sorter)](https://www.npmjs.com/package/@aldogg/sorter)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/aldo-gutierrez/bitmasksorterJS/actions/workflows/ci.yml/badge.svg)](https://github.com/aldo-gutierrez/bitmasksorterJS/actions/workflows/ci.yml)
 
 ## Install
 
