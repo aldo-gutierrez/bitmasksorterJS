@@ -115,9 +115,9 @@ function partitionStableLastBitsNumber(asc, arrayF64, start, n, elementIndex, se
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; ++i) {
-        let element = arrayF64[i];
-        let elementShiftMasked = arrayI32[i * 2 + elementIndex] & mask;
-        let index = count[elementShiftMasked];
+        const element = arrayF64[i];
+        const elementShiftMasked = arrayI32[i * 2 + elementIndex] & mask;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxF64[index + auxStart] = element;
     }
@@ -136,9 +136,9 @@ function partitionStableGroupBitsNumber(asc, arrayF64, start, n, elementIndex, s
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; ++i) {
-        let element = arrayF64[i];
-        let elementShiftMasked = (arrayI32[i * 2 + elementIndex] & mask) >>> shift;
-        let index = count[elementShiftMasked];
+        const element = arrayF64[i];
+        const elementShiftMasked = (arrayI32[i * 2 + elementIndex] & mask) >>> shift;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxF64[index + auxStart] = element;
     }

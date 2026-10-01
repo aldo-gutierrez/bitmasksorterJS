@@ -211,8 +211,8 @@ function pCountSortSection(asc, array, start, endP1, section) {
     let number = new array.constructor(range);
     let mask = section.mask;
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        let key = (element & mask) >> section.shift;
+        const element = array[i];
+        const key = (element & mask) >> section.shift;
         count[key]++;
         number[key] = element;
     }
@@ -255,8 +255,8 @@ function pCountSortSections(asc, array, start, endP1, sections) {
     let number = new array.constructor(range);
 
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        let key = getKeySN(element, sections);
+        const element = array[i];
+        const key = getKeySN(element, sections);
         count[key]++;
         number[key] = element;
     }
@@ -302,8 +302,8 @@ function pCountSortSectionsSparse(asc, array, start, endP1, sections) {
     let number = [];
 
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
-        let key = getKeySN(element, sections);
+        const element = array[i];
+        const key = getKeySN(element, sections);
         count[key] = count[key] ? count[key] + 1 : 1;
         number[key] = element;
     }

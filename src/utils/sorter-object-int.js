@@ -1,61 +1,45 @@
 import {radixBitV2SortObjectByInt32Key} from "../algorithms/radix-bit-v2-sorter-object-int.js";
 import { radixBitSortObjectByInt32Key } from "../algorithms/radix-bit-sorter-object-int.js";
-import {getMaskAsArray, getSortOptions, handleNullsUndefinedAndNans, validateSortRange} from "./sorter-utils.js";
+import {
+    getMaskAsArray,
+    getSortOptions,
+    handleNullsUndefinedAndNans,
+    validateSortRange,
+    N, P, Q, R, X
+} from "./sorter-utils.js";
 import {getComparatorObjectInt32, sortSubList} from "../algorithms/native-sorter.js";
-import {isTypedArray} from "./utils.js";
 import {pCountSortObjectByInt32Key, quickBitSortObjectByInt32Key} from "../main.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
 
 export let sorterMapObjectInt32 =
-[
+    [
     //2
-    [ "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N" ],
-    //4
-    [ "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N" ],
-    //8
-    [ "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N" ],
-    //16
-    [ "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N", "Q", "N", "Q", "N", "N", "N", "N", "N", "N", "N", "N", "N" ],
-    //32
-    [ "Q", "Q", "Q", "X", "Q", "N", "N", "Q", "Q", "N", "N", "N", "Q", "N", "Q", "N", "N", "Q", "N", "N", "N", "N", "Q", "N" ],
-    //64
-    [ "Q", "Q", "Q", "Q", "P", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q" ],
-    //128
-    [ "Q", "Q", "Q", "X", "P", "P", "P", "P", "P", "P", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q", "Q" ],
-    //256
-    [ "Q", "Q", "P", "X", "P", "P", "P", "P", "X", "P", "X", "R", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "Q", "R" ],
-    //512
-    [ "Q", "P", "P", "P", "P", "P", "P", "P", "X", "X", "X", "X", "R", "X", "R", "X", "X", "X", "X", "X", "R", "X", "X", "X" ],
-    //1024
-    [ "X", "X", "X", "P", "P", "P", "P", "P", "X", "X", "X", "X", "X", "X", "X", "X", "R", "X", "R", "X", "R", "R", "R", "X" ],
-    //2048
-    [ "Q", "Q", "X", "P", "P", "P", "P", "P", "P", "X", "X", "X", "X", "X", "X", "R", "X", "X", "X", "R", "X", "R", "R", "R" ],
-    //4096
-    [ "Q", "X", "X", "X", "P", "P", "P", "P", "X", "X", "X", "X", "R", "X", "R", "X", "R", "R", "R", "R", "X", "X", "R", "R" ],
-    //8192
-    [ "Q", "P", "P", "P", "P", "P", "P", "P", "P", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "X", "R", "R" ],
-    //16384
-    [ "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //32768
-    [ "Q", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //65536
-    [ "Q", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //131072
-    [ "Q", "P", "P", "P", "P", "P", "R", "P", "P", "R", "R", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //262144
-    [ "Q", "X", "P", "X", "R", "P", "R", "R", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //524288
-    [ "Q", "X", "X", "X", "X", "P", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //1048576
-    [ "Q", "R", "R", "X", "X", "X", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //2097152
-    [ "Q", "X", "R", "X", "X", "X", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //4194304
-    [ "Q", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
-    //8388608
-    [ "Q", "R", "R", "X", "X", "X", "X", "X", "X", "X", "X", "R", "P", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ],
+    [ N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N ],
+    [ N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N ],
+    [ N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N ],
+    [ N, N, N, N, N, N, N, N, N, N, N, N, Q, N, Q, N, N, N, N, N, N, N, N, N ],
+    [ Q, Q, Q, X, Q, N, N, Q, Q, N, N, N, Q, N, Q, N, N, Q, N, N, N, N, Q, N ],
+    [ Q, Q, Q, Q, P, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q ],
+    [ Q, Q, Q, X, P, P, P, P, P, P, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q ],
+    [ Q, Q, P, X, P, P, P, P, X, P, X, R, X, X, X, X, X, X, X, X, X, X, Q, R ],
+    [ Q, P, P, P, P, P, P, P, X, X, X, X, R, X, R, X, X, X, X, X, R, X, X, X ],
+    [ X, X, X, P, P, P, P, P, X, X, X, X, X, X, X, X, R, X, R, X, R, R, R, X ],
+    [ Q, Q, X, P, P, P, P, P, P, X, X, X, X, X, X, R, X, X, X, R, X, R, R, R ],
+    [ Q, X, X, X, P, P, P, P, X, X, X, X, R, X, R, X, R, R, R, R, X, X, R, R ],
+    [ Q, P, P, P, P, P, P, P, P, X, X, R, R, R, R, R, R, R, R, R, R, X, R, R ],
+    [ P, P, P, P, P, P, P, P, P, P, P, P, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, P, P, P, P, P, P, P, P, P, P, P, P, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, P, P, P, P, P, P, P, P, P, P, P, P, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, P, P, P, P, P, R, P, P, R, R, P, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, X, P, X, R, P, R, R, P, R, R, R, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, X, X, X, X, P, X, X, X, X, X, R, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, R, R, X, X, X, X, X, X, X, X, R, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, X, R, X, X, X, X, X, X, X, X, R, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, X, X, X, X, X, X, X, X, X, X, R, R, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, R, R, X, X, X, X, X, X, X, X, R, P, R, R, R, R, R, R, R, R, R, R, R ],
+    [ Q, X, X, X, X, X, X, X, X, X, X, R, R, R, R, R, R, R, R, R, R, R, R, R ]
     //16777216
-    [ "Q", "X", "X", "X", "X", "X", "X", "X", "X", "X", "X", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R", "R" ]
+
 ]
 
 //Choose algorithm not only by N, but also by Range
@@ -85,15 +69,15 @@ export function sortObjectByInt32Key(array, mapper, options = {}) {
 
     let sorter;
     if (n <= 16) {
-        sorter = "N"
+        sorter = N
     } else {
         if (log2RangeM1 <= 23 && log2SizeM1 <= 23) {
             sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];
         } else {
             if (log2RangeM1Padded > 11) {
-                sorter = "R";
+                sorter = R;
             } else {
-                sorter = "X";
+                sorter = X;
             }
         }
     }
@@ -103,15 +87,15 @@ export function sortObjectByInt32Key(array, mapper, options = {}) {
 
 
 function executeSorterObjectInt32Key(sorter, asc, array, start, endP1, mapper, options) {
-    if (sorter === "Q") {
+    if (sorter === Q) {
         quickBitSortObjectByInt32Key(array, mapper, options);
-    } else if (sorter === "P") {
+    } else if (sorter === P) {
         pCountSortObjectByInt32Key(array, mapper, options);
-    } else if (sorter === "R") {
+    } else if (sorter === R) {
         radixBitV2SortObjectByInt32Key(array, mapper, options);
-    } else if (sorter === "X") {
+    } else if (sorter === X) {
         radixBitSortObjectByInt32Key(array, mapper, options);
-    } else if (sorter === "N") {
+    } else if (sorter === N) {
         options.nulls = "ignore";
         let comparator = getComparatorObjectInt32(asc, options.nulls, mapper);
         sortSubList(array, start, endP1, comparator, false);

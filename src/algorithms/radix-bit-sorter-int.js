@@ -70,7 +70,7 @@ export function partitionReverseStableInt(array, start, endP1, mask, aux) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
+        const element = array[i];
         if (!((element & mask) === 0)) {
             array[left] = array[i];
             left++;
@@ -87,7 +87,7 @@ function partitionStableInt(array, start, endP1, mask, aux) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
+        const element = array[i];
         if ((element & mask) === 0) {
             array[left] = element;
             left++;
@@ -110,7 +110,7 @@ function partitionStableLastBitsInt(asc, array, start, n, section, aux, startAux
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
+        const element = array[i];
         aux[count[element & mask]++ +startAux] = element;
     }
 }
@@ -126,7 +126,7 @@ function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAu
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
-        let element = array[i];
+        const element = array[i];
         aux[count[(element & mask) >> shift]++ +startAux] = element;
     }
 }

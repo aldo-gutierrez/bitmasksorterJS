@@ -39,21 +39,21 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
         if (n1 > 1) { //sort negative numbers
             let bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, start, finalLeft));
             if (!(bList1.length === 0)) {
-                radixSortObjectI32(asc, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
+                radixSortObjectI32Array(asc, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
             }
         }
         if (n2 > 1) { //sort positive numbers
             let bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, finalLeft, endP1));
             if (!(bList2.length === 0)) {
-                radixSortObjectI32(asc, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
+                radixSortObjectI32Array(asc, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
             }
         }
     } else {
-        radixSortObjectI32(asc, arrayObj, start, n, bList, arrayInt32, 0, auxInt32, auxObj, 0);
+        radixSortObjectI32Array(asc, arrayObj, start, n, bList, arrayInt32, 0, auxInt32, auxObj, 0);
     }
 }
 
-function radixSortObjectI32(asc, arrayObj, oStart, n, bList, arrayI32, aStart, auxI32, auxObj, auxStart) {
+export function radixSortObjectI32Array(asc, arrayObj, oStart, n, bList, arrayI32, aStart, auxI32, auxObj, auxStart) {
     let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let needsArrayCopy = 0;
     let auxI32Start = auxStart
@@ -83,8 +83,8 @@ function partitionReverseStableObjectI32(arrayI32, arrayObj, start, endP1, mask,
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayI32[i];
-        let elementObj = arrayObj[i];
+        const element = arrayI32[i];
+        const elementObj = arrayObj[i];
         if (!((arrayI32[i] & mask) === 0)) {
             arrayI32[left] = element;
             arrayObj[left] = elementObj;
@@ -104,8 +104,8 @@ function partitionStableObjectI32(arrayI32, arrayObj, start, endP1, mask, auxI32
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayI32[i];
-        let elementObj = arrayObj[i];
+        const element = arrayI32[i];
+        const elementObj = arrayObj[i];
         if ((arrayI32[i] & mask) === 0) {
             arrayI32[left] = element;
             arrayObj[left] = elementObj;
@@ -131,10 +131,10 @@ function partitionStableLastBitsObjectI32(asc, arrayObj, oStart, n, section, arr
     }
     calculateSumOffsets(asc, count, range);
     for (let i = 0; i < n; ++i) {
-        let element = arrayI32[i + aStart];
-        let elementObj = arrayObj[i + oStart];
-        let elementShiftMasked = element & mask;
-        let index = count[elementShiftMasked];
+        const element = arrayI32[i + aStart];
+        const elementObj = arrayObj[i + oStart];
+        const elementShiftMasked = element & mask;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxI32[index + auxI32Start] = element;
         auxObj[index + auxStart] = elementObj;
@@ -152,10 +152,10 @@ function partitionStableGroupBitsObjectI32(asc, arrayObj, oStart, n, section, ar
     }
     calculateSumOffsets(asc, count, range);
     for (let i = 0; i < n; ++i) {
-        let element = arrayI32[i + aStart];
-        let elementObj = arrayObj[i + oStart];
-        let elementShiftMasked = (element & mask) >>> shift;
-        let index = count[elementShiftMasked];
+        const element = arrayI32[i + aStart];
+        const elementObj = arrayObj[i + oStart];
+        const elementShiftMasked = (element & mask) >>> shift;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxI32[index + auxI32Start] = element;
         auxObj[index + auxStart] = elementObj;

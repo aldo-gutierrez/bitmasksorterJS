@@ -1,5 +1,11 @@
 import {isTypedArray} from "./utils.js";
 
+export const N = "N";
+export const Q = "Q";
+export const X = "X";
+export const P = "P";
+export const R = "R";
+
 export function arrayCopy(src, srcPos, dst, dstPos, length) {
     if (isTypedArray(src) && isTypedArray(dst)) {
         arrayCopyTypedArray(src, srcPos, dst, dstPos, length);
