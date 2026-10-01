@@ -4,7 +4,7 @@ export function partitionStableInt(array, start, endP1, mask, aux, mapper) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         if ((element & mask) === 0) {
             array[left] = array[i];
             left++;
@@ -21,7 +21,7 @@ export function partitionStableBInt(array, start, endP1, mask, aux, mapper) {
     let left = endP1 - 1;
     let right = aux.length - 1;
     for (let i = endP1 - 1; i >= start; i--) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         if (!((element & mask) === 0)) {
             array[left] = array[i];
             left--;
@@ -38,7 +38,7 @@ export function partitionReverseStableInt(array, start, endP1, mask, aux, mapper
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         if (!((element & mask) === 0)) {
             array[left] = array[i];
             left++;
@@ -55,7 +55,7 @@ export function partitionReverseStableBInt(array, start, endP1, mask, aux, mappe
     let left = endP1 - 1;
     let right = aux.length - 1;
     for (let i = endP1 - 1; i >= start; i--) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         if ((element & mask) === 0) {
             array[left] = array[i];
             left--;

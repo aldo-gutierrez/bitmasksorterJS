@@ -47,18 +47,18 @@ export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            radixSortInt(asc, array, start, finalLeft, bList, aux, mapper);
+            radixSortObjectInt32Mapper(asc, array, start, finalLeft, bList, aux, mapper);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            radixSortInt(asc, array, finalLeft, endP1, bList, aux, mapper);
+            radixSortObjectInt32Mapper(asc, array, finalLeft, endP1, bList, aux, mapper);
         }
     } else {
-        radixSortInt(asc, array, start, endP1, bList, aux, mapper);
+        radixSortObjectInt32Mapper(asc, array, start, endP1, bList, aux, mapper);
     }
 }
 
-function radixSortInt(asc, array, start, end, bList, aux, mapper) {
+export function radixSortObjectInt32Mapper(asc, array, start, end, bList, aux, mapper) {
     let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let needsArrayCopy = 0;
     let auxStart = 0;
@@ -92,7 +92,7 @@ function partitionStableLastBitsInt(asc, array, start, n, section, aux, startAux
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         aux[count[element & mask]++ +startAux] = array[i];
     }
 }
@@ -108,7 +108,7 @@ function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAu
     }
     calculateSumOffsets(asc, count, range);
     for (let i = start; i < endP1; i++) {
-        let element = mapper(array[i]);
+        const element = mapper(array[i]);
         aux[count[(element & mask) >> shift]++ + startAux] = array[i];
     }
 }

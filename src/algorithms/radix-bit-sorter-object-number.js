@@ -96,8 +96,8 @@ function partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayF64[i];
-        let elementObj = arrayObj[i];
+        const element = arrayF64[i];
+        const elementObj = arrayObj[i];
         if (!((arrayI32[i * 2 + elementIndex] & mask) === 0)) {
             arrayF64[left] = element;
             arrayObj[left] = elementObj;
@@ -117,8 +117,8 @@ function partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask,
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayF64[i];
-        let elementObj = arrayObj[i];
+        const element = arrayF64[i];
+        const elementObj = arrayObj[i];
         if ((arrayI32[i * 2 + elementIndex] & mask) === 0) {
             arrayF64[left] = element;
             arrayObj[left] = elementObj;
@@ -147,10 +147,10 @@ function partitionStableLastBitsNumber(asc, arrayObj, oStart, n, section, arrayF
     }
     calculateSumOffsets(asc, count, range);
     for (let i = 0; i < n; ++i) {
-        let element = arrayF64[i + aStart];
-        let elementObj = arrayObj[i + oStart];
-        let elementShiftMasked = arrayI32[(i + aStart) * 2 + elementIndex] & mask;
-        let index = count[elementShiftMasked];
+        const element = arrayF64[i + aStart];
+        const elementObj = arrayObj[i + oStart];
+        const elementShiftMasked = arrayI32[(i + aStart) * 2 + elementIndex] & mask;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxF64[index + auxF64Start] = element;
         auxObj[index + auxStart] = elementObj;
@@ -171,10 +171,10 @@ function partitionStableGroupBitsNumber(asc, arrayObj, oStart, n, section, array
     }
     calculateSumOffsets(asc, count, range);
     for (let i = 0; i < n; ++i) {
-        let element = arrayF64[i + aStart];
-        let elementObj = arrayObj[i + oStart];
-        let elementShiftMasked = (arrayI32[(i + aStart) * 2 + elementIndex] & mask) >>> shift;
-        let index = count[elementShiftMasked];
+        const element = arrayF64[i + aStart];
+        const elementObj = arrayObj[i + oStart];
+        const elementShiftMasked = (arrayI32[(i + aStart) * 2 + elementIndex] & mask) >>> shift;
+        const index = count[elementShiftMasked];
         count[elementShiftMasked]++;
         auxF64[index + auxF64Start] = element;
         auxObj[index + auxStart] = elementObj;

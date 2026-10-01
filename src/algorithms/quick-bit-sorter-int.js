@@ -67,14 +67,15 @@ function qbSortInt(asc, array, start, endP1, bList, bListIndex, recalculate) {
     }
 
     /*
-    if (kDiff < 16) {
+    if (bListIndex >= 1 && kDiff <=16 && n <= 65536) {
         let bLengthM1 = (bList.length - bListIndex) - 1; //Log2(K)
         let log2Nm1 = Math.log2(endP1 - start) - 1; //Log2(N)
         if ( log2Nm1 > bLengthM1) {
             pCountBitSortInt32(array, {"start": start, "end": endP1, "order": asc?"asc":"desc"}, bList, bListIndex);
             return;
         }
-    }*/
+    }
+    */
 
     let sortMask = 1 << bList[bListIndex];
     let finalLeft = asc ? partitionNotStable(array, start, endP1, sortMask)

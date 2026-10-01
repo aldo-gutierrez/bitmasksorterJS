@@ -64,3 +64,10 @@ Print the fastest and second-fastest algorithm for each size/range intersection,
 ```sh
 node bench/report-from-database.js [inputPath]
 ```
+
+Print the fastest algorithm as a matrix, or print its speedup over the native sort as a multiplier:
+
+```sh
+node bench/report-from-database.js [inputPath] array
+node bench/report-from-database.js [inputPath] times
+```
