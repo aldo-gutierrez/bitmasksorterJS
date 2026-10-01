@@ -1,9 +1,167 @@
-# BitMask Sorters in JavaScript: 2x to 20x faster
+# @aldogg/sorter
 
-[NPMJS](https://www.npmjs.com/package/@aldogg/sorter)
-[Repository](https://github.com/aldo-gutierrez/bitmasksorterJS)
+Fast sorting utilities for JavaScript arrays and typed arrays, including numeric, object-key, and multi-key sorting. The library uses bitmask-assisted algorithms
 
-This project explores sorting algorithms that use a BitMask optimization to improve performance.
+> This project is performance-oriented, but no single sorter is the fastest for every data set, runtime, or machine. Benchmark your own workload before choosing it over the native sort.
+
+> We claim this project to be up to 71X faster when sorting arrays of int32 numbers and up to 19X faster when sorting objects with int32 keys. When using random data and compared to Array.sort(comparator). Check the benchmark section
+
+[![npm version](https://img.shields.io/npm/v/@aldogg/sorter)](https://www.npmjs.com/package/@aldogg/sorter)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
+## Install
+
+```sh
+npm install @aldogg/sorter
+```
+
+The package provides ES module, CommonJS, browser UMD, and TypeScript declaration builds.
+
+## Quick start
+
+```js
+import { sort } from '@aldogg/sorter';
+
+const scores = [8, -3, 4, 1];
+sort(scores, { order: 'asc' });
+console.log(scores); // [-3, 1, 4, 8]
+
+const players = [
+  { name: 'Rae', score: 12 },
+  { name: 'Kai', score: 18 },
+  { name: 'Sam', score: 12 }
+];
+
+sort(players, player => player.score, {
+  type: 'int32',
+  order: 'desc',
+  nulls: 'last'  
+});
+
+sort(players, [{
+    type: 'int32',
+    order: 'desc',
+    key: x => x.score
+}, {
+    type: 'string',
+    key: x => x.name
+}], {
+    start: 0,
+    end: 3
+});
+```
+
+`sort` changes the supplied array or typed array in place. It does not return a sorted copy.
+
+To check browser usage check
+
+https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ie11.html
+
+https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ios12.html
+
+## API
+
+### General-purpose `sort`
+
+`sort(array, options)` unstable sort. sorts primitive values. It detects common value types when possible use `type` to select a type explicitly.
+
+`sort(array, key, options)` stable sort. sorts objects by a key function. The key may be inferred from the first non-nullish value, or specified with `type`.
+
+```js
+import { sort } from '@aldogg/sorter';
+
+const words = ['pear', 'apple', 'orange'];
+sort(words); // strings are sorted using locale-aware string comparison
+
+const events = [
+  { title: 'Later', date: new Date('2025-04-02') },
+  { title: 'Earlier', date: new Date('2025-04-01') }
+];
+sort(events, event => event.date, { type: 'date', order: 'asc' });
+
+const measurements = [3.25, -1.5, 0];
+sort(measurements, { type: 'float64', order: 'desc' });
+```
+
+### Sorting by multiple keys
+
+Pass key descriptors in priority order. Each descriptor accepts a `key` function, optional `type`, and per-key options. The first descriptor is the primary sort key.
+
+```js
+const people = [
+  { name: 'Ari', team: 'blue', score: 8 },
+  { name: 'Bea', team: 'red', score: 8 },
+  { name: 'Cam', team: 'blue', score: 11 }
+];
+
+sort(people, [
+  { key: person => person.score, type: 'int32', order: 'desc' },
+  { key: person => person.team, type: 'string', order: 'asc' }
+]);
+```
+
+### Options
+
+| Option  | Values                                    | Description                                                                                                                 |
+|---------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `order` | `'asc'` (default), `'desc'`               | Sort direction.                                                                                                             |
+| `type`  | See supported types below                 | Explicitly select the value type; useful for empty or mixed arrays and object keys.                                         |
+| `nulls` | `'ignore'` (default), `'first'`, `'last'` | If `'ignore'` then we don't expect any `null`, `undefined` or  `NaN` value. <br/> if `'first'` ther order is [`null`, ...elements, `NaN`, `undefined`] <br/> , if `'last'` ther order is [...elements, `NaN`, `null`, `undefined`]  |
+| `start` | Integer, default `0`                      | Inclusive start index of the range to sort.                                                                                 |
+| `end`   | Integer, default array length             | Exclusive end index of the range to sort.                                                                                   |
+
+Range sorting leaves values outside `[start, end)` untouched:
+
+```js
+const values = [99, 5, 2, 4, 88];
+sort(values, { start: 1, end: 4, order: 'asc' });
+// [99, 2, 4, 5, 88]
+```
+
+### Supported value types
+
+The general-purpose API supports number, string, boolean, `Date`, and `BigInt` values. Typed arrays are supported, including integer and floating-point typed arrays and `BigInt64Array` / `BigUint64Array`. Use an explicit type when inference is not sufficient:
+The sort functions picks the best algorithm for your specific data, considering the size and the range
+
+| Type                  | Example                                                     |
+|-----------------------|-------------------------------------------------------------|
+| `int32`               | 32-bit signed integer values                                |
+| `float64` or `number` | JavaScript numeric values                                   |
+| `string`              | String values                                               |
+| `boolean`             | Boolean values                                              |
+| `date`                | `Date` values, sorted by timestamp                          |
+| `bigint`, `int64`     | BigInt values in range: -1.7976 × 10³⁰⁸ ...  1.7976 × 10³⁰⁸ |
+
+For typed arrays, `sort` also recognizes these types: `úint32`, `uint64`, `float32`, `int16`, `uint16`, `int8`, `uint8` and , `uint8clamped`
+
+### Specialized functions
+
+The general purpose API is recommended but the package also exports mid-level algorithms and convenience functions from `src/main.js`, including:
+
+| Function                 | Example                                                           |
+|--------------------------|-------------------------------------------------------------------|
+| `sortInt32`              | unstable sort. sorts 32-bit signed integer values                 |
+| `sortFloat64`            | unstable sort. sorts JavaScript numeric values                    |
+| `sortObjectByInt32Key`   | stable sort. sort objects with number keys in 32-bit signed range |
+| `sortObjectByFloat64Key` | stable sort. sort objects with number keys in 64-bit float range  |
+
+The package also exports lower-level algorithms and convenience functions from `src/main.js`:
+These functions are useful when a specific algorithm is needed. Their input constraints and stability characteristics can differ; consult the implementation and tests before relying on algorithm-specific behavior.
+
+`radixBitSortInt32`, `radixBitSortFloat64`, `radixBitSortFloat64`, `radixBitSortObjectByInt32Key`, `radixBitV2SortObjectByInt32Key`, `radixBitSortObjectByFloat64Key`, `quickBitSortInt32`, `quickBitSortInt32`, `quickBitSortObjectByInt32Key`, `quickBitLowMemSortObjectByInt32Key`,`pCountBitSortInt32`, `pCountBitMinMaxSortInt32`, `pCountSortObjectByInt32Key`, `americanFlagBitSortInt32`
+
+We implemented with BitMask
+- Radix Sort with BitMask (stable)
+- Quick Sort with BitMask (stable and unstable) and a stable low-memory variant
+- PigeonHole/Count/Bucket Sort with Bitmask (stable and unstable)
+- American-flag sort with BitMask (unstable)
+
+[Old Documentation/Readme](README_OLD.md)
+
+## How it works
+
+The sort examines the set bits in the input and uses a bitmask to help choose among native sorting for small inputs, quick sort, pigeonhole/count sort, and radix sort.
+The bitmask helps checking the range and reducing the computation that each algorithm needs to do.
 
 The following code demonstrates how to calculate the BitMask of a 32-bit integer:
 
@@ -11,270 +169,90 @@ The following code demonstrates how to calculate the BitMask of a 32-bit integer
 function calculateMaskInt(array, start, endP1) {
     let mask = 0x00000000;
     let invMask = 0x00000000;
-
     for (let i = start; i < endP1; i++) {
         const ei = array[i];
         mask = mask | ei;
         invMask = invMask | (~ei);
     }
-
     return mask & invMask;
 }
 ```
 
-JavaScript numbers are stored as double-precision floating-point values following the IEEE 754 standard. However, JavaScript bit operations work on 32-bit integers. Because of this, we need to manage two masks: one for the lower 32 bits and one for the upper 32 bits.
+## Development
 
-For more details, see the original Java implementation:
-[Java Version and Documentation](https://github.com/aldo-gutierrez/bitmasksorter)
+The project uses Node.js, Mocha, TypeScript declarations, and Rollup. The build configuration requires Node.js 20 or later.
 
-## Main functions
-
-This functions select the best algorithm, for bigger numbers most of the time a RadixBitSort
-
-- `sortInt32(array, options)` executes a unstable sort on arrays of integer numbers in the range `-2^31 ... 2^31 - 1`.
-- `sortFLoat64(array, options)` executes a unstable sort on arrays of numeric values.
-- `sortObjectByInt32Key(array, (x) => x.key, options)` executes a stable sort on arrays of objects with integer keys in the range `-2^31 ... 2^31 - 1`.
-- `sortObjectByFloat64Key(array, (x) => x.key, options)` executes a stable sort on arrays of objects with numeric keys.
-- `sort(array, (x) => x.key, options)` executes a stable sort on arrays of objects with key.
-- `sort(array, [{"key": (x) => x.key}, {"key", (x) => x.id}], options)` executes a stable sort on arrays of objects with multiples keys.
-
-## Usage
-
-### Sorting arrays of numbers
-
-These methods automatically choose the best algorithm depending on the array size and value range.
-
-```javascript
-import { sortInt32, sortFLoat64 } from "@aldogg/sorter";
-
-// Can sort negative and positive integer numbers in the range -2^31 ... 2^31 - 1
-// Supports arrays and typeArrays
-sortInt32(array, {"order":"asc"});
-
-// Can sort negative and positive IEEE 754 64-bit numbers
-// Supported arrays and TypeArrays
-sortFLoat64(array, {"order":"desc"});
+```sh
+npm install
+npm test
+npm run build
 ```
 
-### Sorting arrays of objects
+The tests cover ascending and descending sort behavior, algorithm conformance, ranges, nullish values and `NaN`, typed arrays, multi-key sorting, and regression cases.
 
-These methods automatically choose the best algorithm depending on the array size and value range.
+## Benchmarks
 
-```javascript
-import { sortObjectByInt32Key, sortObjectByFloat64Key } from "@aldogg/sorter";
+Benchmark scripts are in [`bench/`](bench/). They compare different data types and algorithms; results depend on the Node.js version, CPU, data distribution, array size, and benchmark configuration
 
-// sortObjectInt can sort objects with negative and positive integer keys in the range -2^31 ... 2^31 - 1 only
-sortObjectByInt32Key(orig, (x) => x.id);
+For the general comparison harness, build first:
 
-// sortObjectNumber can sort objects with IEEE 754 numeric keys
-sortObjectByFloat64Key(orig, (x) => x.id);
+```sh
+npm run build
+node bench/perf-number-array-test.js
+node bench/perf-object-array-test.js
 ```
 
-### MultiSort
+Summary of results
 
+Array of numbers in int32 range
 
-```javascript
-import { sort} from "@aldogg/sorter";
+| Algorithm   | Size    | Range      | Time (ms) | Speedup |
+|-------------|---------|------------|----------:|--------:|
+| native sort | 1000000 | 1000       |       220 |         |
+| aldogg sort | 1000000 | 1000       |         4 |  55.00X |
+| native sort | 1000000 | 1000000    |       275 |         |
+| aldogg sort | 1000000 | 1000000    |        18 |  15.27X |
+| native sort | 1000000 | 1000000000 |       271 |         |
+| aldogg sort | 1000000 | 1000000000 |        29 |   9.34X |
 
-// sort Array of numbers
-sort([1,9,-1,3,2,null], {"order":"asc", "nulls":"first"});
+Array of objects with int32 keys
 
-// sort Array of Objects by key
-sort(arrayObj, (x) => x.id, {"order":"asc", "nulls":"last"});
+| Algorithm   | Size    | Range      | Time (ms) | Speedup |
+|-------------|---------|------------|----------:|--------:|
+| native sort | 1000000 | 1000       |       279 |         |
+| aldogg sort | 1000000 | 1000       |        19 |  14.68X |
+| native sort | 1000000 | 1000000    |       535 |         |
+| aldogg sort | 1000000 | 1000000    |        48 |  11.10X |
+| native sort | 1000000 | 1000000000 |       521 |         |
+| aldogg sort | 1000000 | 1000000000 |        64 |   8.14X |
 
-// sort Array of Objects by multiple keys
-sort(arrayObj, [{"key": (x) => x.time, type:"float64", order:"asc"}, {"key": (x) => x.year, type:"int32", order:"desc"}], {"nulls":"last"});
+To search for the maximum speedup in you machine execute the following commands
+
+for 32 bit integer arrays
+```sh
+node bench/generate-benchmark-database-int.js 18 5     
+node bench/report-from-database.js .\bench\sort-results.jsonl times
 ```
 
+for array of objects with 32 bit key
 
-## RadixBitSorter
+```sh
+node bench/generate-benchmark-database-object-int.js 18 5     
+node bench/report-from-database.js .\bench\sort-object-results.jsonl times
+```
 
-`RadixBitSorter` is a radix sort that uses a BitMask to reduce the number of counting-sort iterations required. This modified radix sort can be between 2x and 20x faster than the standard JavaScript sort.
+Additionally see:
 
-`RadixBitSorter` is an LSD radix sorter.
+[Benchmarks](docs/BENCHMARKS.md)
+[Old Benchmarks/Readme](README_OLD.md)
 
-The number of bits per iteration has been increased to 11 instead of the usual 8. For dual-core or lower-end machines, using 8 bits is recommended.
+## Contributing
 
-## Benchmark environment
+Bug reports, test improvements, documentation updates, and pull requests are welcome. Please include a minimal reproduction for bugs and run `npm test` before submitting a change.
 
-Environment: AMD Ryzen 7 4800H processor, Node v16.13.2
+- Issues: [GitHub issue tracker](https://github.com/aldo-gutierrez/bitmasksorterJS/issues)
+- Source: [GitHub repository](https://github.com/aldo-gutierrez/bitmasksorterJS)
 
-## Benchmark: integer numbers
+## License
 
-### Sorting 1 million integer elements ranging from 0 to 1 million
-
-| Algorithm            |     avg. time [ms] |
-|----------------------|-------------------:|
-| Native Sort          |                275 |
-| RadixBitIntSorter    |                 21 |
-| RadixBitNumberSorter |                 41 |
-| PCountBitSortInt32   |                 18 | 
-| Fast-sort            |                342 | 
-| Timsort              |                149 | 
-
-### Sorting 1 million integer elements ranging from 0 to 1000
-
-| Algorithm           |     avg. time [ms] |
-|---------------------|-------------------:|
-| Native Sort         |                220 |  
-| RadixBitSortInt32   |                 11 |
-| RadixBitSortFloat64 |                 32 |
-| PCountBitSortInt32  |                  4 |
-| Fast-sort 3.4.1     |                286 |
-| Timsort 0.3.0       |                118 |
-
-### Sorting 1 million integer elements ranging from 0 to 1,000,000,000
-
-| Algorithm           |       avg. time [ms] |
-|---------------------|---------------------:|
-| Native Sort         |                  271 |
-| RadixBitSortInt32   |                   29 |
-| RadixBitSortFloat64 |                   51 |
-| Fast-sort 3.4.1     |                  350 |
-| Timsort 0.3.0       |                  141 |                   
-
-### Sorting 40 million integer elements ranging from 0 to 1,000,000,000
-
-| Algorithm                | avg. time [ms] |
-|--------------------------|---------------:|
-| Native Sort              |          13572 |
-| RadixBitSortInt32 v0.7   |          11123 |
-| RadixBitSortFloat64 v0.7 |           4539 |
-| RadixBitSortInt32 v0.8   |           8439 |
-| RadixBitSortFloat64 v0.8 |           2187 |
-| Fast-sort 3.4.1          |          17286 |
-| Timsort 0.3.0            |           6902 |
-
-## Benchmark: floating-point numbers
-
-### Sorting 1 million floating-point elements ranging from 0 to 1 million
-
-| Algorithm                | avg. time [ms] |
-|--------------------------|---------------:|
-| Native sort              |            604 |
-| RadixBitSortFloat64 v0.8 |             67 |
-| Fast-sort 3.4.1          |            638 |
-| Timsort 0.3.0            |            186 |
-
-### Sorting 1 million floating-point elements ranging from 0 to 1000
-
-| Algorithm                | avg. time [ms] |
-|--------------------------|---------------:|
-| Native sort              |            597 |
-| RadixBitSortFloat64 v0.8 |             67 |
-| Fast-sort 3.4.1          |            747 |
-| Timsort 0.3.0            |            183 |
-
-### Sorting 1 million floating-point elements ranging from 0 to 1,000,000,000
-
-| Algorithm            | avg. time [ms] |
-|----------------------|---------------:|
-| Native sort          |            598 |
-| RadixBitNumberSorter |             68 |
-| Fast-sort 3.4.1      |            710 |
-| Timsort 0.3.0        |            184 |
-
-## Benchmark: objects
-
-### Sorting 1 million objects with integer keys ranging from 0 to 1 million
-
-| Algorithm                      | avg. time [ms] |
-|--------------------------------|---------------:|
-| Native sort                    |            535 |
-| RadixBitSortObjectByInt32Key   |            118 |
-| RadixBitV2SortObjectByInt32Key |             48 |
-| RadixBitSortObjectByFloat64Key |             81 |
-| Fast-sort 3.4.0                |            596 |
-| Timsort 0.3.0                  |            299 |
-
-### Sorting 1 million objects with integer keys ranging from 0 to 1000
-
-| Algorithm                      | avg. time [ms] |
-|--------------------------------|---------------:|
-| Native sort                    |            279 |
-| RadixBitSortObjectByInt32Key   |             19 |
-| RadixBitV2SortObjectByInt32Key |             31 |
-| RadixBitSortObjectByFloat64Key |             59 |
-| Fast-sort 3.4.0                |            322 |
-| Timsort 0.3.0                  |            168 |
-
-### Sorting 1 million objects with integer keys ranging from 0 to 1,000,000,000
-
-| Algorithm                      | avg. time [ms] |
-|--------------------------------|---------------:|
-| Native sort                    |            521 |
-| RadixBitSortObjectByInt32Key   |            218 |
-| RadixBitV2SortObjectByInt32Key |             64 |
-| RadixBitSortObjectByFloat64Key |            100 |
-| Fast-sort 3.4.0                |            618 |
-| Timsort 0.3.0                  |            315 |
-
-### Sorting 1 million objects with floating-point keys ranging from 0 to 1 million
-
-| Algorithm                           | avg. time [ms] |
-|-------------------------------------|---------------:|
-| Native Sort                         |            835 |
-| RadixBitSortObjectByFloat64Key v0.8 |            162 |
-| RadixBitSortObjectByFloat64Key v0.7 |            183 |
-| fast-sort 3.4.0                     |            784 |
-| Timsort                             |            422 |
-
-### Sorting 1 million objects with floating-point keys ranging from 0 to 1000
-
-| Algorithm                           | avg. time [ms] |
-|-------------------------------------|---------------:|
-| Native Sort                         |            855 |
-| RadixBitSortObjectByFloat64Key v0.8 |            165 |
-| RadixBitSortObjectByFloat64Key v0.7 |            189 |
-| fast-sort 3.4.0                     |            781 |
-| Timsort                             |            426 |
-
-### Sorting 1 million objects with floating-point keys ranging from 0 to 1,000,000,000
-
-| Algorithm                      | avg. time [ms] |
-|--------------------------------|---------------:|
-| Native Sort                    |            825 |
-| RadixBitSortObjectByFloat64Key |            165 |
-| fast-sort 3.4.0                |            764 |
-| Timsort                        |            421 |
-
-## DONE v0.8
-
-- [x] Support integer positive numbers
-- [x] Support integer negative numbers
-- [x] Support floating-point numbers
-- [x] Support object sort with integer keys
-- [x] Support object sort with float keys
-- [x] Support Stable sort
-- [x] Support nulls and undefined
-- [X] Support `asc` and `desc` order
-- [x] Support Radix Sort with BitMask → RadixBitXXXSorter
-- [x] Support Quick Sort with BitMask → QuickBitXXXSorter
-- [x] Test Pigeonhole Sort / Count Sort / Bucket Sort with BitMask → PCountBitXXXSorter (Only 32 bits)
-- [x] Test American Flag Sort with BitMask → AmericanBitXXXSorter (Only 32 bits)
-- [x] Full Regression and Smoke Test
-- [x] Benchmark Scripts
-- [x] Support String sorting by falling back to native JavaScript sort
-- [x] Support Boolean sorting by falling back to native JavaScript sort
-
-## TODO OPENSOURCE VERSION
-- [ ] Create ShortListRangeSorter similar to Java Version which will choose the best algorithm when n <= 2^16 or range <= 2^16. The best algorithm is selected from PCountSort, QuickBitSort, RadixBitSort and native Java Script sort.
-
-## OPEN SOURCE FINAL VERSION
-* RadixBitSorter for all needed types
-* QuickBitSorter for all needed types
-* RadixBitSorter / QuickBitSorter using optionally ShortListOrRangeSorter
-
-## PAID VERSION
-* RadixBitXXXSorter for all types
-* QuickBitXXXSorter for all types
-* PCountBitXXXSorter for all types
-* AmericanFlagBitSorter / SkaBitSorter for all types
-* Optimized String Sorting, maybe with BitMask
-* Support for sorting int64 and BigInt up to 2^64
-* Parallelism
-* Full code coverage
-* WebAssembly (*Pro version)
-* SIMD (*Pro version)
-* Support for sorting BigInt up to 2^128 (*Pro version)
-* Other sort algorithms with BitMask (*Pro version)
+This project is licensed under the [Apache License 2.0](LICENSE).
