@@ -29,14 +29,14 @@ For more details, see the original Java implementation:
 
 ## Main functions
 
-This functions select the best algorithm, for bigger numbers most of the time a RadixBitSort
+These functions select the best algorithm; for larger numbers, most of the time it is a RadixBitSort.
 
-- `sortInt32(array, options)` executes a unstable sort on arrays of integer numbers in the range `-2^31 ... 2^31 - 1`.
-- `sortFLoat64(array, options)` executes a unstable sort on arrays of numeric values.
+- `sortInt32(array, options)` executes an unstable sort on arrays of integer numbers in the range `-2^31 ... 2^31 - 1`.
+- `sortFloat64(array, options)` executes an unstable sort on arrays of numeric values.
 - `sortObjectByInt32Key(array, (x) => x.key, options)` executes a stable sort on arrays of objects with integer keys in the range `-2^31 ... 2^31 - 1`.
 - `sortObjectByFloat64Key(array, (x) => x.key, options)` executes a stable sort on arrays of objects with numeric keys.
-- `sort(array, (x) => x.key, options)` executes a stable sort on arrays of objects with key.
-- `sort(array, [{"key": (x) => x.key}, {"key", (x) => x.id}], options)` executes a stable sort on arrays of objects with multiples keys.
+- `sort(array, (x) => x.key, options)` executes a stable sort on arrays of objects with a key.
+- `sort(array, [{ key: (x) => x.key }, { key: (x) => x.id }], options)` executes a stable sort on arrays of objects with multiple keys.
 
 ## Usage
 
@@ -45,15 +45,15 @@ This functions select the best algorithm, for bigger numbers most of the time a 
 These methods automatically choose the best algorithm depending on the array size and value range.
 
 ```javascript
-import { sortInt32, sortFLoat64 } from "@aldogg/sorter";
+import { sortInt32, sortFloat64 } from "@aldogg/sorter";
 
 // Can sort negative and positive integer numbers in the range -2^31 ... 2^31 - 1
-// Supports arrays and typeArrays
-sortInt32(array, {"order":"asc"});
+// Supports arrays and typed arrays
+sortInt32(array, { "order": "asc" });
 
 // Can sort negative and positive IEEE 754 64-bit numbers
-// Supported arrays and TypeArrays
-sortFLoat64(array, {"order":"desc"});
+// Supports arrays and typed arrays
+sortFloat64(array, { "order": "desc" });
 ```
 
 ### Sorting arrays of objects
@@ -63,27 +63,26 @@ These methods automatically choose the best algorithm depending on the array siz
 ```javascript
 import { sortObjectByInt32Key, sortObjectByFloat64Key } from "@aldogg/sorter";
 
-// sortObjectInt can sort objects with negative and positive integer keys in the range -2^31 ... 2^31 - 1 only
+// sortObjectByInt32Key can sort objects with negative and positive integer keys in the range -2^31 ... 2^31 - 1 only
 sortObjectByInt32Key(orig, (x) => x.id);
 
-// sortObjectNumber can sort objects with IEEE 754 numeric keys
+// sortObjectByFloat64Key can sort objects with IEEE 754 numeric keys
 sortObjectByFloat64Key(orig, (x) => x.id);
 ```
 
-### MultiSort
-
+### Multi-sort
 
 ```javascript
-import { sort} from "@aldogg/sorter";
+import { sort } from "@aldogg/sorter";
 
-// sort Array of numbers
-sort([1,9,-1,3,2,null], {"order":"asc", "nulls":"first"});
+// sort an array of numbers
+sort([1, 9, -1, 3, 2, null], { "order": "asc", "nulls": "first" });
 
-// sort Array of Objects by key
-sort(arrayObj, (x) => x.id, {"order":"asc", "nulls":"last"});
+// sort an array of objects by key
+sort(arrayObj, (x) => x.id, { "order": "asc", "nulls": "last" });
 
-// sort Array of Objects by multiple keys
-sort(arrayObj, [{"key": (x) => x.time, type:"float64", order:"asc"}, {"key": (x) => x.year, type:"int32", order:"desc"}], {"nulls":"last"});
+// sort an array of objects by multiple keys
+sort(arrayObj, [{ key: (x) => x.time, type: "float64", order: "asc" }, { key: (x) => x.year, type: "int32", order: "desc" }], { "nulls": "last" });
 ```
 
 
@@ -240,39 +239,25 @@ Environment: AMD Ryzen 7 4800H processor, Node v16.13.2
 
 ## DONE v0.9
 
-- [x] Support integer positive numbers
-- [x] Support integer negative numbers
-- [x] Support floating-point numbers
-- [x] Support object sort with integer keys
-- [x] Support object sort with float keys
-- [x] Support Stable sort
-- [x] Support nulls and undefined
-- [X] Support `asc` and `desc` order
-- [x] Support Radix Sort with BitMask → RadixBitXXXSorter
-- [x] Support Quick Sort with BitMask → QuickBitXXXSorter
-- [x] Support  Pigeonhole Sort / Count Sort / Bucket Sort with BitMask → PCountBitXXXSorter (Only 32 bits)
-- [x] Test American Flag Sort with BitMask → AmericanBitXXXSorter (Only 32 bits)
-- [x] Full Regression and Smoke Test
-- [x] Benchmark Scripts
-- [x] Support String sorting by falling back to native JavaScript sort
-- [x] Support Boolean sorting by falling back to native JavaScript sort
-- [x] Improved performance of quickBitLowMemSortObjectByInt32Key sort using hybrid sorting when appropriate
- 
-## TODO OPENSOURCE VERSION
-- [ ] Partially implemented Create ShortListRangeSorter similar to Java Version which will choose the best algorithm when n <= 2^16 or range <= 2^16. The best algorithm is selected from PCountSort, QuickBitSort, RadixBitSort and native Java Script sort.
+- [x] Supports an easy-to-use `sort()` API
+- [x] Supports sorting positive integer numbers
+- [x] Supports sorting negative integer numbers
+- [x] Supports sorting floating-point numbers
+- [x] Supports sorting objects with integer keys
+- [x] Supports sorting objects with float keys
+- [x] Supports stable sort for objects and unstable sort for numbers
+- [x] Supports `asc` and `desc` order
+- [x] Supports `nulls: 'first'`, `'last'`, and `'ignore'`, and sorts `NaN` and `undefined` values at the end
+- [x] Supports Radix Sort with BitMask → `RadixBitXXXSorter`
+- [x] Supports Quick Sort with BitMask → `QuickBitXXXSorter` (only for 32-bit integers)
+- [x] Supports Pigeonhole Sort / Count Sort / Bucket Sort with BitMask → `PCountBitXXXSorter` (only for 32-bit integers)
+- [x] Supports American Flag Sort with BitMask → `AmericanBitXXXSorter` (only for 32-bit integers)
+- [x] Tests
+- [x] Benchmark scripts
+- [x] Supports String sorting by falling back to native JavaScript sort
+- [x] Supports Boolean sorting by falling back to object sorting with BitMask algorithms
+- [x] Supports BigInt sorting by falling back to object sorting with BitMask algorithms
+- [x] Improved performance of `quickBitLowMemSortObjectByInt32Key`, which is now faster than Native Sort in some scenarios
 
-
-## NOT IMPLEMENTED NOT PLANED FOR OPENSOURCE VERSION
-
-* RadixBitXXXSorter for all types
-* QuickBitXXXSorter for all types
-* PCountBitXXXSorter for all types
-* AmericanFlagBitSorter / SkaBitSorter for all types
-* Optimized String Sorting, maybe with BitMask or other algorithms
-* Support for sorting int64 and BigInt up to 2^64 with specific algoirthm
-* Parallelism
-* Full code coverage
-* WebAssembly (*Pro version)
-* SIMD (*Pro version)
-* Support for sorting BigInt up to 2^128 (*Pro version)
-* Other sort algorithms with BitMask (*Pro version)
+## TODO
+- [ ] Partially implemented: create `ShortListRangeSorter`, similar to the Java version, which will choose the best algorithm when `n <= 2^16` or `range <= 2^16`. The best algorithm is selected from `PCountSort`, `QuickBitSort`, `RadixBitSort`, and native JavaScript sort.

@@ -1,10 +1,10 @@
 # @aldogg/sorter
 
-Fast sorting utilities for JavaScript arrays and typed arrays, including numeric, object-key, and multi-key sorting. The library uses bitmask-assisted algorithms
+Fast sorting utilities for JavaScript arrays and typed arrays, including numeric, object-key, and multi-key sorting. The library uses bitmask-assisted algorithms.
 
 > This project is performance-oriented, but no single sorter is the fastest for every data set, runtime, or machine. Benchmark your own workload before choosing it over the native sort.
 
-> We claim this project to be up to 71X faster when sorting arrays of int32 numbers and up to 19X faster when sorting objects with int32 keys. When using random data and compared to Array.sort(comparator). Check the benchmark section
+> We claim this project to be up to 71X faster when sorting arrays of int32 numbers and up to 19X faster when sorting objects with int32 keys. When using random data and comparing to Array.sort(comparator). Check the benchmark section
 
 [![npm version](https://img.shields.io/npm/v/@aldogg/sorter)](https://www.npmjs.com/package/@aldogg/sorter)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
@@ -54,7 +54,7 @@ sort(players, [{
 
 `sort` changes the supplied array or typed array in place. It does not return a sorted copy.
 
-To check browser usage check
+To check browser usage, see:
 
 https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ie11.html
 
@@ -64,9 +64,9 @@ https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c
 
 ### General-purpose `sort`
 
-`sort(array, options)` unstable sort. sorts primitive values. It detects common value types when possible use `type` to select a type explicitly.
+`sort(array, options)` Unstable sort. Sorts primitive values. It detects common value types when possible use `type` to select a type explicitly.
 
-`sort(array, key, options)` stable sort. sorts objects by a key function. The key may be inferred from the first non-nullish value, or specified with `type`.
+`sort(array, key, options)` Stable sort. Sorts objects by a key function. The key may be inferred from the first non-nullish value, or specified with `type`.
 
 ```js
 import { sort } from '@aldogg/sorter';
@@ -107,7 +107,7 @@ sort(people, [
 |---------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | `order` | `'asc'` (default), `'desc'`               | Sort direction.                                                                                                             |
 | `type`  | See supported types below                 | Explicitly select the value type; useful for empty or mixed arrays and object keys.                                         |
-| `nulls` | `'ignore'` (default), `'first'`, `'last'` | If `'ignore'` then we don't expect any `null`, `undefined` or  `NaN` value. <br/> if `'first'` ther order is [`null`, ...elements, `NaN`, `undefined`] <br/> , if `'last'` ther order is [...elements, `NaN`, `null`, `undefined`]  |
+| `nulls` | `'ignore'` (default), `'first'`, `'last'` | If `'ignore'` then we don't expect any `null`, `undefined` or  `NaN` value. <br/> if `'first'` the order is [`null`, ...elements, `NaN`, `undefined`] <br/> , if `'last'` the order is [...elements, `NaN`, `null`, `undefined`]  |
 | `start` | Integer, default `0`                      | Inclusive start index of the range to sort.                                                                                 |
 | `end`   | Integer, default array length             | Exclusive end index of the range to sort.                                                                                   |
 
@@ -122,7 +122,7 @@ sort(values, { start: 1, end: 4, order: 'asc' });
 ### Supported value types
 
 The general-purpose API supports number, string, boolean, `Date`, and `BigInt` values. Typed arrays are supported, including integer and floating-point typed arrays and `BigInt64Array` / `BigUint64Array`. Use an explicit type when inference is not sufficient:
-The sort functions picks the best algorithm for your specific data, considering the size and the range
+The sort function picks the best algorithm for your specific data, considering the size and the range
 
 | Type                  | Example                                                     |
 |-----------------------|-------------------------------------------------------------|
@@ -133,7 +133,7 @@ The sort functions picks the best algorithm for your specific data, considering 
 | `date`                | `Date` values, sorted by timestamp                          |
 | `bigint`, `int64`     | BigInt values in range: -1.7976 × 10³⁰⁸ ...  1.7976 × 10³⁰⁸ |
 
-For typed arrays, `sort` also recognizes these types: `úint32`, `uint64`, `float32`, `int16`, `uint16`, `int8`, `uint8` and , `uint8clamped`
+For typed arrays, `sort` also recognizes these types: `uint32`, `uint64`, `float32`, `int16`, `uint16`, `int8`, `uint8` and , `uint8clamped`
 
 ### Specialized functions
 
@@ -151,7 +151,7 @@ These functions are useful when a specific algorithm is needed. Their input cons
 
 `radixBitSortInt32`, `radixBitSortFloat64`, `radixBitSortFloat64`, `radixBitSortObjectByInt32Key`, `radixBitV2SortObjectByInt32Key`, `radixBitSortObjectByFloat64Key`, `quickBitSortInt32`, `quickBitSortInt32`, `quickBitSortObjectByInt32Key`, `quickBitLowMemSortObjectByInt32Key`,`pCountBitSortInt32`, `pCountBitMinMaxSortInt32`, `pCountSortObjectByInt32Key`, `americanFlagBitSortInt32`
 
-We implemented with BitMask
+We implemented it with BitMask
 - Radix Sort with BitMask (stable)
 - Quick Sort with BitMask (stable and unstable) and a stable low-memory variant
 - PigeonHole/Count/Bucket Sort with Bitmask (stable and unstable)
@@ -227,7 +227,7 @@ Array of objects with int32 keys
 | native sort | 1000000 | 1000000000 |       521 |         |
 | aldogg sort | 1000000 | 1000000000 |        64 |   8.14X |
 
-To search for the maximum speedup in you machine execute the following commands
+To search for the maximum speedup on you machine execute the following commands
 
 for 32 bit integer arrays
 ```sh
@@ -242,7 +242,7 @@ node bench/generate-benchmark-database-object-int.js 18 5
 node bench/report-from-database.js .\bench\sort-object-results.jsonl times
 ```
 
-Additionally see:
+Additionally, see:
 
 [Benchmarks](docs/BENCHMARKS.md)
 [Old Benchmarks/Readme](README_OLD.md)
