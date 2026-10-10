@@ -63,13 +63,13 @@ export function getObjectStringKeyComparator(key, order, nulls) {
 export function getObject64BitKeyComparatorNonNull(asc, key) {
     return asc
         ? (a, b) => {
-            let ka = key(a);
-            let kb = key(b);
+            const ka = key(a);
+            const kb = key(b);
             return ka > kb ? 1 : ka < kb ? -1 : 0
         }
         : (a, b) => {
-            let ka = key(a);
-            let kb = key(b);
+            const ka = key(a);
+            const kb = key(b);
             return ka < kb ? 1 : ka > kb ? -1 : 0
         };
 }

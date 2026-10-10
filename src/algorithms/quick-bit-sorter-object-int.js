@@ -11,7 +11,7 @@ export function quickBitSortObjectByInt32Key(array, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -55,7 +55,7 @@ export function quickBitSortObjectByInt32Key(array, mapper, options = {}) {
 }
 
 function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, aux, recalculate) {
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (recalculate && bListIndex < 3) {
         let mask = calculateMaskInt(array, start, endP1, mapper);
         bList = getMaskAsArray(mask);

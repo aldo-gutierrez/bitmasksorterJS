@@ -39,22 +39,22 @@ export function arrayCopyUnrolled(src, srcPos, dst, dstPos, length) {
 }
 
 export function swap(array, left, right) {
-    let aux = array[left];
+    const aux = array[left];
     array[left] = array[right];
     array[right] = aux;
 }
 
 export function reverse(array, start, endP1) {
-    let length = endP1 - start;
-    let ld2 = length / 2;
-    let end = endP1 - 1;
+    const length = endP1 - start;
+    const ld2 = length / 2;
+    const end = endP1 - 1;
     for (let i = 0; i < ld2; ++i) {
         swap(array, start + i, end - i);
     }
 }
 
 export function rotateLeft(array, start, endP1, d) {
-    let n = endP1 - start;
+    const n = endP1 - start;
     d = d % n;
     if (d === 0) {
         return;
@@ -64,7 +64,7 @@ export function rotateLeft(array, start, endP1, d) {
         return;
     }
     if (d === 1) {
-        let aux = array[start];
+        const aux = array[start];
         for (let i = start + 1; i < endP1; i++) {
             array[i - 1] = array[i];
         }
@@ -77,7 +77,7 @@ export function rotateLeft(array, start, endP1, d) {
 }
 
 export function rotateRight(array, start, endP1, d) {
-    let n = endP1 - start;
+    const n = endP1 - start;
     d = d % n;
     if (d === 0) {
         return;
@@ -87,7 +87,7 @@ export function rotateRight(array, start, endP1, d) {
         return;
     }
     if (d === 1) {
-        let aux = array[endP1 - 1];
+        const aux = array[endP1 - 1];
         for (let i = endP1 - 1; i > start; i--) {
             array[i] = array[i - 1];
         }
@@ -102,13 +102,13 @@ export function rotateRight(array, start, endP1, d) {
 export function calculateSumOffsets(asc, count, countLength) {
     if (asc) {
         for (let i = 0, sum = 0; i < countLength; ++i) {
-            let c = count[i];
+            const c = count[i];
             count[i] = sum;
             sum += c;
         }
     } else {
         for (let i = countLength - 1, sum = 0; i >= 0; --i) {
-            let c = count[i];
+            const c = count[i];
             count[i] = sum;
             sum += c;
         }
@@ -126,33 +126,33 @@ export function getSections(bList, maxBitsDigit = MAX_BITS_RADIX_SORT) {
     if (!bList || bList.length === 0) {
         return [];
     }
-    let log2Range = bList[0] - bList[bList.length - 1] + 1;
-    let count = Math.ceil(log2Range / maxBitsDigit);
+    const log2Range = bList[0] - bList[bList.length - 1] + 1;
+    const count = Math.ceil(log2Range / maxBitsDigit);
     maxBitsDigit = Math.ceil(log2Range / count);
-    let sections = [];
+    const sections = [];
     let b = 0;
     let shift = reverseListGet(bList, b);
     let bits = 1;
     b++;
     while (b < bList.length) {
-        let bitIndex = reverseListGet(bList, b);
+        const bitIndex = reverseListGet(bList, b);
         if (bitIndex <= shift + maxBitsDigit - 1) {
             bits = (bitIndex - shift + 1);
         } else {
-            let start = shift + bits - 1;
+            const start = shift + bits - 1;
             sections.push({ bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift), range: (1 << bits) });
             shift = bitIndex;
             bits = 1;
         }
         b++;
     }
-    let start = shift + bits - 1
+    const start = shift + bits - 1
     sections.push({ bits: bits, shift: shift, start: start, mask: getMaskRangeBits(start, shift), range: (1 << bits) });
     return sections;
 }
 
 export function getMaskAsArray(mask) {
-    let res = [];
+    const res = [];
     for (let i = 31; i >= 0; i--) {
         if (((mask >> i) & 1) === 1) {
             res.push(i);
@@ -162,7 +162,7 @@ export function getMaskAsArray(mask) {
 }
 
 export function getMaskRangeBits(bStart, bEnd) {
-    let bits = bStart + 1 - bEnd;
+    const bits = bStart + 1 - bEnd;
     if (bits >= 32) return -1;
     return ((1 << bits) - 1) << bEnd;
 }
@@ -170,7 +170,7 @@ export function getMaskRangeBits(bStart, bEnd) {
 export function getMaskLastBits(bList, bListStart) {
     let mask = 0;
     for (let i = bListStart; i < bList.length; i++) {
-        let bIndex = bList[i];
+        const bIndex = bList[i];
         mask = mask | 1 << bIndex;
     }
     return mask;
@@ -261,13 +261,13 @@ export function validateSortRange(array, start, endP1) {
 export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, arrayNativeF) {
     const isTypedA = isTypedArray(arrayObj);
     if (isTypedA && !mapper) {
-        let arrayNative = arrayObj;
+        const arrayNative = arrayObj;
         return {start, endP1, arrayNative, start2: start, end2: endP1};
     }
 
     if (nulls === "ignore") {
         if (!arrayNativeF) {
-            let arrayNative = arrayObj;
+            const arrayNative = arrayObj;
             return {start, endP1, arrayNative, start2: start, end2: endP1};
         }
 
@@ -390,11 +390,11 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
             arrayObj[pos++] = undefined;
         }
         const newEnd = start + n;
-        let newEnd2 = start + n + nanKeyObjs.length + nullKeyObjs.length + undefinedKeyObjs.length;
+        const newEnd2 = start + n + nanKeyObjs.length + nullKeyObjs.length + undefinedKeyObjs.length;
         return {start, endP1: newEnd, arrayNative, start2: start, end2: newEnd2};
     } else { // nulls === "first"
         // shift compacted block right by totalNulls to make space for nulls at start
-        let totalNulls = nullValues + nullKeyObjs.length;
+        const totalNulls = nullValues + nullKeyObjs.length;
         if (totalNulls > 0) {
             for (let i = n - 1; i >= 0; i--) {
                 const elementObj = arrayObj[start + i];

@@ -82,14 +82,14 @@ export function calculateMaskInt(array, start, endP1, mapper, exitMask) {
     let and_mask = ~0;
 
     let i = start;
-    let length = endP1 - start;
+    const length = endP1 - start;
 
     // Unsigned right shift is vastly faster than Math.floor(length / 1024)
-    let numBlocks = length >>> 10;
+    const numBlocks = length >>> 10;
 
     // 1. Process in blocks of 1024
     for (let b = 0; b < numBlocks; b++) {
-        let blockEnd = i + 1024;
+        const blockEnd = i + 1024;
 
         // Inner loop: unrolled by 4 (executes 256 times per block)
         for (; i < blockEnd; i += 4) {
@@ -110,7 +110,7 @@ export function calculateMaskInt(array, start, endP1, mapper, exitMask) {
     }
 
     // 2. Handle remaining elements (can still unroll by 4 for speed)
-    let remainEnd = endP1 - 4;
+    const remainEnd = endP1 - 4;
     for (; i <= remainEnd; i += 4) {
         const e1 = mapper(array[i]);
         const e2 = mapper(array[i + 1]);
@@ -149,7 +149,7 @@ export function partitionStableLowMemInt(array, start, endP1, mask, mapper, aux)
     }
     
     if (!aux) {
-        let n = endP1 - start;
+        const n = endP1 - start;
         aux = Array(Math.ceil(Math.log2(n) * Math.sqrt(n)));
     }
     
@@ -191,7 +191,7 @@ export function partitionReverseStableLowMemInt(array, start, endP1, mask, mappe
     }
 
     if (!aux) {
-        let n = endP1 - start;
+        const n = endP1 - start;
         aux = Array(Math.ceil(Math.log2(n) * Math.sqrt(n)));
     }
     
@@ -219,7 +219,7 @@ export function partitionReverseStableLowMemInt(array, start, endP1, mask, mappe
 function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux, whiteBefore) {
     //generate black/white or white/black blocks with aux buffer
     
-    let bufferSize = aux.length;
+    const bufferSize = aux.length;
     let i = start;
     let res;
     for (; i < endP1;) {
@@ -241,7 +241,7 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
                 }
             }
         }
-        let maxjP1 = j;
+        const maxjP1 = j;
         if (white > black) {
             if (whiteBefore) {
                 //white - white - black -->
@@ -291,29 +291,29 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
     let rounds = 0;
     let nshifts = 0;
     while (i < endP1) {
-        let white = (mapper(array[i]) & mask) === 0;
+        const white = (mapper(array[i]) & mask) === 0;
         if (white) {
-            let white1Start = i;
+            const white1Start = i;
             i = i + 1;
             while (i < endP1 && (mapper(array[i]) & mask) === 0) {
                 i++;
             }
-            let white1EndP1 = i;
-            let blackStart = i;
+            //const white1EndP1 = i;
+            const blackStart = i;
             while (i < endP1 && (!((mapper(array[i]) & mask) === 0))) {
                 i++;
             }
-            let blackEnd = i;
+            const blackEnd = i;
             if (blackEnd - blackStart === 0) {
                 if (nshifts <= 1) {
                     break;
                 }
             }
-            let white2Start = i;
+            const white2Start = i;
             while (i < endP1 && (mapper(array[i]) & mask) === 0) {
                 i++;
             }
-            let white2End = i;
+            const white2End = i;
             if (white2End - white2Start === 0) {
                 if (nshifts === 0) { //TODO  CHECK <=1 this works but the other don't
                     break;
@@ -336,27 +336,27 @@ function generateWhiteBlackBlocksAndMerge(array, start, endP1, mask, mapper, aux
             // WWBBBWWW
             // WWWWWBBB
         } else {
-            let black1Start = i;
+            const black1Start = i;
             i = i + 1;
             while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
                 i++;
             }
-            let black1EndP1 = i;
-            let whiteStart = i;
+            //const black1EndP1 = i;
+            const whiteStart = i;
             while (i < endP1 && (mapper(array[i]) & mask) === 0) {
                 i++;
             }
-            let whiteEnd = i;
+            const whiteEnd = i;
             if (whiteEnd - whiteStart === 0) {
                 if (nshifts <= 1) {
                     break;
                 }
             }
-            let black2Start = i;
+            const black2Start = i;
             while (i < endP1 && !((mapper(array[i]) & mask) === 0)) {
                 i++;
             }
-            let black2End = i;
+            const black2End = i;
             if (black2End - black2Start === 0) {
                 if (nshifts === 0) {
                     break;

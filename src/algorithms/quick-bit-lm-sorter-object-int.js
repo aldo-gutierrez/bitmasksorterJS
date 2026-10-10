@@ -44,7 +44,7 @@ export function quickBitLowMemSortObjectByInt32Key(array, mapper, options = {}) 
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -94,7 +94,7 @@ function getAuxSizeDefaultLowMem(n) {
 
 function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, runtime, recalculate) {
     let aux = runtime.aux;
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (recalculate && bListIndex < 3) {
         let mask = calculateMaskInt(array, start, endP1, mapper);
         bList = getMaskAsArray(mask);
@@ -108,8 +108,8 @@ function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, runtime,
 
     let log2RangeM1 = bList.length - bListIndex - 1; //Log2(K)
     if (bListIndex > 1 && log2RangeM1 < 18 &&  n <= 262144 && aux.length >= n) {
-        let log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
-        let sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];
+        const log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
+        const sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];
         if (sorter === X) {
             radixSortObjectInt32Mapper(asc, array, start, endP1, bList.slice(bListIndex), aux, mapper);
             return;
@@ -124,10 +124,10 @@ function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, runtime,
         }
     }
 
-    let sortMask = 1 << bList[bListIndex];
-    let finalLeft = asc ? partitionStableLowMemInt(array, start, endP1, sortMask, mapper, aux)
+    const sortMask = 1 << bList[bListIndex];
+    const finalLeft = asc ? partitionStableLowMemInt(array, start, endP1, sortMask, mapper, aux)
         : partitionReverseStableLowMemInt(array, start, endP1, sortMask, mapper, aux);
-    let recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
+    const recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
     if (finalLeft - start > 1) {
         qbSortInt(asc, array, mapper, start, finalLeft, bList, bListIndex + 1, runtime, recalculateBitMask);
     }

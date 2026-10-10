@@ -16,7 +16,7 @@ export function radixBitSortFloat64(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -147,15 +147,15 @@ function partitionStableGroupBitsNumber(asc, arrayF64, start, n, elementIndex, s
 
 
 function radixSortNumber(asc, arrayF64, start, endP1, bList, auxF64) {
-    let n = endP1 - start;
+    const n = endP1 - start;
     let auxStart = 0;
     let needsArrayCopy = 0;
     for (let elementIndex = 0; elementIndex <= 1; elementIndex++) {
-        let log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
-        let sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+        const log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
+        const sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
         for (let index = 0; index < sections.length; index++) {
-            let section = sections[index];
-            let shift = section.shift;
+            const section = sections[index];
+            const  shift = section.shift;
             if (shift === 0) {
                 partitionStableLastBitsNumber(asc, arrayF64, start, n, elementIndex, section, auxF64, auxStart);
                 needsArrayCopy++;

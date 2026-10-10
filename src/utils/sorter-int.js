@@ -36,13 +36,14 @@ let sortMapInt32 =
     //16777216
 ];
 
-export function sortInt32(array, options = {}) {
-    options.runtime = options.runtime || {};
+export function sortInt32(array, options) {
+    options = options ? {...options} : {};
+    options.runtime = {};
     let {start, endP1, asc, nulls} = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
 
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }

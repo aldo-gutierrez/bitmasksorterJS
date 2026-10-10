@@ -74,9 +74,9 @@ export function calculateMaskNumber(array, start, endP1, exitMask_0, exitMask_1)
 
         // Let V8 do what it does best: a simple, highly predictable loop
         for (; i < blockEnd; ++i) {
-            let im2 = i * 2;
-            let ei0 = array[im2];
-            let ei1 = array[im2 + 1];
+            const im2 = i * 2;
+            const ei0 = array[im2];
+            const ei1 = array[im2 + 1];
 
             or_mask_0 = or_mask_0 | ei0;
             or_mask_1 = or_mask_1 | ei1;

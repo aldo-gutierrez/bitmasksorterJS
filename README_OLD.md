@@ -257,6 +257,7 @@ Environment: AMD Ryzen 7 4800H processor, Node v16.13.2
 - [x] Supports String sorting by falling back to native JavaScript sort
 - [x] Supports Boolean sorting by falling back to object sorting with BitMask algorithms
 - [x] Supports BigInt sorting by falling back to object sorting with BitMask algorithms
+- [x] Supports Date sorting by falling back to object sorting with BitMask algorithms
 - [x] Improved performance of `quickBitLowMemSortObjectByInt32Key`, which is now faster than Native Sort in some scenarios
 
 ## TODO

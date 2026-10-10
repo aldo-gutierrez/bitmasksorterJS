@@ -40,10 +40,10 @@ export function sort(array, ...parameters) {
         if (array instanceof Float64Array || array instanceof Float32Array ||  array instanceof Uint32Array) {
             sortFloat64(array, parameter2);
         } else {
-            let isBigInt64 = isBigInt64Array(array);
-            let isBigUint64 = isBigUint64Array(array);
+            const isBigInt64 = isBigInt64Array(array);
+            const isBigUint64 = isBigUint64Array(array);
             if (isBigInt64 || isBigUint64) {
-                let options = parameter2;
+                const options = parameter2;
                 parameter2.type = isBigInt64 ? "int64" : "uint64";
                 sortElementArray(options.type, array, options);
             } else {
@@ -60,9 +60,9 @@ export function sort(array, ...parameters) {
             } else if (isFunction(parameter2)) {
                 sortObjectArrayByKey("", array, parameter2, {})
             } else if (isArray(parameter2)) {
-                let sortByArray = parameter2;
+                const sortByArray = parameter2;
                 for (let i = sortByArray.length -1; i >= 0; i--) {
-                    let sortBy = sortByArray[i];
+                    const sortBy = sortByArray[i];
                     let options;
                     if (isPlainObject(sortBy)) {
                         options = sortBy;
@@ -90,11 +90,11 @@ export function sort(array, ...parameters) {
                 parameter3.type = parameter3.type ? parameter3.type.toLowerCase() : "";
                 sortObjectArrayByKey(parameter3.type, array, parameter2, parameter3);
             } else {
-                let sortByArray = parameter2;
+                const sortByArray = parameter2;
                 let start = parameter3.start ?? undefined;
                 let end = parameter3.end ?? undefined;
                 for (let i = sortByArray.length -1; i >= 0; i--) {
-                    let sortBy = sortByArray[i];
+                    const sortBy = sortByArray[i];
                     let key;
                     let options;
                     let type;
@@ -138,7 +138,7 @@ function mergeOptions(globalOptions, userOptions) {
 }
 
 function sortBigIntArray(array, options) {
-    let isTyped = isTypedArray(array);
+    const isTyped = isTypedArray(array);
     if (isTyped) {
         sortObjectByFloat64Key(array, (x) => Number(x), options);
     } else {
@@ -148,18 +148,18 @@ function sortBigIntArray(array, options) {
     }
 
     //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    let asc = options.order !== 'desc';
-    let comparator = get64BitComparatorNonNull(asc);
+    const asc = options.order !== 'desc';
+    const comparator = get64BitComparatorNonNull(asc);
     let previousNumber = null;
     let previousBigInt = null;
     let previousIndex = null;
     if (isTyped) {
         for (let i = 0; i < array.length; i++) {
-            let bigInt = array[i];
+            const bigInt = array[i];
             if (bigInt === previousBigInt) {
                 continue;
             }
-            let number = Number(bigInt);
+            const number = Number(bigInt);
             if (number !== previousNumber) {
                 sortSubList(array, previousIndex, i, comparator, isTyped);
                 previousNumber = number;
@@ -169,14 +169,14 @@ function sortBigIntArray(array, options) {
         }
     } else {
         for (let i = 0; i < array.length; i++) {
-            let bigInt = array[i];
+            const bigInt = array[i];
             if (bigInt === null || bigInt === undefined) {
                 continue;
             }
             if (bigInt === previousBigInt) {
                 continue;
             }
-            let number = Number(bigInt);
+            const number = Number(bigInt);
             if (number !== previousNumber) {
                 sortSubList(array, previousIndex, i, comparator, isTyped);
                 previousNumber = number;
@@ -198,17 +198,17 @@ function sortObjectByBigIntKey(array, key, options) {
     }, options);
 
     //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    let asc = options.order !== 'desc';
-    let comparator = getObject64BitKeyComparatorNonNull(asc, key);
+    const asc = options.order !== 'desc';
+    const comparator = getObject64BitKeyComparatorNonNull(asc, key);
     let previousNumber = null;
     let previousIndex = null;
     for (let i = 0; i < array.length; i++) {
-        let element = array[i];
+        const element = array[i];
         if (element === null || element === undefined) {
             continue;
         }
-        let value = key(element);
-        let number = Number(value);
+        const value = key(element);
+        const number = Number(value);
         if (number !== previousNumber) {
             sortSubList(array, previousIndex, i, comparator, false);
             previousNumber = number;
@@ -311,7 +311,7 @@ function detectPrimitiveValueType(list) {
 
 function detectObjectValueType(list, mapper) {
     for (const object of list) {
-        let value = mapper(object);
+        const value = mapper(object);
 
         if (value === null || value === undefined) {
             continue;
@@ -342,7 +342,7 @@ function sortStringArray(arr, options = {}) {
         nulls = 'ignore', // 'first' | 'last' | 'ignore'
         order = 'asc'    // 'asc' | 'desc'
     } = options;
-    let stringComparator = getStringComparator(order, nulls);
+    const stringComparator = getStringComparator(order, nulls);
     sortSubList(arr, start,end, stringComparator, false);
     return arr;
 }
@@ -354,7 +354,7 @@ function sortObjectArrayStringKey(arr, key, options = {}) {
         nulls = 'ignore', // 'first' | 'last' | 'ignore'
         order = 'asc'    // 'asc' | 'desc'
     } = options;
-    let stringComparator = getObjectStringKeyComparator(key, order, nulls);
+    const stringComparator = getObjectStringKeyComparator(key, order, nulls);
     sortSubList(arr, start,end, stringComparator, false);
     return arr;
 }

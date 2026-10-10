@@ -16,20 +16,20 @@ export function radixBitSortInt32(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let arrayWasTyped = isTypedArray(array);
-    let arrayTyped = arrayWasTyped ? array : new Int32Array(array);
+    const arrayWasTyped = isTypedArray(array);
+    const arrayTyped = arrayWasTyped ? array : new Int32Array(array);
 
-    let mask = options.runtime.mask ?? calculateMaskInt(arrayTyped, start, endP1);
+    const mask = options.runtime.mask ?? calculateMaskInt(arrayTyped, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseNotStableUpperBit(arrayTyped, start, endP1)
+        const finalLeft = asc ? partitionReverseNotStableUpperBit(arrayTyped, start, endP1)
             : partitionNotStable(arrayTyped, start, endP1, 1 << 31);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
@@ -47,7 +47,7 @@ export function radixBitSortInt32(array, options = {}) {
                 n2 = 0;
             }
         }
-        let aux = new arrayTyped.constructor(Math.max(n1, n2));
+        const aux = new arrayTyped.constructor(Math.max(n1, n2));
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
             radixSortInt(asc, arrayTyped, start, finalLeft, bList, aux);
@@ -57,7 +57,7 @@ export function radixBitSortInt32(array, options = {}) {
             radixSortInt(asc, arrayTyped, finalLeft, endP1, bList, aux);
         }
     } else {
-        let aux = new arrayTyped.constructor(endP1 - start);
+        const aux = new arrayTyped.constructor(endP1 - start);
         radixSortInt(asc, arrayTyped, start, endP1, bList, aux);
     }
 
@@ -132,13 +132,13 @@ function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAu
 }
 
 function radixSortInt(asc, array, start, endP1, bList, aux) {
-    let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
-    let n = endP1 - start;
-    let sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+    const log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
+    const n = endP1 - start;
+    const sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
     let startAux = 0;
     let missingArrayCopy = 0;
     for (let index = 0; index < sections.length; index++) {
-        let section = sections[index];
+        const section = sections[index];
         if (section.shift === 0) {
             partitionStableLastBitsInt(asc, array, start, n, section, aux, startAux);
             missingArrayCopy++;

@@ -13,7 +13,7 @@ export function americanFlagBitSortInt32(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -54,7 +54,7 @@ export function americanFlagBitSortInt32(array, options = {}) {
 }
 
 function aFlagSortInt(array, start, endP1, bList) {
-    let sections = getSections(bList, 4);
+    const sections = getSections(bList, 4);
     aFlagSortIntAux(array, start, endP1, sections, sections.length - 1);
 }
 
@@ -85,7 +85,7 @@ function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
         nextFree[elementHash]++;
     }
     if (sectionIndex > 0) {
-        let N = endP1 - start;
+        const N = endP1 - start;
         for (let i = 0; i < offsets.length; i++) {
             let start2 = offsets[i];
             let end2 = i + 1 < offsets.length ? offsets[i + 1] : N;

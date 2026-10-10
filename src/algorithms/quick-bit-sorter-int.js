@@ -12,7 +12,7 @@ export function quickBitSortInt32(array, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -55,7 +55,7 @@ export function quickBitSortInt32(array, options = {}) {
 }
 
 function qbSortInt(asc, array, start, endP1, bList, bListIndex, recalculate) {
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (recalculate && bListIndex < 3) {
         let mask = calculateMaskInt(array, start, endP1);
         bList = getMaskAsArray(mask);

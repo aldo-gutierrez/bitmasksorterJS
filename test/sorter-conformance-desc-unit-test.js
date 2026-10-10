@@ -5,7 +5,6 @@ import {
     quickBitSortInt32,
     pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
-    americanFlagBitSortInt32,
     sortFloat64,
     radixBitSortFloat64,
     sortObjectByInt32Key,
@@ -73,9 +72,12 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
     const intSorters = [
        { name: 'radixBitSorterInt', fn: (arr, options) => radixBitSortInt32(arr, options) },
        { name: 'quickBitSorterInt', fn: (arr, options) => quickBitSortInt32(arr, options) },
-//        { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSorterInt(arr, options) },
-//        { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountNoMaskSorterInt(arr, options) },
-//        { name: 'aFlagBitSorterInt', fn: (arr, options) => aFlagBitSorterInt(arr, options) },
+       { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSortInt32(arr, options) },
+       { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountBitMinMaxSortInt32(arr, options) },
+       { name: 'sortInt32', fn: (arr, options) => sortInt32(arr, options) },
+       //{ name: 'sortFloat64', fn: (arr, options) => sortFloat64(arr, options) },
+       // TODO make American flag bit sorter support descending order and add it to the test suite
+       // { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
     ];
 
     describe('Integer Sorters Correctness (DESC)', function () {
@@ -85,7 +87,7 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
                     it(`should sort ${vector.name}`, function () {
                         const actual = [...vector.data];
                         const expected = [...vector.data].slice().sort((a, b) => b - a);
-                        sorter.fn(actual, descOptions);
+                        sorter.fn(actual,  { order: 'DESC' });
                         assert.deepStrictEqual(actual, expected);
                     });
                 }
@@ -246,6 +248,7 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
     // -------------------------------------------------------------------------
     const numberSorters = [
        { name: 'radixBitSorterNumber', fn: (arr, options) => radixBitSortFloat64(arr, options) },
+       { name: 'sortFloat64', fn: (arr, options) => sortFloat64(arr, options) },
     ];
 
     const standardNumberVectors = [
@@ -379,12 +382,12 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
     // 3. Object Sorters (Integer Values)
     // -------------------------------------------------------------------------
     const objectIntSorters = [
-        // { name: 'sortObjectInt', fn: (arr, mapper, options) => sortObjectInt(arr, mapper, options), stable: false },
         { name: 'radixBitSorterObjectInt', fn: (arr, mapper, options) => radixBitSortObjectByInt32Key(arr, mapper, options), stable: true },
         { name: 'radixBitSorterObjectIntV2', fn: (arr, mapper, options) => radixBitV2SortObjectByInt32Key(arr, mapper, options), stable: true },
         { name: 'quickBitSorterObjectInt', fn: (arr, mapper, options) => quickBitSortObjectByInt32Key(arr, mapper, options), stable: true },
         { name: 'quickBitSorterObjectIntLowMem', fn: (arr, mapper, options) => quickBitLowMemSortObjectByInt32Key(arr, mapper, options), stable: true },
-        // { name: 'pCountBitSorterObjectInt', fn: (arr, mapper, options) => pCountBitSorterObjectInt(arr, mapper, options), stable: true },
+        { name: 'pCountSorterObjectInt', fn: (arr, mapper, options) => pCountSortObjectByInt32Key(arr, mapper, options), stable: true },
+        { name: 'sortObjectByInt32Key', fn: (arr, mapper, options) => sortObjectByInt32Key(arr, mapper, options), stable: false },
     ];
 
     describe('Object Sorters (Integer) Correctness & Identity Preservation (DESC)', function () {
@@ -479,6 +482,7 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
     // NOTE: for DESC mode currently only radixBitSorterObjectNumber is known to support it.
     const objectNumberSorters = [
         { name: 'radixBitSorterObjectNumber', fn: (arr, mapper, options) => radixBitSortObjectByFloat64Key(arr, mapper, options) },
+        { name: 'sortObjectByFloat64Key', fn: (arr, mapper, options) => sortObjectByFloat64Key(arr, mapper, options) }
     ];
 
     describe('Object Sorters (Float Number) Correctness (DESC)', function () {

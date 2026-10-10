@@ -16,7 +16,7 @@ export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -25,9 +25,9 @@ export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
     if (bList.length === 0) {
         return;
     }
-    let aux = Array(endP1 - start);
+    const aux = Array(endP1 - start);
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
+        const finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
             :partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
@@ -59,14 +59,14 @@ export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
 }
 
 export function radixSortObjectInt32Mapper(asc, array, start, end, bList, aux, mapper) {
-    let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
+    const log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let needsArrayCopy = 0;
     let auxStart = 0;
-    let n = end - start;
-    let sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+    const n = end - start;
+    const sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
     for (let index = 0; index < sections.length; index++) {
-        let section = sections[index];
-        let shift = section.shift;
+        const section = sections[index];
+        const shift = section.shift;
         if (shift === 0) {
             partitionStableLastBitsInt(asc, array, start, n, section, aux, auxStart, mapper);
             needsArrayCopy++;

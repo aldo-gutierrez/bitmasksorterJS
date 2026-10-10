@@ -11,7 +11,7 @@ import {getComparatorObjectInt32, sortSubList} from "../algorithms/native-sorter
 import {pCountSortObjectByInt32Key, quickBitSortObjectByInt32Key} from "../main.js";
 import {calculateMaskInt} from "./sorter-utils-object-int.js";
 
-export let sorterMapObjectInt32 =
+export const sorterMapObjectInt32 =
     [
     //2
     [ N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N ],
@@ -43,17 +43,18 @@ export let sorterMapObjectInt32 =
 ]
 
 //Choose algorithm not only by N, but also by Range
-export function sortObjectByInt32Key(array, mapper, options = {}) {
-    options.runtime = options.runtime || {};
+export function sortObjectByInt32Key(array, mapper, options) {
+    options = options ? {...options} : {};
+    options.runtime = {};
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let mask = calculateMaskInt(array, start, endP1, mapper);
-    let bList = getMaskAsArray(mask);
+    const mask = calculateMaskInt(array, start, endP1, mapper);
+    const bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
@@ -63,9 +64,9 @@ export function sortObjectByInt32Key(array, mapper, options = {}) {
     options.runtime.mask = mask;
     options.nulls = "ignore";
 
-    let log2RangeM1 = bList.length - 1; //Log2(K)
-    let log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
-    let log2RangeM1Padded = bList[0] - bList[bList.length - 1] - 1;
+    const log2RangeM1 = bList.length - 1; //Log2(K)
+    const log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
+    const log2RangeM1Padded = bList[0] - bList[bList.length - 1] - 1;
 
     let sorter;
     if (n <= 16) {
@@ -97,7 +98,7 @@ function executeSorterObjectInt32Key(sorter, asc, array, start, endP1, mapper, o
         radixBitSortObjectByInt32Key(array, mapper, options);
     } else if (sorter === N) {
         options.nulls = "ignore";
-        let comparator = getComparatorObjectInt32(asc, options.nulls, mapper);
+        const comparator = getComparatorObjectInt32(asc, options.nulls, mapper);
         sortSubList(array, start, endP1, comparator, false);
     } else {
         console.error("sortInt32: invalid sorter type: " + sorter);

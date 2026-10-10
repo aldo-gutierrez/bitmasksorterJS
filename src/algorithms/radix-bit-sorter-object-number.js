@@ -23,7 +23,7 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options = {}) {
     } catch (e) {
         throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);
     }
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -69,8 +69,8 @@ function radixSortNumber(asc, arrayObj, oStart, n, arrayF64, aStart, bList, auxF
     let needsArrayCopy = 0;
     let auxF64Start = auxObjStart
     for (let elementIndex = 0; elementIndex <= 1; elementIndex++) {
-        let log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
-        let sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+        const log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
+        const sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
         for (let index = 0; index < sections.length; index++) {
             let section = sections[index];
             if (section.shift === 0) {

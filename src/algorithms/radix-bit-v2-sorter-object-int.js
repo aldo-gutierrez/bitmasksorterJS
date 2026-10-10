@@ -16,7 +16,7 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
     ({ start, endP1 } = validateSortRange(arrayObj, start, endP1));
     let arrayNative;
     ({start, endP1, arrayNative} = handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mapper, (n) => new Int32Array(n)));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -54,13 +54,13 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
 }
 
 export function radixSortObjectI32Array(asc, arrayObj, oStart, n, bList, arrayI32, aStart, auxI32, auxObj, auxStart) {
-    let log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
+    const log2EffectiveRange = bList[0] - bList[bList.length - 1] + 1;
     let needsArrayCopy = 0;
     let auxI32Start = auxStart
-    let sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
+    const sections = getSections(bList, n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
     for (let index = 0; index < sections.length; index++) {
-        let section = sections[index];
-        let shift = section.shift;
+        const section = sections[index];
+        const shift = section.shift;
         if (shift === 0) {
             partitionStableLastBitsObjectI32(asc, arrayObj, oStart, n, section, arrayI32, aStart, auxI32, auxI32Start, auxObj, auxStart);
             needsArrayCopy++;

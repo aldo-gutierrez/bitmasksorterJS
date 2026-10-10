@@ -74,6 +74,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
         { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSortInt32(arr, options) },
         { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountBitMinMaxSortInt32(arr, options) },
         { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
+        { name: 'sortInt32', fn: (arr, options) => sortInt32(arr, options) },
     ];
 
     describe('Integer Sorters Correctness', function () {
@@ -244,6 +245,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // -------------------------------------------------------------------------
     const numberSorters = [
         { name: 'radixBitSorterNumber', fn: (arr, options) => radixBitSortFloat64(arr, options) },
+        { name: 'sortFloat64', fn: (arr, options) => sortFloat64(arr, options) },
     ];
 
     const standardNumberVectors = [
@@ -475,6 +477,7 @@ describe('General Sorter Conformance & Correctness Tests', function () {
     // -------------------------------------------------------------------------
     const objectNumberSorters = [
         { name: 'radixBitSorterObjectNumber', fn: (arr, mapper, options) => radixBitSortObjectByFloat64Key(arr, mapper, options) },
+        { name: 'sortObjectNumber', fn: (arr, mapper, options) => sortObjectByFloat64Key(arr, mapper, options) }
     ];
 
     describe('Object Sorters (Float Number) Correctness', function () {
