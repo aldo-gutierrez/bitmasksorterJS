@@ -4,7 +4,7 @@ import {
     getSortOptions, handleNullsUndefinedAndNans,
     validateSortRange,
 } from "../utils/sorter-utils.js";
-import { calculateMaskInt, partitionReverseNotStableUpperBit } from "../utils/sorter-utils-int.js";
+import {calculateMaskInt, partitionNotStable, partitionReverseNotStableUpperBit} from "../utils/sorter-utils-int.js";
 
 let COUNT_SORT_ERROR_SHOWED = false
 const COUNT_SORT_ERROR = "Pigeonhole Count sort should be used for number range <= 2**24, for optimal performance: range <= 2**20"
@@ -14,7 +14,7 @@ export function pCountBitSortInt32(array, options = {}, bList, bListStart) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -22,27 +22,27 @@ export function pCountBitSortInt32(array, options = {}, bList, bListStart) {
         bList = getMaskAsArray(calculateMaskInt(array, start, endP1));
         bListStart = 0;
     }
-    let bListNew = bList.slice(bListStart);
+    const bListNew = bList.slice(bListStart);
 
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1,);
-        let n1 = finalLeft - start;
-        let n2 = endP1 - finalLeft;
+        const finalLeft = asc ? partitionReverseNotStableUpperBit(array, start, endP1): partitionNotStable(array, start, endP1, 1 << 31);
+        const n1 = finalLeft - start;
+        const n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            pCountBitSortInt32(array, { start, end: finalLeft });
+            pCountBitSortInt32(array, { start, end: finalLeft, order: options.order });
         }
         if (n2 > 1) { //sort positive numbers
-            pCountBitSortInt32(array, { start: finalLeft, end: endP1 });
+            pCountBitSortInt32(array, { start: finalLeft, end: endP1, order: options.order });
         }
         return;
     }
 
-    let sections = getSections(bListNew, 32);
+    const sections = getSections(bListNew, 32);
     if (sections.length === 1) {
-        let section = sections[0];
-        let shift = section.shift;
+        const section = sections[0];
+        const shift = section.shift;
         if (shift === 0) {
-            let mask = section.mask;
+            const mask = section.mask;
             let elementSample = array[start];
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
@@ -73,7 +73,7 @@ export function pCountBitMinMaxSortInt32(array, options, min, max) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -81,7 +81,7 @@ export function pCountBitMinMaxSortInt32(array, options, min, max) {
         min = array[start];
         max = array[start];
         for (let i = start + 1; i < endP1; i++) {
-            let value = array[i];
+            const value = array[i];
             if (value < min) {
                 min = value;
             }
@@ -90,7 +90,7 @@ export function pCountBitMinMaxSortInt32(array, options, min, max) {
             }
         }
     }
-    let range = max - min + 1;
+    const range = max - min + 1;
     validatePCountSortRange(range);
     if (!Number.isInteger(range)) {
         console.error("Pigeonhole Count sort only works on integers")
@@ -103,7 +103,7 @@ export function pCountBitMinMaxSortInt32(array, options, min, max) {
     let i = start;
     if (asc) {
         for (let j = min; j <= max; j++) {
-            let countJ = count[j - min];
+            const countJ = count[j - min];
             if (countJ > 0) {
                 for (let c = 0; c < countJ; c++) {
                     array[i] = j;
@@ -139,7 +139,7 @@ function pCountSortPositive(asc, array, start, endP1, range) {
     let i = start;
     if (asc) {
         for (let j = 0; j < count.length; j++) {
-            let countJ = count[j];
+            const countJ = count[j];
             if (countJ > 0) {
                 for (let c = 0; c < countJ; c++) {
                     array[i] = j;
@@ -166,7 +166,7 @@ function pCountSortPositive(asc, array, start, endP1, range) {
 }
 
 function pCountSortEndingMask(asc, array, start, endP1, mask, elementSample) {
-    let range = mask + 1;
+    const range = mask + 1;
     validatePCountSortRange(range);
     const count = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
@@ -176,9 +176,9 @@ function pCountSortEndingMask(asc, array, start, endP1, mask, elementSample) {
     let i = start;
     if (asc) {
         for (let j = 0; j < count.length; j++) {
-            let countJ = count[j];
+            const countJ = count[j];
             if (countJ > 0) {
-                let value = j | elementSample;
+                const value = j | elementSample;
                 for (let c = 0; c < countJ; c++) {
                     array[i] = value;
                     i++;
@@ -205,11 +205,11 @@ function pCountSortEndingMask(asc, array, start, endP1, mask, elementSample) {
 }
 
 function pCountSortSection(asc, array, start, endP1, section) {
-    let range = 1 << section.bits;
+    const range = 1 << section.bits;
     validatePCountSortRange(range);
     const count = new Int32Array(range);
-    let number = new array.constructor(range);
-    let mask = section.mask;
+    const number = new array.constructor(range);
+    const mask = section.mask;
     for (let i = start; i < endP1; i++) {
         const element = array[i];
         const key = (element & mask) >> section.shift;
@@ -220,9 +220,9 @@ function pCountSortSection(asc, array, start, endP1, section) {
     let i = start;
     if (asc) {
         for (let j = 0; j < count.length; j++) {
-            let countJ = count[j];
+            const countJ = count[j];
             if (countJ > 0) {
-                let value = number[j];
+                const value = number[j];
                 for (let c = 0; c < countJ; c++) {
                     array[i] = value;
                     i++;
@@ -249,10 +249,10 @@ function pCountSortSection(asc, array, start, endP1, section) {
 }
 
 function pCountSortSections(asc, array, start, endP1, sections) {
-    let range = 1 << getSectionsBits(sections);
+    const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
     const count = new Int32Array(range);
-    let number = new array.constructor(range);
+    const number = new array.constructor(range);
 
     for (let i = start; i < endP1; i++) {
         const element = array[i];
@@ -264,9 +264,9 @@ function pCountSortSections(asc, array, start, endP1, sections) {
     let i = start;
     if (asc) {
         for (let j = 0; j < count.length; j++) {
-            let countJ = count[j];
+            const countJ = count[j];
             if (countJ > 0) {
-                let value = number[j];
+                const value = number[j];
                 for (let c = 0; c < countJ; c++) {
                     array[i] = value;
                     i++;
@@ -295,11 +295,11 @@ function pCountSortSections(asc, array, start, endP1, sections) {
 /**
  * Maybe this could be useful when n is short compared to range, Maybe not as better algorithms are available
  */
-function pCountSortSectionsSparse(asc, array, start, endP1, sections) {
-    let range = 1 << getSectionsBits(sections);
+function _pCountSortSectionsSparse(asc, array, start, endP1, sections) {
+    const range = 1 << getSectionsBits(sections);
     validatePCountSortRange(range);
-    let count = [];
-    let number = [];
+    const count = [];
+    const number = [];
 
     for (let i = start; i < endP1; i++) {
         const element = array[i];
@@ -337,8 +337,8 @@ export function getKeySN(element, sections) {
     let result = 0;
     const length = sections.length;
     for (let i = length - 1; i >= 0; i--) { //TODO CHECK THIS LINE, IN JAVA IMPLEMENTATION IS THE OPPOSITE DIRECTION
-        let section = sections[i];
-        let bits = (element & section.mask) >> section.shift;
+        const section = sections[i];
+        const bits = (element & section.mask) >> section.shift;
         result = result << section.bits | bits;
     }
     return result;
@@ -347,7 +347,7 @@ export function getKeySN(element, sections) {
 export function getSectionsBits(sections) {
     let bits = 0;
     for (let s = 0; s < sections.length; s++) {
-        let section = sections[s];
+        const section = sections[s];
         bits += section.bits;
     }
     return bits;

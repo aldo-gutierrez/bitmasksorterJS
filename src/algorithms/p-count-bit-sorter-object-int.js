@@ -14,7 +14,7 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
     let { start, endP1, asc, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1, mapper));
-    let n = endP1 - start;
+    const n = endP1 - start;
     if (n < 2) {
         return;
     }
@@ -31,23 +31,23 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
         let aux = Array(endP1 - start);
         let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
             : partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
-        let n1 = finalLeft - start;
-        let n2 = endP1 - finalLeft;
+        const n1 = finalLeft - start;
+        const n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            pCountSortObjectByInt32Key(array, mapper, { start, end: finalLeft });
+            pCountSortObjectByInt32Key(array, mapper, { start, end: finalLeft, order: options.order });
         }
         if (n2 > 1) { //sort positive numbers
-            pCountSortObjectByInt32Key(array, mapper, { start: finalLeft, end: endP1 });
+            pCountSortObjectByInt32Key(array, mapper, { start: finalLeft, end: endP1, order: options.order });
         }
         return;
     }
 
-    let sections = getSections(bListNew, 32);
+    const sections = getSections(bListNew, 32);
     if (sections.length === 1) {
-        let section = sections[0];
-        let shift = section.shift;
+        const section = sections[0];
+        const shift = section.shift;
         if (shift === 0) {
-            let mask = section.mask;
+            const mask = section.mask;
             let elementSample = mapper(array[start]);
             elementSample = elementSample & ~mask;
             if (elementSample === 0) { //last bits and includes all numbers and all positive numbers
@@ -66,7 +66,7 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
                 }
             }
         } else {
-            let range = 1 << section.bits;
+            const range = 1 << section.bits;
             if (range >= n) {
                 pCountSortSectionV2(asc, array, mapper, start, endP1, section);
             } else {
