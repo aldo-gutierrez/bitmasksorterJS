@@ -10,6 +10,7 @@
 
 const { performance } = require('perf_hooks');
 const path = require('path');
+const process = require('node:process');
 
 const VERIFY_SORT = process.env.VERIFY_SORT !== 'false';
 

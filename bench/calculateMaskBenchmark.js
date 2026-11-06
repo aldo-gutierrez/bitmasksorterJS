@@ -1,5 +1,6 @@
 // Requires Node.js 16+ to run this benchmark
 import { performance } from 'perf_hooks';
+import process from 'node:process';
 import { calculateMaskIntOld, calculateMaskInt, calculateMaskIntNew} from '../src/utils/sorter-utils-int.js';
 import {calculateMaskNumberOld, calculateMaskNumber, calculateMaskNumberNew} from '../src/utils/sorter-utils-number.js';
 

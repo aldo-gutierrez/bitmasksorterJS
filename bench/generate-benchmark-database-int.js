@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { performance } from "node:perf_hooks";
 import {
     americanFlagBitSortInt32 as _americanFlagBitSortInt32,

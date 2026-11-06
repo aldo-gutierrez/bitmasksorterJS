@@ -1,5 +1,6 @@
 // Requires Node.js 16+ to run this benchmark
 import {performance} from 'node:perf_hooks';
+import process from 'node:process';
 import {sort} from '../src/main.js';
 
 const VERIFY_SORT = process.env.VERIFY_SORT !== 'false';

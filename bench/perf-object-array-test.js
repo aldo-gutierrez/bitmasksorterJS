@@ -1,4 +1,5 @@
 // Requires Node.js 16+ to run this benchmark
+import process from 'node:process';
 import {
     quickBitSortObjectByInt32Key,
     pCountSortObjectByInt32Key,
