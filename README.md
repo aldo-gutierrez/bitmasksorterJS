@@ -232,14 +232,14 @@ To search for the maximum speedup on you machine execute the following commands
 for 32 bit integer arrays
 ```sh
 node bench/generate-benchmark-database-int.js 18 5     
-node bench/report-from-database.js .\bench\sort-results.jsonl times
+node bench/report-from-database.js bench/sort-results.jsonl times
 ```
 
 for array of objects with 32 bit key
 
 ```sh
 node bench/generate-benchmark-database-object-int.js 18 5     
-node bench/report-from-database.js .\bench\sort-object-results.jsonl times
+node bench/report-from-database.js bench/sort-object-results.jsonl times
 ```
 
 Additionally, see:

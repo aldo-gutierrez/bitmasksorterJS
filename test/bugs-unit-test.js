@@ -128,6 +128,69 @@ describe('Regression & Bug Fix Tests', function () {
         });
     });
 
+    describe('Low-memory object sorter radix buffer capacity', function () {
+        function createInput() {
+            return [
+                ...Array.from({ length: 40 }, (_, i) => ({ key: ((i * 37) & 255) << 1 })),
+                ...Array.from({ length: 40 }, (_, i) => ({ key: 512 + (i << 1) })),
+                ...Array.from({ length: 80 }, (_, i) => ({ key: 1024 + (i << 1) }))
+            ];
+        }
+
+        function assertSortedReferences(actual, expected) {
+            assert.strictEqual(actual.length, expected.length);
+            for (let i = 0; i < actual.length; i++) {
+                assert.strictEqual(actual[i], expected[i], `Incorrect object at index ${i}`);
+            }
+        }
+
+        for (const order of ['asc', 'desc']) {
+            for (const subslice of [false, true]) {
+                it(`should sort ${order} radix partitions with limited memory${subslice ? ' in a subslice' : ''}`, function () {
+                    // Bits 10 and 9 isolate a 40-element partition with eight remaining bits.
+                    const input = createInput();
+                    const sorted = input.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                    const before = { key: -1 };
+                    const after = { key: 9999 };
+                    const actual = subslice ? [before, ...input, after] : input.slice();
+                    const expected = subslice ? [before, ...sorted, after] : sorted;
+                    const options = { order, runtime: {} };
+                    if (subslice) {
+                        options.start = 1;
+                        options.end = input.length + 1;
+                    }
+
+                    quickBitLowMemSortObjectByInt32Key(actual, x => x.key, options);
+
+                    assertSortedReferences(actual, expected);
+                    assert.ok(options.runtime.arrayI32.length >= 40);
+                    assert.ok(options.runtime.auxI32.length >= 40);
+                    assert.ok(options.runtime.arrayI32.length <= options.runtime.aux.length);
+                    assert.ok(options.runtime.auxI32.length <= options.runtime.aux.length);
+                    assert.ok(options.runtime.aux.length < input.length);
+                });
+            }
+
+            it(`should grow cached radix buffers for a larger ${order} sort`, function () {
+                const options = { order, runtime: {} };
+                const small = [0, 6, 512, 518, 1024, 1030].map(key => ({ key }));
+                const expectedSmall = small.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                quickBitLowMemSortObjectByInt32Key(small, x => x.key, options);
+                assertSortedReferences(small, expectedSmall);
+                assert.ok(options.runtime.arrayI32.length < 40);
+                assert.ok(options.runtime.auxI32.length < 40);
+
+                const actual = createInput();
+                const expected = actual.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                quickBitLowMemSortObjectByInt32Key(actual, x => x.key, options);
+
+                assertSortedReferences(actual, expected);
+                assert.ok(options.runtime.arrayI32.length >= 40);
+                assert.ok(options.runtime.auxI32.length >= 40);
+            });
+        }
+    });
+
     describe('Bug 7: Preserving Object References with NaNs, Nulls, Undefined', function () {
         it('radixBitSorterObjectIntV2 should keep object references and position nulls/undefined/NaNs', function () {
             const o1 = { id: 3 };

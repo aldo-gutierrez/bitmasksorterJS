@@ -114,8 +114,12 @@ function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, runtime,
             radixSortObjectInt32Mapper(asc, array, start, endP1, bList.slice(bListIndex), aux, mapper);
             return;
         } else if (sorter === R) {
-            runtime.arrayI32 ??= new Int32Array(getAuxSizeDefaultLowMem(n));
-            runtime.auxI32 ??= new Int32Array(getAuxSizeDefaultLowMem(n));
+            if (!runtime.arrayI32 || runtime.arrayI32.length < n) {
+                runtime.arrayI32 = new Int32Array(n);
+            }
+            if (!runtime.auxI32 || runtime.auxI32.length < n) {
+                runtime.auxI32 = new Int32Array(n);
+            }
             for (let i = 0; i < n; i++) {
                 runtime.arrayI32[i] = mapper(array[start + i]);
             }
