@@ -67,10 +67,10 @@ async function main(){
   }
 
   let fastSort = null;
-  try{ fastSort = require('fast-sort'); }catch(e){ console.warn('fast-sort not installed. Install with: npm install --save-dev fast-sort'); }
+  try{ fastSort = require('fast-sort'); }catch(_e){ console.warn('fast-sort not installed. Install with: npm install --save-dev fast-sort'); }
 
   let timsort = null;
-  try{ timsort = require('timsort'); }catch(e){ console.warn('timsort not installed. Install with: npm --save-dev timsort'); }
+  try{ timsort = require('timsort'); }catch(_e){ console.warn('timsort not installed. Install with: npm --save-dev timsort'); }
 
   const util = require('util');
   if(localSorter){

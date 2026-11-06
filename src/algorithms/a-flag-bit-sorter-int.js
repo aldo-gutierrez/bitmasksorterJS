@@ -10,20 +10,20 @@ import { calculateMaskInt, partitionReverseNotStableUpperBit } from "../utils/so
 
 export function americanFlagBitSortInt32(array, options = {}) {
     options.runtime = options.runtime || {};
-    let { start, endP1, asc, nulls } = getSortOptions(options);
+    let { start, endP1, nulls } = getSortOptions(options);
     ({ start, endP1 } = validateSortRange(array, start, endP1));
     ({start, endP1} = handleNullsUndefinedAndNans(array, nulls, start, endP1));
     const n = endP1 - start;
     if (n < 2) {
         return;
     }
-    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1);
+    const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
+        const finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;
@@ -59,20 +59,20 @@ function aFlagSortInt(array, start, endP1, bList) {
 }
 
 function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
-    let section = sections[sectionIndex];
-    let bits = section.bits;
-    let shift = section.shift;
-    let mask = section.mask;
-    let range = 1 << bits;
-    let nextFree = new Int32Array(range);
+    const section = sections[sectionIndex];
+    const bits = section.bits;
+    const shift = section.shift;
+    const mask = section.mask;
+    const range = 1 << bits;
+    const nextFree = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
         nextFree[(array[i] & mask) >> shift]++;
     }
     calculateSumOffsets(true, nextFree, range);
-    let offsets = nextFree.slice();
+    const offsets = nextFree.slice();
     let curBlock = 0;
     while (curBlock < range) {
-        let i = nextFree[curBlock] + start;
+        const i = nextFree[curBlock] + start;
         if (i >= endP1 || ((curBlock + 1 < range) && i >= offsets[curBlock + 1] + start)) {
             curBlock = curBlock + 1;
             continue;
@@ -87,8 +87,8 @@ function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
     if (sectionIndex > 0) {
         const N = endP1 - start;
         for (let i = 0; i < offsets.length; i++) {
-            let start2 = offsets[i];
-            let end2 = i + 1 < offsets.length ? offsets[i + 1] : N;
+            const start2 = offsets[i];
+            const end2 = i + 1 < offsets.length ? offsets[i + 1] : N;
             if (end2 - start2 > 1) {
                 aFlagSortIntAux(array, start2 + start, end2 + start, sections, sectionIndex - 1);
             }

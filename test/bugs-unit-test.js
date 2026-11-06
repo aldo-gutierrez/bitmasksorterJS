@@ -1,20 +1,20 @@
 import assert from 'assert';
 import {
-    sortInt32,
-    radixBitSortInt32,
-    quickBitSortInt32,
-    pCountBitSortInt32,
+    sortInt32 as _sortInt32,
+    radixBitSortInt32 as _radixBitSortInt32,
+    quickBitSortInt32 as _quickBitSortInt32,
+    pCountBitSortInt32 as _pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
-    americanFlagBitSortInt32,
-    sortFloat64,
-    radixBitSortFloat64,
+    americanFlagBitSortInt32 as _americanFlagBitSortInt32,
+    sortFloat64 as _sortFloat64,
+    radixBitSortFloat64 as _radixBitSortFloat64,
     sortObjectByInt32Key,
-    radixBitSortObjectByInt32Key,
+    radixBitSortObjectByInt32Key as _radixBitSortObjectByInt32Key,
     radixBitV2SortObjectByInt32Key,
     quickBitSortObjectByInt32Key,
     quickBitLowMemSortObjectByInt32Key,
     pCountSortObjectByInt32Key,
-    sortObjectByFloat64Key,
+    sortObjectByFloat64Key as _sortObjectByFloat64Key,
     radixBitSortObjectByFloat64Key
 } from '../src/main.js';
 import { getMaskRangeBits, getSortOptions } from '../src/utils/sorter-utils.js';
@@ -92,7 +92,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('radixBitSorterObjectNumber should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99.9 }, { val: 3.3 }, { val: 1.1 }, { val: 2.2 }, { val: 88.8 }];
+            const arr = [{ val: 99.9 }, { val: 3.3 }, { val: 1.1 }, { val: 2.2 }, { val: 88.8 }];
             radixBitSortObjectByFloat64Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99.9 },
@@ -104,7 +104,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('quickBitSorterObjectInt should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
+            const arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
             quickBitSortObjectByInt32Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
@@ -116,7 +116,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('pCountSortObjectByInt32Key should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
+            const arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
             pCountSortObjectByInt32Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },

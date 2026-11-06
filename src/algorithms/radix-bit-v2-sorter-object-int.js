@@ -20,30 +20,30 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let arrayInt32 = arrayNative;
+    const arrayInt32 = arrayNative;
 
-    let mask = options.runtime.mask ?? calculateMaskInt(arrayInt32, 0, n);
-    let bList = getMaskAsArray(mask);
+    const mask = options.runtime.mask ?? calculateMaskInt(arrayInt32, 0, n);
+    const bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
 
-    let auxInt32 = new Int32Array(n);
-    let auxObj = arrayObj.slice(start, endP1);
+    const auxInt32 = new Int32Array(n);
+    const auxObj = arrayObj.slice(start, endP1);
 
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj)
+        const finalLeft = asc ? partitionReverseStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj)
             : partitionStableObjectI32(arrayInt32, arrayObj, start, endP1, 1 << 31, auxInt32, auxObj);
-        let n1 = finalLeft - start;
-        let n2 = endP1 - finalLeft;
+        const n1 = finalLeft - start;
+        const n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            let bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, start, finalLeft));
+            const bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, start, finalLeft));
             if (!(bList1.length === 0)) {
                 radixSortObjectI32Array(asc, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
             }
         }
         if (n2 > 1) { //sort positive numbers
-            let bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, finalLeft, endP1));
+            const bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, finalLeft, endP1));
             if (!(bList2.length === 0)) {
                 radixSortObjectI32Array(asc, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
             }

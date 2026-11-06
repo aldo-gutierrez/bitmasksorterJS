@@ -20,18 +20,18 @@ export function radixBitSortFloat64(array, options = {}) {
     if (n < 2) {
         return;
     }
-    let arrayWasFloat64Array = array instanceof Float64Array;
-    let arrayFloat64 = arrayWasFloat64Array ? array : new Float64Array(array);
+    const arrayWasFloat64Array = array instanceof Float64Array;
+    const arrayFloat64 = arrayWasFloat64Array ? array : new Float64Array(array);
     const buffer = arrayFloat64.buffer
-    let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
+    const arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
-    let bList = getMaskAsArrayNumber(mask);
+    const mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
+    const bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;
     }
     if (bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseF64NotStableUpperBit(arrayFloat64, arrayInt32, start, endP1) :
+        const finalLeft = asc ? partitionReverseF64NotStableUpperBit(arrayFloat64, arrayInt32, start, endP1) :
             partitionF64NotStableUpperBit(arrayFloat64, arrayInt32, start, endP1);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
@@ -49,7 +49,7 @@ export function radixBitSortFloat64(array, options = {}) {
                 n2 = 0;
             }
         }
-        let auxFloat64 = new Float64Array(Math.max(n1, n2));
+        const auxFloat64 = new Float64Array(Math.max(n1, n2));
         if (n1 > 1) {
             radixSortNumber(false, arrayFloat64, start, finalLeft, bList1, auxFloat64);
         }
@@ -57,7 +57,7 @@ export function radixBitSortFloat64(array, options = {}) {
             radixSortNumber(true, arrayFloat64, finalLeft, endP1, bList2, auxFloat64);
         }
     } else {
-        let auxFloat64 = new Float64Array(endP1 - start);
+        const auxFloat64 = new Float64Array(endP1 - start);
         radixSortNumber(asc, arrayFloat64, start, endP1, bList, auxFloat64);
         if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
              reverse(arrayFloat64, start, endP1);
@@ -69,11 +69,11 @@ export function radixBitSortFloat64(array, options = {}) {
     }
 }
 
-function partitionReverseStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64) {
+function _partitionReverseStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayF64[i];
+        const element = arrayF64[i];
         if (!((arrayI32[i * 2 + elementIndex] & mask) === 0)) {
             arrayF64[left] = element;
             left++;
@@ -86,11 +86,11 @@ function partitionReverseStableNumber(arrayI32, arrayF64, start, endP1, mask, el
     return left;
 }
 
-function partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64) {
+function _partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementIndex, auxF64) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        let element = arrayF64[i];
+        const element = arrayF64[i];
         if ((arrayI32[i * 2 + elementIndex] & mask) === 0) {
             arrayF64[left] = element;
             left++;

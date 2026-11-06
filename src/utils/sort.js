@@ -31,7 +31,7 @@ export function sort(array, ...parameters) {
         return;
     }
     let parameter2 = parameters[0];
-    let parameter3 = parameters[1];
+    const parameter3 = parameters[1];
     if (isTypedArray(array)) {
         if (!isPlainObject(parameter2)) {
             parameter2  = {}
@@ -267,12 +267,11 @@ function sortObjectArrayByKey(type, array, key, options) {
             }, options);
         } else if (type === "string") {
             //skip null objects and undefined objects in array
-            let {start, endP1, asc, nulls} = getSortOptions(options);
+            let {start, endP1, nulls} = getSortOptions(options);
             ({start, endP1} = validateSortRange(array, start, endP1));
-            let arrayNative;
             try {
                 ({
-                    start, endP1, arrayNative
+                    start, endP1
                 } = handleNullsUndefinedAndNans(array, nulls, start, endP1, key, undefined));
             } catch (e) {
                 throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);

@@ -6,7 +6,7 @@ import {calculateMaskInt} from "./sorter-utils-int.js";
 import {sortSubList} from "../algorithms/native-sorter.js";
 import {isTypedArray} from "./utils.js";
 
-let sortMapInt32 =
+const sortMapInt32 =
 [
     //2
     [ N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N ],
@@ -47,8 +47,8 @@ export function sortInt32(array, options) {
     if (n < 2) {
         return;
     }
-    let mask = calculateMaskInt(array, start, endP1);
-    let bList = getMaskAsArray(mask);
+    const mask = calculateMaskInt(array, start, endP1);
+    const bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
@@ -58,9 +58,9 @@ export function sortInt32(array, options) {
     options.nulls = "ignore";
     options.runtime.mask = mask;
 
-    let log2Range = bList.length - 1; //Log2(K)
-    let log2Size = Math.ceil(Math.log2(n)) - 1; //Log2(N)
-    let log2RangePadded = bList[0] - bList[bList.length - 1] - 1;
+    const log2Range = bList.length - 1; //Log2(K)
+    const log2Size = Math.ceil(Math.log2(n)) - 1; //Log2(N)
+    const log2RangePadded = bList[0] - bList[bList.length - 1] - 1;
 
     let sorter;
     if (n <= 16) {
@@ -95,7 +95,7 @@ function executeSorterInt32(sorter, array, options, asc, start, endP1) {
     } else if (sorter === R) {
         radixBitSortInt32(array, options);
     } else if (sorter === N) {
-        let comparator = asc ? (a, b) => a - b : (a, b) => b - a;
+        const comparator = asc ? (a, b) => a - b : (a, b) => b - a;
         sortSubList(array, start, endP1, comparator, isTypedArray(array));
     } else {
         console.error("sortInt32: invalid sorter type: " + sorter);

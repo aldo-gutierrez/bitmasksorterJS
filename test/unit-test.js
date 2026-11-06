@@ -3,7 +3,7 @@ import {partitionStableLowMemInt} from "../src/utils/sorter-utils-object-int.js"
 import {partitionReverseStableLowMemInt} from "../src/utils/sorter-utils-object-int.js";
 import {testArraysEquals} from "./test-utils.js";
 
-let onError = (firstError) =>  {
+const onError = (firstError) =>  {
     console.log(`Arrays Not Equal + error:  ${JSON.stringify(firstError)}`);
     assert.fail("1");
 }

@@ -83,7 +83,7 @@ export function partitionReverseStableInt(array, start, endP1, mask, aux) {
     return left;
 }
 
-function partitionStableInt(array, start, endP1, mask, aux) {
+function _partitionStableInt(array, start, endP1, mask, aux) {
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {

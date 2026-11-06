@@ -27,31 +27,31 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let arrayFloat64 = arrayNative;
+    const arrayFloat64 = arrayNative;
     const buffer = arrayFloat64.buffer
-    let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
+    const arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
-    let bList = getMaskAsArrayNumber(mask);
+    const mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
+    const bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;
     }
-    let auxFloat64 = new Float64Array(endP1 - start);
-    let auxObj = arrayObj.slice(start, endP1);
+    const auxFloat64 = new Float64Array(endP1 - start);
+    const auxObj = arrayObj.slice(start, endP1);
 
     if (bList[1].length > 0 && bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj)
+        const finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj)
             : partitionStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj);
-        let n1 = finalLeft - start;
-        let n2 = endP1 - finalLeft;
+        const n1 = finalLeft - start;
+        const n2 = endP1 - finalLeft;
         if (n1 > 1) {
-            let bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
+            const bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
             if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
                 radixSortNumber(false, arrayObj, start, n1, arrayFloat64, 0, bList1, auxFloat64, auxObj, 0);
             }
         }
         if (n2 > 1) {
-            let bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
+            const bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
             if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
                 radixSortNumber(true, arrayObj, finalLeft, n2, arrayFloat64, n1, bList2, auxFloat64, auxObj, 0);
             }
@@ -72,7 +72,7 @@ function radixSortNumber(asc, arrayObj, oStart, n, arrayF64, aStart, bList, auxF
         const log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
         const sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
         for (let index = 0; index < sections.length; index++) {
-            let section = sections[index];
+            const section = sections[index];
             if (section.shift === 0) {
                 partitionStableLastBitsNumber(asc, arrayObj, oStart, n, section, arrayF64, elementIndex, aStart, auxF64, auxF64Start, auxObj, auxObjStart);
                 needsArrayCopy++;

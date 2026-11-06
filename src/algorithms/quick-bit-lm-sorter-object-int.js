@@ -14,7 +14,7 @@ import {radixSortObjectInt32Mapper} from "./radix-bit-sorter-object-int.js";
 import {radixSortObjectI32Array} from "./radix-bit-v2-sorter-object-int.js";
 
 
-let sorterMapObjectInt32 =     [
+const sorterMapObjectInt32 =     [
     [ X, R, X, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q, Q ],
     [ X, Q, Q, Q, Q, Q, Q, Q, R, Q, R, Q, Q, X, Q, X, X, Q ],
     [ X, X, X, X, Q, Q, X, X, X, X, Q, Q, Q, Q, Q, Q, Q, Q ],
@@ -48,16 +48,16 @@ export function quickBitLowMemSortObjectByInt32Key(array, mapper, options = {}) 
     if (n < 2) {
         return;
     }
-    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
+    const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
 
-    let aux = Array(getAuxSizeDefaultLowMem(n));
+    const aux = Array(getAuxSizeDefaultLowMem(n));
     options.runtime.aux = aux;
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux)
+        const finalLeft = asc ? partitionReverseStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux)
             : partitionStableLowMemInt(array, start, endP1, 1 << 31, mapper, aux);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
@@ -93,20 +93,20 @@ function getAuxSizeDefaultLowMem(n) {
 }
 
 function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, runtime, recalculate) {
-    let aux = runtime.aux;
+    const aux = runtime.aux;
     const n = endP1 - start;
     if (recalculate && bListIndex < 3) {
-        let mask = calculateMaskInt(array, start, endP1, mapper);
+        const mask = calculateMaskInt(array, start, endP1, mapper);
         bList = getMaskAsArray(mask);
         bListIndex = 0;
     }
-    let kDiff = bList.length - bListIndex;
+    const kDiff = bList.length - bListIndex;
     if (kDiff < 1) {
         return;
     }
 
 
-    let log2RangeM1 = bList.length - bListIndex - 1; //Log2(K)
+    const log2RangeM1 = bList.length - bListIndex - 1; //Log2(K)
     if (bListIndex > 1 && log2RangeM1 < 18 &&  n <= 262144 && aux.length >= n) {
         const log2SizeM1 = Math.ceil(Math.log2(n)) - 1; //Log2(N)
         const sorter = sorterMapObjectInt32[log2SizeM1][log2RangeM1];

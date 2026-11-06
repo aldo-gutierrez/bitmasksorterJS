@@ -1,5 +1,5 @@
 import {
-    arrayCopy, arrayCopyTypedArray, calculateSumOffsets,
+    arrayCopy,     arrayCopyTypedArray as _arrayCopyTypedArray, calculateSumOffsets,
     getMaskAsArray,
     getSections,
     getSortOptions, handleNullsUndefinedAndNans, MAX_BITS_RADIX_SORT,
@@ -20,7 +20,7 @@ export function radixBitSortObjectByInt32Key(array, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
+    const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
@@ -112,5 +112,4 @@ function partitionStableGroupBitsInt(asc, array, start, n, section, aux, startAu
         aux[count[(element & mask) >> shift]++ + startAux] = array[i];
     }
 }
-
 

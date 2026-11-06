@@ -21,15 +21,15 @@ export function pCountSortObjectByInt32Key(array, mapper, options = {}) {
     let bList = options.runtime.bList;
     let bListStart = options.runtime.bListStart;
     if (!bList) {
-        let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
+        const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
         bList = getMaskAsArray(mask);
         bListStart = 0;
     }
-    let bListNew = bList.slice(bListStart);
+    const bListNew = bList.slice(bListStart);
 
     if (bListNew[0] === 31) { //there are negative numbers and positive numbers
-        let aux = Array(endP1 - start);
-        let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
+        const aux = Array(endP1 - start);
+        const finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
             : partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
         const n1 = finalLeft - start;
         const n2 = endP1 - finalLeft;
