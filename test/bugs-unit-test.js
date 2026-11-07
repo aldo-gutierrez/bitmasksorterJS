@@ -5,7 +5,7 @@ import {
     quickBitSortInt32 as _quickBitSortInt32,
     pCountBitSortInt32 as _pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
-    americanFlagBitSortInt32 as _americanFlagBitSortInt32,
+    americanFlagBitSortInt32,
     sortFloat64 as _sortFloat64,
     radixBitSortFloat64 as _radixBitSortFloat64,
     sortObjectByInt32Key,
@@ -20,6 +20,20 @@ import {
 import { getMaskRangeBits, getSortOptions } from '../src/utils/sorter-utils.js';
 
 describe('Regression & Bug Fix Tests', function () {
+
+    describe('American flag integer sort descending order', function () {
+        it('sorts a signed typed-array subrange across multiple digit sections', function () {
+            const actual = new Int32Array([99, -2147483648, 65539, 65537, -65539, -65537, 0, 2147483647, 88]);
+            americanFlagBitSortInt32(actual, { start: 1, end: 8, order: 'desc' });
+            assert.deepStrictEqual(Array.from(actual), [99, 2147483647, 65539, 65537, 0, -65537, -65539, -2147483648, 88]);
+        });
+
+        it('preserves null placement while sorting descending', function () {
+            const actual = [99, -2, null, 3, NaN, -1, undefined, 88];
+            americanFlagBitSortInt32(actual, { start: 1, end: 7, order: 'desc', nulls: 'first' });
+            assert.deepStrictEqual(actual, [99, null, 3, -1, -2, NaN, undefined, 88]);
+        });
+    });
 
     describe('Sort option parsing', function () {
         it('should default nulls to ignore and parse first/last/ignore', function () {

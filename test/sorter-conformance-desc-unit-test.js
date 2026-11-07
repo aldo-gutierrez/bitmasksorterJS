@@ -3,6 +3,7 @@ import {
     sortInt32,
     radixBitSortInt32,
     quickBitSortInt32,
+    americanFlagBitSortInt32,
     pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
     sortFloat64,
@@ -76,8 +77,7 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
        { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountBitMinMaxSortInt32(arr, options) },
        { name: 'sortInt32', fn: (arr, options) => sortInt32(arr, options) },
        //{ name: 'sortFloat64', fn: (arr, options) => sortFloat64(arr, options) },
-       // TODO make American flag bit sorter support descending order and add it to the test suite
-       // { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
+       { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
     ];
 
     describe('Integer Sorters Correctness (DESC)', function () {
