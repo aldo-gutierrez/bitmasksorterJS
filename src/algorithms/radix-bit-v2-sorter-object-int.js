@@ -37,13 +37,13 @@ export function radixBitV2SortObjectByInt32Key(arrayObj, mapper, options = {}) {
         const n1 = finalLeft - start;
         const n2 = endP1 - finalLeft;
         if (n1 > 1) { //sort negative numbers
-            const bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, start, finalLeft));
+            const bList1 = getMaskAsArray(calculateMaskInt(arrayInt32, 0, n1));
             if (!(bList1.length === 0)) {
                 radixSortObjectI32Array(asc, arrayObj, start, n1, bList1, arrayInt32, 0, auxInt32, auxObj, 0);
             }
         }
         if (n2 > 1) { //sort positive numbers
-            const bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, finalLeft, endP1));
+            const bList2 = getMaskAsArray(calculateMaskInt(arrayInt32, n1, n));
             if (!(bList2.length === 0)) {
                 radixSortObjectI32Array(asc, arrayObj, finalLeft, n2, bList2, arrayInt32, n1, auxInt32, auxObj, 0);
             }
@@ -83,10 +83,10 @@ function partitionReverseStableObjectI32(arrayI32, arrayObj, start, endP1, mask,
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        const element = arrayI32[i];
+        const element = arrayI32[i - start];
         const elementObj = arrayObj[i];
-        if (!((arrayI32[i] & mask) === 0)) {
-            arrayI32[left] = element;
+        if (!((element & mask) === 0)) {
+            arrayI32[left - start] = element;
             arrayObj[left] = elementObj;
             left++;
         } else {
@@ -95,7 +95,7 @@ function partitionReverseStableObjectI32(arrayI32, arrayObj, start, endP1, mask,
             right++;
         }
     }
-    arrayCopyTypedArray(auxI32, 0, arrayI32, left, right);
+    arrayCopyTypedArray(auxI32, 0, arrayI32, left - start, right);
     arrayCopy(auxObj, 0, arrayObj, left, right);
     return left;
 }
@@ -104,10 +104,10 @@ function partitionStableObjectI32(arrayI32, arrayObj, start, endP1, mask, auxI32
     let left = start;
     let right = 0;
     for (let i = start; i < endP1; i++) {
-        const element = arrayI32[i];
+        const element = arrayI32[i - start];
         const elementObj = arrayObj[i];
-        if ((arrayI32[i] & mask) === 0) {
-            arrayI32[left] = element;
+        if ((element & mask) === 0) {
+            arrayI32[left - start] = element;
             arrayObj[left] = elementObj;
             left++;
         } else {
@@ -116,7 +116,7 @@ function partitionStableObjectI32(arrayI32, arrayObj, start, endP1, mask, auxI32
             right++;
         }
     }
-    arrayCopyTypedArray(auxI32, 0, arrayI32, left, right);
+    arrayCopyTypedArray(auxI32, 0, arrayI32, left - start, right);
     arrayCopy(auxObj, 0, arrayObj, left, right);
     return left;
 }

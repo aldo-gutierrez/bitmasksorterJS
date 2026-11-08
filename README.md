@@ -9,6 +9,9 @@ Fast sorting utilities for JavaScript arrays and typed arrays, including numeric
 [![npm version](https://img.shields.io/npm/v/@aldogg/sorter)](https://www.npmjs.com/package/@aldogg/sorter)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![CI](https://github.com/aldo-gutierrez/bitmasksorterJS/actions/workflows/ci.yml/badge.svg)](https://github.com/aldo-gutierrez/bitmasksorterJS/actions/workflows/ci.yml)
+[![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github&link=https%3A%2F%2Fgithub.com%2Faldo-gutierrez%2Fbitmasksorterjs)](https://github.com/aldo-gutierrez/bitmasksorterjs)
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T2I32ACLL1)
 
 ## Install
 
@@ -56,9 +59,9 @@ sort(players, [{
 
 To check browser usage, see:
 
-https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ie11.html
+https://rawcdn.githack.com/aldo-gutierrez/bitmasksorterJS/eb6bf19b072ed61334af3a9b6b48a8a5b70b5083/test/ie11.html
 
-https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ios12.html
+https://rawcdn.githack.com/aldo-gutierrez/bitmasksorterJS/9fa5e984ebbe67b0b9859a8ea4c8d221ad08960d/test/ios12.html
 
 ## API
 

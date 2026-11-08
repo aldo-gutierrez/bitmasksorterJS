@@ -76,7 +76,6 @@ describe('General Sorter Conformance & Correctness Tests (DESC)', function () {
        { name: 'pCountBitSorterInt', fn: (arr, options) => pCountBitSortInt32(arr, options) },
        { name: 'pCountNoMaskSorterInt', fn: (arr, options) => pCountBitMinMaxSortInt32(arr, options) },
        { name: 'sortInt32', fn: (arr, options) => sortInt32(arr, options) },
-       //{ name: 'sortFloat64', fn: (arr, options) => sortFloat64(arr, options) },
        { name: 'aFlagBitSorterInt', fn: (arr, options) => americanFlagBitSortInt32(arr, options) },
     ];
 
