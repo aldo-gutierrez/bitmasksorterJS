@@ -113,6 +113,22 @@ describe('sort wrapper parameter dispatch', function () {
         assert.deepStrictEqual(arr, [9, 1, 7, 8, 2]);
     });
 
+    it('sorts mixed-sign float object keys in a subrange with null placement', function () {
+        const values = [99, -3, 5, -1, null, 2, 88];
+        for (const {order, nulls, expected} of [
+            {order: 'asc', nulls: 'first', expected: [99, null, -3, -1, 2, 5, 88]},
+            {order: 'desc', nulls: 'last', expected: [99, 5, 2, -1, -3, null, 88]}
+        ]) {
+            const items = values.map(value => ({value}));
+            const first = items[0];
+            const last = items[items.length - 1];
+            sort(items, item => item.value, {type: 'float64', start: 1, end: 6, order, nulls});
+            assert.deepStrictEqual(items.map(item => item.value), expected);
+            assert.strictEqual(items[0], first);
+            assert.strictEqual(items[items.length - 1], last);
+        }
+    });
+
     it('supports per-field order overrides in multi-field specs', function () {
         const items = [
             {a:1,b:2},
