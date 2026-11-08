@@ -146,6 +146,7 @@ function sortBigIntArray(array, options) {
         ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, (x) => Number(x)));
         options.start = start;
         options.end = endP1;
+        options.nulls = "ignore";
         sortObjectByFloat64Key(array, (x) => Number(x), options);
     }
     correctBigIntCollisions(array, start, endP1, (value) => value, get64BitComparatorNonNull(asc), isTyped);
@@ -164,6 +165,7 @@ function sortObjectByBigIntKey(array, key, options) {
     ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, mapper));
     options.start = start;
     options.end = endP1;
+    options.nulls = "ignore";
     sortObjectByFloat64Key(array, (x) => Number(key(x)), options);
 
     correctBigIntCollisions(array, start, endP1, key, getObject64BitKeyComparatorNonNull(asc, key), false);
