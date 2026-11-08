@@ -21,7 +21,16 @@ export function radixBitSortInt32(array, options = {}) {
         return;
     }
     const arrayWasTyped = isTypedArray(array);
-    const arrayTyped = arrayWasTyped ? array : new Int32Array(array);
+    const originalStart = start;
+    let arrayTyped;
+    if (arrayWasTyped) {
+        arrayTyped = array;
+    } else {
+        arrayTyped = new Int32Array(n);
+        arrayCopy(array, start, arrayTyped, 0, n);
+        start = 0;
+        endP1 = n;
+    }
 
     const mask = options.runtime.mask ?? calculateMaskInt(arrayTyped, start, endP1);
     let bList = getMaskAsArray(mask);
@@ -62,7 +71,7 @@ export function radixBitSortInt32(array, options = {}) {
     }
 
     if (!arrayWasTyped) {
-        arrayCopy(arrayTyped, start, array, start, endP1 - start);
+        arrayCopy(arrayTyped, start, array, originalStart, n);
     }
 }
 

@@ -21,6 +21,78 @@ import { getMaskRangeBits, getSortOptions } from '../src/utils/sorter-utils.js';
 
 describe('Regression & Bug Fix Tests', function () {
 
+    describe('Radix integer subrange isolation', function () {
+        for (const order of ['asc', 'desc']) {
+            it(`sorts ${order} without converting values outside the range`, function () {
+                const actual = [1n, 3, -1, 2, -3, 2n];
+                _radixBitSortInt32(actual, { start: 1, end: 5, order });
+                const expected = order === 'asc'
+                    ? [1n, -3, -1, 2, 3, 2n]
+                    : [1n, 3, 2, -1, -3, 2n];
+                assert.deepStrictEqual(actual, expected);
+            });
+        }
+
+        it('does not read elements outside the requested range', function () {
+            const actual = [0, 3, 1, 2];
+            Object.defineProperty(actual, 0, {
+                get() { throw new Error('outside range'); }
+            });
+            _radixBitSortInt32(actual, { start: 1 });
+            assert.deepStrictEqual(actual.slice(1), [1, 2, 3]);
+        });
+    });
+
+    describe('Radix number subrange isolation', function () {
+        for (const order of ['asc', 'desc']) {
+            it(`sorts ${order} without converting values outside the range`, function () {
+                const actual = [1n, 3.5, -1.5, -0, 2.5, -3.5, 2n];
+                _radixBitSortFloat64(actual, { start: 1, end: 6, order });
+                const expected = order === 'asc'
+                    ? [1n, -3.5, -1.5, -0, 2.5, 3.5, 2n]
+                    : [1n, 3.5, 2.5, -0, -1.5, -3.5, 2n];
+                assert.deepStrictEqual(actual, expected);
+            });
+
+            it(`sorts ${order} within a Float64Array view`, function () {
+                const backing = new Float64Array([42, 99, -3.5, -0, 2.5, -1.5, 3.5, 88, 43]);
+                const view = backing.subarray(1, 8);
+                _radixBitSortFloat64(view, { start: 1, end: 6, order });
+                const expected = order === 'asc'
+                    ? [42, 99, -3.5, -1.5, -0, 2.5, 3.5, 88, 43]
+                    : [42, 99, 3.5, 2.5, -0, -1.5, -3.5, 88, 43];
+                assert.deepStrictEqual(Array.from(backing), expected);
+            });
+        }
+
+        it('does not read elements outside the requested range', function () {
+            const actual = [0, 3.5, 1.5, 2.5];
+            Object.defineProperty(actual, 0, {
+                get() { throw new Error('outside range'); }
+            });
+            _radixBitSortFloat64(actual, { start: 1 });
+            assert.deepStrictEqual(actual.slice(1), [1.5, 2.5, 3.5]);
+        });
+
+        it('sorts a negative subrange of a Float64Array after a positive prefix', function () {
+            const actual = new Float64Array([99, -1.5, -3.5, -2.5, 88]);
+            _radixBitSortFloat64(actual, { start: 1, end: 4 });
+            assert.deepStrictEqual(Array.from(actual), [99, -3.5, -2.5, -1.5, 88]);
+        });
+
+        it('copies a sorted Float32Array range back to its original position', function () {
+            const actual = new Float32Array([99, 3.5, -1.5, 2.5, 88]);
+            _radixBitSortFloat64(actual, { start: 1, end: 4 });
+            assert.deepStrictEqual(Array.from(actual), [99, -1.5, 2.5, 3.5, 88]);
+        });
+
+        it('sorts the compacted range after placing nulls first', function () {
+            const actual = [1n, 3.5, null, -1.5, 2.5, 2n];
+            _radixBitSortFloat64(actual, { start: 1, end: 5, nulls: 'first' });
+            assert.deepStrictEqual(actual, [1n, null, -1.5, 2.5, 3.5, 2n]);
+        });
+    });
+
     describe('American flag integer sort descending order', function () {
         it('sorts a signed typed-array subrange across multiple digit sections', function () {
             const actual = new Int32Array([99, -2147483648, 65539, 65537, -65539, -65537, 0, 2147483647, 88]);

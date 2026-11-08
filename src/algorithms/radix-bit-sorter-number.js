@@ -21,9 +21,17 @@ export function radixBitSortFloat64(array, options = {}) {
         return;
     }
     const arrayWasFloat64Array = array instanceof Float64Array;
-    const arrayFloat64 = arrayWasFloat64Array ? array : new Float64Array(array);
-    const buffer = arrayFloat64.buffer
-    const arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
+    const originalStart = start;
+    let arrayFloat64;
+    if (arrayWasFloat64Array) {
+        arrayFloat64 = array;
+    } else {
+        arrayFloat64 = new Float64Array(n);
+        arrayCopy(array, start, arrayFloat64, 0, n);
+        start = 0;
+        endP1 = n;
+    }
+    const arrayInt32 = new Int32Array(arrayFloat64.buffer, arrayFloat64.byteOffset, arrayFloat64.length * 2); //[0] = lower 32 bits, [1] higher 32 bits
 
     const mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
     const bList = getMaskAsArrayNumber(mask);
@@ -59,13 +67,13 @@ export function radixBitSortFloat64(array, options = {}) {
     } else {
         const auxFloat64 = new Float64Array(endP1 - start);
         radixSortNumber(asc, arrayFloat64, start, endP1, bList, auxFloat64);
-        if ((arrayInt32[1] & (1 << 31)) !== 0) { //for special case -0
+        if ((arrayInt32[start * 2 + 1] & (1 << 31)) !== 0) { //for special case -0
              reverse(arrayFloat64, start, endP1);
         }
     }
 
     if (!arrayWasFloat64Array) {
-        arrayCopy(arrayFloat64, start, array, start, endP1 - start);
+        arrayCopy(arrayFloat64, start, array, originalStart, n);
     }
 }
 
@@ -104,8 +112,7 @@ function _partitionStableNumber(arrayI32, arrayF64, start, endP1, mask, elementI
 }
 
 function partitionStableLastBitsNumber(asc, arrayF64, start, n, elementIndex, section, auxF64, auxStart) {
-    const buffer = arrayF64.buffer
-    const arrayI32 = new Int32Array(buffer)
+    const arrayI32 = new Int32Array(arrayF64.buffer, arrayF64.byteOffset, arrayF64.length * 2);
     const mask = section.mask;
     const range = section.range;
     const count = new Int32Array(range);
@@ -124,8 +131,7 @@ function partitionStableLastBitsNumber(asc, arrayF64, start, n, elementIndex, se
 }
 
 function partitionStableGroupBitsNumber(asc, arrayF64, start, n, elementIndex, section, auxF64, auxStart) {
-    const buffer = arrayF64.buffer
-    const arrayI32 = new Int32Array(buffer)
+    const arrayI32 = new Int32Array(arrayF64.buffer, arrayF64.byteOffset, arrayF64.length * 2);
     const mask = section.mask;
     const shift = section.shift;
     const range = section.range;
