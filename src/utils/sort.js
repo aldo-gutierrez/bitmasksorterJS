@@ -137,86 +137,53 @@ function mergeOptions(globalOptions, userOptions) {
 }
 
 function sortBigIntArray(array, options) {
+    let {start, endP1, asc} = getSortOptions(options);
+    ({start, endP1} = validateSortRange(array, start, endP1));
     const isTyped = isTypedArray(array);
     if (isTyped) {
         sortObjectByFloat64Key(array, (x) => Number(x), options);
     } else {
-        sortObjectByFloat64Key(array, (x) => {
-            return x === null || x === undefined ? x : Number(x);
-        }, options);
+        ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, (x) => Number(x)));
+        options.start = start;
+        options.end = endP1;
+        sortObjectByFloat64Key(array, (x) => Number(x), options);
     }
-
-    //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    const asc = options.order !== 'desc';
-    const comparator = get64BitComparatorNonNull(asc);
-    let previousNumber = null;
-    let previousBigInt = null;
-    let previousIndex = null;
-    if (isTyped) {
-        for (let i = 0; i < array.length; i++) {
-            const bigInt = array[i];
-            if (bigInt === previousBigInt) {
-                continue;
-            }
-            const number = Number(bigInt);
-            if (number !== previousNumber) {
-                sortSubList(array, previousIndex, i, comparator, isTyped);
-                previousNumber = number;
-                previousBigInt = bigInt;
-                previousIndex = i;
-            }
-        }
-    } else {
-        for (let i = 0; i < array.length; i++) {
-            const bigInt = array[i];
-            if (bigInt === null || bigInt === undefined) {
-                continue;
-            }
-            if (bigInt === previousBigInt) {
-                continue;
-            }
-            const number = Number(bigInt);
-            if (number !== previousNumber) {
-                sortSubList(array, previousIndex, i, comparator, isTyped);
-                previousNumber = number;
-                previousBigInt = bigInt;
-                previousIndex = i;
-            }
-        }
-    }
-    // Fix: sort any remaining duplicates at the end
-    if (typeof previousIndex === 'number') {
-        sortSubList(array, previousIndex, array.length, comparator, isTyped);
-    }
+    correctBigIntCollisions(array, start, endP1, (value) => value, get64BitComparatorNonNull(asc), isTyped);
 }
 
 function sortObjectByBigIntKey(array, key, options) {
-    sortObjectByFloat64Key(array, (x) => {
-        const value = key(x);
-        return value === null || value === undefined ? value : Number(value);
-    }, options);
+    let {start, endP1, asc} = getSortOptions(options);
+    ({start, endP1} = validateSortRange(array, start, endP1));
+    let mapper = (x) => {
+        let v = key(x)
+        if (v === null || v === undefined) {
+            return v;
+        }
+        return Number(v);
+    };
+    ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, mapper));
+    options.start = start;
+    options.end = endP1;
+    sortObjectByFloat64Key(array, (x) => Number(key(x)), options);
 
-    //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    const asc = options.order !== 'desc';
-    const comparator = getObject64BitKeyComparatorNonNull(asc, key);
+    correctBigIntCollisions(array, start, endP1, key, getObject64BitKeyComparatorNonNull(asc, key), false);
+}
+
+function correctBigIntCollisions(array, start, endP1, key, comparator, isTyped) {
+    // Distinct BigInts can convert to the same floating-point number.
     let previousNumber = null;
     let previousIndex = null;
-    for (let i = 0; i < array.length; i++) {
+    for (let i = start; i < endP1; i++) {
         const element = array[i];
-        if (element === null || element === undefined) {
-            continue;
-        }
-        const value = key(element);
-        const number = Number(value);
-        if (number !== previousNumber) {
-            sortSubList(array, previousIndex, i, comparator, false);
+        const bigInt = key(element);
+        const number = Number(bigInt);
+        if (previousIndex === null || number !== previousNumber) {
             previousNumber = number;
             previousIndex = i;
         }
     }
-    // Fix: sort any remaining duplicates at the end
-    if (typeof previousIndex === 'number') {
-        sortSubList(array, previousIndex, array.length, comparator, false);
+    if (previousIndex !== null) {
+        sortSubList(array, previousIndex, endP1, comparator, isTyped);
     }
 }
 
