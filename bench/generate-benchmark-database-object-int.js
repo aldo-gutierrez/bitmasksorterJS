@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { performance } from "node:perf_hooks";
 import { pCountSortObjectByInt32Key } from "../src/algorithms/p-count-bit-sorter-object-int.js";
 import { quickBitSortObjectByInt32Key } from "../src/algorithms/quick-bit-sorter-object-int.js";

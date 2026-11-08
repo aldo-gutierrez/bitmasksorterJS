@@ -27,33 +27,33 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let arrayFloat64 = arrayNative;
-    const buffer = arrayFloat64.buffer
-    let arrayInt32 = new Int32Array(buffer); //[0] = lower 32 bits, [1] higher 32 bits
+    const arrayFloat64 = arrayNative;
+    const arrayInt32 = new Int32Array(arrayFloat64.buffer, arrayFloat64.byteOffset, arrayFloat64.length * 2); //[0] = lower 32 bits, [1] higher 32 bits
 
-    let mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, start, endP1);
-    let bList = getMaskAsArrayNumber(mask);
+    // The compact numeric buffer starts at zero even when the object range does not.
+    const mask = options.runtime.mask ?? calculateMaskNumber(arrayInt32, 0, n);
+    const bList = getMaskAsArrayNumber(mask);
     if (bList[0].length === 0 && bList[1].length === 0) {
         return;
     }
-    let auxFloat64 = new Float64Array(endP1 - start);
-    let auxObj = arrayObj.slice(start, endP1);
+    const auxFloat64 = new Float64Array(endP1 - start);
+    const auxObj = arrayObj.slice(start, endP1);
 
     if (bList[1].length > 0 && bList[1][0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj)
-            : partitionStableNumber(arrayInt32, arrayFloat64, arrayObj, start, endP1, 1 << 31, 1, auxFloat64, auxObj);
-        let n1 = finalLeft - start;
-        let n2 = endP1 - finalLeft;
+        const finalLeft = asc ? partitionReverseStableNumber(arrayInt32, arrayFloat64, arrayObj, start, n, 1 << 31, 1, auxFloat64, auxObj)
+            : partitionStableNumber(arrayInt32, arrayFloat64, arrayObj, start, n, 1 << 31, 1, auxFloat64, auxObj);
+        const n1 = finalLeft;
+        const n2 = n - finalLeft;
         if (n1 > 1) {
-            let bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, start, finalLeft));
+            const bList1 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, 0, finalLeft));
             if (!(bList1[0].length === 0 && bList1[1].length === 0)) {
                 radixSortNumber(false, arrayObj, start, n1, arrayFloat64, 0, bList1, auxFloat64, auxObj, 0);
             }
         }
         if (n2 > 1) {
-            let bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, endP1));
+            const bList2 = getMaskAsArrayNumber(calculateMaskNumber(arrayInt32, finalLeft, n));
             if (!(bList2[0].length === 0 && bList2[1].length === 0)) {
-                radixSortNumber(true, arrayObj, finalLeft, n2, arrayFloat64, n1, bList2, auxFloat64, auxObj, 0);
+                radixSortNumber(true, arrayObj, start + finalLeft, n2, arrayFloat64, n1, bList2, auxFloat64, auxObj, 0);
             }
         }
     } else {
@@ -68,11 +68,12 @@ export function radixBitSortObjectByFloat64Key(arrayObj, mapper, options = {}) {
 function radixSortNumber(asc, arrayObj, oStart, n, arrayF64, aStart, bList, auxF64, auxObj, auxObjStart) {
     let needsArrayCopy = 0;
     let auxF64Start = auxObjStart
+
     for (let elementIndex = 0; elementIndex <= 1; elementIndex++) {
         const log2EffectiveRange = bList[elementIndex][0] - bList[elementIndex][bList.length - 1] + 1;
         const sections = getSections(bList[elementIndex], n > Math.ceil(log2EffectiveRange / MAX_BITS_RADIX_SORT) * 1500 ? MAX_BITS_RADIX_SORT : 8);
         for (let index = 0; index < sections.length; index++) {
-            let section = sections[index];
+            const section = sections[index];
             if (section.shift === 0) {
                 partitionStableLastBitsNumber(asc, arrayObj, oStart, n, section, arrayF64, elementIndex, aStart, auxF64, auxF64Start, auxObj, auxObjStart);
                 needsArrayCopy++;
@@ -92,15 +93,15 @@ function radixSortNumber(asc, arrayObj, oStart, n, arrayF64, aStart, bList, auxF
     }
 }
 
-function partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj) {
-    let left = start;
+function partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, oStart, n, mask, elementIndex, auxF64, auxObj) {
+    let left = 0;
     let right = 0;
-    for (let i = start; i < endP1; i++) {
+    for (let i = 0; i < n; i++) {
         const element = arrayF64[i];
-        const elementObj = arrayObj[i];
+        const elementObj = arrayObj[oStart + i];
         if (!((arrayI32[i * 2 + elementIndex] & mask) === 0)) {
             arrayF64[left] = element;
-            arrayObj[left] = elementObj;
+            arrayObj[oStart + left] = elementObj;
             left++;
         } else {
             auxF64[right] = element;
@@ -109,19 +110,19 @@ function partitionReverseStableNumber(arrayI32, arrayF64, arrayObj, start, endP1
         }
     }
     arrayCopyTypedArray(auxF64, 0, arrayF64, left, right);
-    arrayCopy(auxObj, 0, arrayObj, left, right);
+    arrayCopy(auxObj, 0, arrayObj, oStart + left, right);
     return left;
 }
 
-function partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask, elementIndex, auxF64, auxObj) {
-    let left = start;
+function partitionStableNumber(arrayI32, arrayF64, arrayObj, oStart, n, mask, elementIndex, auxF64, auxObj) {
+    let left = 0;
     let right = 0;
-    for (let i = start; i < endP1; i++) {
+    for (let i = 0; i < n; i++) {
         const element = arrayF64[i];
-        const elementObj = arrayObj[i];
+        const elementObj = arrayObj[oStart + i];
         if ((arrayI32[i * 2 + elementIndex] & mask) === 0) {
             arrayF64[left] = element;
-            arrayObj[left] = elementObj;
+            arrayObj[oStart + left] = elementObj;
             left++;
         } else {
             auxF64[right] = element;
@@ -130,13 +131,12 @@ function partitionStableNumber(arrayI32, arrayF64, arrayObj, start, endP1, mask,
         }
     }
     arrayCopyTypedArray(auxF64, 0, arrayF64, left, right);
-    arrayCopy(auxObj, 0, arrayObj, left, right);
+    arrayCopy(auxObj, 0, arrayObj, oStart + left, right);
     return left;
 }
 
 function partitionStableLastBitsNumber(asc, arrayObj, oStart, n, section, arrayF64, elementIndex, aStart, auxF64, auxF64Start, auxObj, auxStart) {
-    const buffer = arrayF64.buffer;
-    const arrayI32 = new Int32Array(buffer);
+    const arrayI32 = new Int32Array(arrayF64.buffer, arrayF64.byteOffset, arrayF64.length * 2); //[0] = lower 32 bits, [1] higher 32 bits
 
     const mask = section.mask;
     const range = section.range;
@@ -158,8 +158,7 @@ function partitionStableLastBitsNumber(asc, arrayObj, oStart, n, section, arrayF
 }
 
 function partitionStableGroupBitsNumber(asc, arrayObj, oStart, n, section, arrayF64, elementIndex, aStart, auxF64, auxF64Start, auxObj, auxStart) {
-    const buffer = arrayF64.buffer;
-    const arrayI32 = new Int32Array(buffer);
+    const arrayI32 = new Int32Array(arrayF64.buffer, arrayF64.byteOffset, arrayF64.length * 2); //[0] = lower 32 bits, [1] higher 32 bits
 
     const mask = section.mask;
     const range = section.range;
@@ -180,4 +179,3 @@ function partitionStableGroupBitsNumber(asc, arrayObj, oStart, n, section, array
         auxObj[index + auxStart] = elementObj;
     }
 }
-

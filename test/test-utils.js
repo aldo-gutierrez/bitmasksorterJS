@@ -1,6 +1,6 @@
 export function testArraysEquals(expected, current, f) {
     let firstError = null;
-    let equal = expected.length === current.length && current.every(function (value, index) {
+    const equal = expected.length === current.length && current.every(function (value, index) {
         if (value === expected[index]) {
             return true;
         } else {

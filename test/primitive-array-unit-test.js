@@ -168,6 +168,135 @@ describe('primitive array sorting', function () {
         ]);
     });
 
+    it('corrects every bigint precision-collision group for arrays and object keys', function () {
+        const low = 9007199254740992n;
+        const input = [low + 1n, low, low + 9n, low + 8n, low + 16n];
+        for (const type of ['bigint', 'int64', 'uint64', undefined]) {
+            for (const order of ['asc', 'desc']) {
+                const values = order === 'asc' ? input : input.slice().reverse();
+                const expected = input.slice().sort((a, b) =>
+                    order === 'asc' ? (a > b ? 1 : a < b ? -1 : 0) : (a < b ? 1 : a > b ? -1 : 0)
+                );
+                const actual = values.slice();
+                sort(actual, {type, order});
+                assert.deepStrictEqual(actual, expected);
+
+                const items = values.map(value => ({value}));
+                sort(items, item => item.value, {type, order});
+                assert.deepStrictEqual(items.map(item => item.value), expected);
+            }
+        }
+    });
+
+    it('corrects large bigint collision groups without exceeding argument limits', function () {
+        const low = 9007199254740992n;
+        const values = Array.from({length: 140000}, (_, i) => low + BigInt(i % 2));
+        values.push(low + 8n);
+        sort(values, {type: 'bigint'});
+        assert(values.slice(0, 70000).every(value => value === low));
+        assert(values.slice(70000, 140000).every(value => value === low + 1n));
+        assert.strictEqual(values[140000], low + 8n);
+    });
+
+    describe('bigint subrange isolation', function () {
+        const low = 9007199254740992n;
+        const high = low + 1n;
+        const cases = [
+            {
+                name: 'ascending',
+                input: [high, high, low, low],
+                expected: [high, low, high, low],
+                options: {start: 1, end: 3, order: 'asc', type: 'bigint'}
+            },
+            {
+                name: 'descending with inferred type',
+                input: [low, low, high, high],
+                expected: [low, high, low, high],
+                options: {start: 1, end: 3, order: 'desc'}
+            },
+            {
+                name: 'empty range',
+                input: [high, low, high, low],
+                expected: [high, low, high, low],
+                options: {start: 1, end: 1, type: 'bigint'}
+            },
+            {
+                name: 'single-element range',
+                input: [high, low, high, low],
+                expected: [high, low, high, low],
+                options: {start: 1, end: 2, type: 'bigint'}
+            },
+            {
+                name: 'mixed signs',
+                input: [high, low, -30n, 10n, -20n, high],
+                expected: [high, low, -30n, -20n, 10n, high],
+                options: {start: 2, end: 5, type: 'bigint'}
+            },
+            {
+                name: 'nulls first',
+                input: [high, 3n, null, 1n, undefined, 2n, low],
+                expected: [high, null, 1n, 2n, 3n, undefined, low],
+                options: {start: 1, end: 6, type: 'bigint', nulls: 'first'}
+            },
+            {
+                name: 'nulls last',
+                input: [high, 3n, null, 1n, undefined, 2n, low],
+                expected: [high, 1n, 2n, 3n, null, undefined, low],
+                options: {start: 1, end: 6, type: 'bigint', nulls: 'last'}
+            },
+            {
+                name: 'normalized descending order',
+                input: [low, low, high, high],
+                expected: [low, high, low, high],
+                options: {start: 1, end: 3, type: 'bigint', order: 'DESC'}
+            }
+        ];
+
+        for (const {name, input, expected, options} of cases) {
+            it(`sorts an ordinary array: ${name}`, function () {
+                const actual = input.slice();
+                sort(actual, {...options});
+                assert.deepStrictEqual(actual, expected);
+            });
+
+            it(`sorts object keys: ${name}`, function () {
+                const actual = input.map((key, index) => ({key, index}));
+                const original = actual.slice();
+                sort(actual, item => item.key, {...options});
+                assert.deepStrictEqual(actual.map(item => item.key), expected);
+                for (let i = 0; i < actual.length; i++) {
+                    if (i < options.start || i >= options.end) {
+                        assert.strictEqual(actual[i], original[i]);
+                    }
+                }
+            });
+        }
+
+        it('sorts typed array subranges without changing their boundaries', function () {
+            for (const type of [BigInt64Array, BigUint64Array]) {
+                const actual = new type([high, high, low, low]);
+                sort(actual, {start: 1, end: 3});
+                assert.deepStrictEqual(Array.from(actual), [high, low, high, low]);
+            }
+        });
+
+        it('preserves secondary-key order for equal bigint keys within the range', function () {
+            const actual = [
+                {key: high, name: 'outside first'},
+                {key: high, name: 'z'},
+                {key: low, name: 'b'},
+                {key: low, name: 'a'},
+                {key: low, name: 'outside last'}
+            ];
+            const original = actual.slice();
+            sort(actual, [
+                {key: item => item.key, type: 'bigint'},
+                {key: item => item.name, type: 'string'}
+            ], {start: 1, end: 4});
+            assert.deepStrictEqual(actual, [original[0], original[3], original[2], original[1], original[4]]);
+        });
+    });
+
 
     it('sorts date arrays by timestamp', function () {
         const values = [

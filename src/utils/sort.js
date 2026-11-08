@@ -31,21 +31,20 @@ export function sort(array, ...parameters) {
         return;
     }
     let parameter2 = parameters[0];
-    let parameter3 = parameters[1];
+    const parameter3 = parameters[1];
     if (isTypedArray(array)) {
         if (!isPlainObject(parameter2)) {
             parameter2  = {}
         }
-        parameter2.type = parameter2.type?.toLowerCase() || "";
+        parameter2.type = normalizeType(parameter2.type);
         if (array instanceof Float64Array || array instanceof Float32Array ||  array instanceof Uint32Array) {
             sortFloat64(array, parameter2);
         } else {
             const isBigInt64 = isBigInt64Array(array);
             const isBigUint64 = isBigUint64Array(array);
             if (isBigInt64 || isBigUint64) {
-                const options = parameter2;
                 parameter2.type = isBigInt64 ? "int64" : "uint64";
-                sortElementArray(options.type, array, options);
+                sortFloat64(array, parameter2);
             } else {
                 sortInt32(array, parameter2);
             }
@@ -55,7 +54,7 @@ export function sort(array, ...parameters) {
             sortElementArray("", array, {});
         } else if (parameters.length === 1) {
             if (isPlainObject(parameter2)) {
-                parameter2.type = parameter2.type?.toLowerCase() || "";
+                parameter2.type = normalizeType(parameter2.type);
                 sortElementArray(parameter2.type, array, parameter2);
             } else if (isFunction(parameter2)) {
                 sortObjectArrayByKey("", array, parameter2, {})
@@ -66,7 +65,7 @@ export function sort(array, ...parameters) {
                     let options;
                     if (isPlainObject(sortBy)) {
                         options = sortBy;
-                        options.type = options.type?.toLowerCase() || "";
+                        options.type = normalizeType(options.type);
                     } else if (isFunction(sortBy)) {
                         options = {};
                         options.key = sortBy;
@@ -87,7 +86,7 @@ export function sort(array, ...parameters) {
                 throw new Error("Invalid parameter type. Expected an object as the third parameter.");
             }
             if (isFunction(parameter2)) {
-                parameter3.type = parameter3.type ? parameter3.type.toLowerCase() : "";
+                parameter3.type = normalizeType(parameter3.type);
                 sortObjectArrayByKey(parameter3.type, array, parameter2, parameter3);
             } else {
                 const sortByArray = parameter2;
@@ -103,7 +102,7 @@ export function sort(array, ...parameters) {
                         if (key === null || key === undefined) {
                             throw new Error("Invalid parameter type. Expected a function (x) ==> x.field");
                         }
-                        type = sortBy.type ? sortBy.type.toLowerCase() : "";
+                        type = normalizeType(sortBy.type);
                         if (start === undefined || end === undefined) {
                             start = sortBy.start ?? undefined;
                             end = sortBy.end ?? undefined;
@@ -126,6 +125,13 @@ export function sort(array, ...parameters) {
     }
 }
 
+function normalizeType(type) {
+    type = type?.toLowerCase() || "";
+    if (type === "int") return "int32";
+    if (type === "number") return "float64";
+    return type;
+}
+
 function mergeOptions(globalOptions, userOptions) {
     return {
         ...globalOptions,
@@ -138,87 +144,66 @@ function mergeOptions(globalOptions, userOptions) {
 }
 
 function sortBigIntArray(array, options) {
+    let {start, endP1, asc} = getSortOptions(options);
+    ({start, endP1} = validateSortRange(array, start, endP1));
     const isTyped = isTypedArray(array);
     if (isTyped) {
         sortObjectByFloat64Key(array, (x) => Number(x), options);
     } else {
-        sortObjectByFloat64Key(array, (x) => {
-            return x === null || x === undefined ? x : Number(x);
-        }, options);
+        ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, (x) => Number(x)));
+        options.start = start;
+        options.end = endP1;
+        options.nulls = "ignore";
+        sortObjectByFloat64Key(array, (x) => Number(x), options);
     }
-
-    //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    const asc = options.order !== 'desc';
-    const comparator = get64BitComparatorNonNull(asc);
-    let previousNumber = null;
-    let previousBigInt = null;
-    let previousIndex = null;
-    if (isTyped) {
-        for (let i = 0; i < array.length; i++) {
-            const bigInt = array[i];
-            if (bigInt === previousBigInt) {
-                continue;
-            }
-            const number = Number(bigInt);
-            if (number !== previousNumber) {
-                sortSubList(array, previousIndex, i, comparator, isTyped);
-                previousNumber = number;
-                previousBigInt = bigInt;
-                previousIndex = i;
-            }
-        }
-    } else {
-        for (let i = 0; i < array.length; i++) {
-            const bigInt = array[i];
-            if (bigInt === null || bigInt === undefined) {
-                continue;
-            }
-            if (bigInt === previousBigInt) {
-                continue;
-            }
-            const number = Number(bigInt);
-            if (number !== previousNumber) {
-                sortSubList(array, previousIndex, i, comparator, isTyped);
-                previousNumber = number;
-                previousBigInt = bigInt;
-                previousIndex = i;
-            }
-        }
-    }
-    // Fix: sort any remaining duplicates at the end
-    if (typeof previousIndex === 'number') {
-        sortSubList(array, previousIndex, array.length, comparator, isTyped);
-    }
+    correctBigIntCollisions(array, start, endP1, (value) => value, get64BitComparatorNonNull(asc), isTyped);
 }
 
 function sortObjectByBigIntKey(array, key, options) {
-    sortObjectByFloat64Key(array, (x) => {
-        const value = key(x);
-        return value === null || value === undefined ? value : Number(value);
-    }, options);
-
-    //fix 2^53-1 limit for int64 and uint64, but this is the best we can do in JS
-    const asc = options.order !== 'desc';
-    const comparator = getObject64BitKeyComparatorNonNull(asc, key);
-    let previousNumber = null;
-    let previousIndex = null;
-    for (let i = 0; i < array.length; i++) {
-        const element = array[i];
-        if (element === null || element === undefined) {
-            continue;
+    let {start, endP1, asc} = getSortOptions(options);
+    ({start, endP1} = validateSortRange(array, start, endP1));
+    const mapper = (x) => {
+        const v = key(x)
+        if (v === null || v === undefined) {
+            return v;
         }
-        const value = key(element);
-        const number = Number(value);
+        return Number(v);
+    };
+    ({start, endP1} = handleNullsUndefinedAndNans(array, options.nulls, start, endP1, mapper));
+    options.start = start;
+    options.end = endP1;
+    options.nulls = "ignore";
+    sortObjectByFloat64Key(array, (x) => Number(key(x)), options);
+
+    correctBigIntCollisions(array, start, endP1, key, getObject64BitKeyComparatorNonNull(asc, key), false);
+}
+
+function correctBigIntCollisions(array, start, endP1, key, comparator, isTyped) {
+    // Distinct BigInts can convert to the same floating-point number.
+    let previousNumber = null;
+    let previousIndex = start;
+    const sortGroup = (end) => {
+        if (end - previousIndex < 2) return;
+        if (isTyped) {
+            array.subarray(previousIndex, end).sort(comparator);
+        } else {
+            const group = array.slice(previousIndex, end).sort(comparator);
+            for (let i = 0; i < group.length; i++) {
+                array[previousIndex + i] = group[i];
+            }
+        }
+    };
+    for (let i = start; i < endP1; i++) {
+        const element = array[i];
+        const bigInt = key(element);
+        const number = Number(bigInt);
         if (number !== previousNumber) {
-            sortSubList(array, previousIndex, i, comparator, false);
+            sortGroup(i);
             previousNumber = number;
             previousIndex = i;
         }
     }
-    // Fix: sort any remaining duplicates at the end
-    if (typeof previousIndex === 'number') {
-        sortSubList(array, previousIndex, array.length, comparator, false);
-    }
+    sortGroup(endP1);
 }
 
 
@@ -229,7 +214,7 @@ function sortElementArray(type, array, options) {
         if (type.length === 0) {
             type = detectPrimitiveValueType(array);
         }
-        if (type === "float64" || type === "number") {
+        if (type === "float64") {
             sortFloat64(array, options);
         } else if (type === "date") {
             sortObjectByFloat64Key(array, (x) => x.getTime(), options)
@@ -267,12 +252,11 @@ function sortObjectArrayByKey(type, array, key, options) {
             }, options);
         } else if (type === "string") {
             //skip null objects and undefined objects in array
-            let {start, endP1, asc, nulls} = getSortOptions(options);
+            let {start, endP1, nulls} = getSortOptions(options);
             ({start, endP1} = validateSortRange(array, start, endP1));
-            let arrayNative;
             try {
                 ({
-                    start, endP1, arrayNative
+                    start, endP1
                 } = handleNullsUndefinedAndNans(array, nulls, start, endP1, key, undefined));
             } catch (e) {
                 throw new Error("Error in handleNullsUndefinedAndNans: " + e.message);

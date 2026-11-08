@@ -1,4 +1,5 @@
 // Requires Node.js 16+ to run this benchmark
+import process from 'node:process';
 import {
     pCountBitSortInt32, quickBitSortInt32, americanFlagBitSortInt32,
     radixBitSortInt32, radixBitSortFloat64, pCountBitMinMaxSortInt32, sortInt32
@@ -9,7 +10,7 @@ let fastSort = null;
 try {
     const _fs = await import('fast-sort');
     fastSort = _fs && (_fs.default || _fs);
-} catch (e) {
+} catch (_e) {
     console.warn('fast-sort not installed. Install with: npm install --save-dev fast-sort');
 }
 
@@ -17,7 +18,7 @@ let timsort = null;
 try {
     const _ts = await import('timsort');
     timsort = _ts && (_ts.default || _ts);
-} catch (e) {
+} catch (_e) {
     console.warn('timsort not installed. Install with: npm --save-dev timsort');
 }
 
@@ -30,7 +31,7 @@ const sizes = [1000000];
 const ranges = [1000, 100000, 1000000, 1000000000];
 console.log("Comparing Sorters verify:" + VERIFY_SORT + " with " + runs + " runs");
 
-let algorithms = [
+const algorithms = [
     {
         'name': 'Native',
         'sortFunction': (array) => {
@@ -150,11 +151,11 @@ if (timsort) {
 }
 
 for (let s = 0; s < sizes.length; s++) {
-    let size = sizes[s];
+    const size = sizes[s];
     for (let r = 0; r < ranges.length; r++) {
-        let range = ranges[r];
+        const range = ranges[r];
 
-        let generators = [
+        const generators = [
             {
                 "name": `Positive Integer Numbers, size: ${size}, range: ${range}`,
                 "genFunction": () => Array.from({length: size}, () => Math.floor(Math.random() * range)),
@@ -182,30 +183,30 @@ for (let s = 0; s < sizes.length; s++) {
         ]
 
         for (let g = 0; g < generators.length; g++) {
-            let generator = generators[g];
-            let origArray = generator.genFunction();
+            const generator = generators[g];
+            const origArray = generator.genFunction();
 
             for (let a = 0; a < algorithms.length; a++) {
-                let algorithm = algorithms[a];
+                const algorithm = algorithms[a];
                 algorithm.totalElapsed = 0;
                 algorithm.iterations = 0;
             }
 
             for (let a = 0; a < algorithms.length; a++) {
                 for (let i = 0; i < runs; i++) {
-                    let algorithm = algorithms[a];
+                    const algorithm = algorithms[a];
                     if (!((generator.floatingPoint && !algorithm.floatingPoint) || (generator.negative && !algorithm.negative) || (algorithm.range && algorithm.range < range))) {
                         //
                         let arrayK = origArray.slice();
-                        let start = performance.now();
+                        const start = performance.now();
                         arrayK = algorithm.sortFunction(arrayK);
-                        let elapsedP = performance.now() - start;
+                        const elapsedP = performance.now() - start;
                         let equal = true;
                         if (VERIFY_SORT) {
                             if (a === 0) {
                                 algorithm["sortedArray"] = arrayK;
                             } else {
-                                let arrayJS = algorithms[0]["sortedArray"];
+                                const arrayJS = algorithms[0]["sortedArray"];
                                 equal = testArraysEquals(arrayJS, arrayK, (firstError) => {
                                     if (verbose) {
                                         console.log(`Arrays Not Equal ${algorithm.name} + error at ${JSON.stringify(firstError)}`);
@@ -235,7 +236,7 @@ for (let s = 0; s < sizes.length; s++) {
             console.log();
             console.log(`Test: ${generator.name}`);
             for (let a = 0; a < algorithms.length; a++) {
-                let algorithm = algorithms[a];
+                const algorithm = algorithms[a];
                 if (!((generator.floatingPoint && !algorithm.floatingPoint) || (generator.negative && !algorithm.negative) || (algorithm.range && algorithm.range < range))) {
                     if (algorithm.totalElapsed > 0) {
                         const avg = algorithm.iterations > 0 ? algorithm.totalElapsed / algorithm.iterations : 0;
@@ -248,4 +249,3 @@ for (let s = 0; s < sizes.length; s++) {
         }
     }
 }
-

@@ -6,9 +6,9 @@ export function calculateMaskNumberOld(array, start, endP1) {
     let pMask1 = 0;
     let invMask1 = 0;
     for (let i = start; i < endP1; ++i) {
-        let im2 = i * 2;
-        let ei0 = array[im2];
-        let ei1 = array[im2 + 1];
+        const im2 = i * 2;
+        const ei0 = array[im2];
+        const ei1 = array[im2 + 1];
         pMask0 = pMask0 | ei0;
         invMask0 = invMask0 | (~ei0);
         pMask1 = pMask1 | ei1;
@@ -24,11 +24,11 @@ export function calculateMaskNumberNew(array, start, endP1) {
     let and_mask_1 = ~0;
     for (let i = start; i < endP1; ++i) {
         // Bitwise shift is sometimes faster than multiplication for index calc
-        let im2 = i << 1;
+        const im2 = i << 1;
 
         // 1. Group Memory Reads
-        let ei0 = array[im2];
-        let ei1 = array[im2 + 1];
+        const ei0 = array[im2];
+        const ei1 = array[im2 + 1];
 
         // 2. Interleave Independent Operations
         // Spacing out the operations on ei0 and ei1 allows the CPU

@@ -6,7 +6,7 @@ import {
     swap,
     validateSortRange
 } from "../utils/sorter-utils.js";
-import { calculateMaskInt, partitionReverseNotStableUpperBit } from "../utils/sorter-utils-int.js";
+import { calculateMaskInt, partitionNotStable, partitionReverseNotStableUpperBit } from "../utils/sorter-utils-int.js";
 
 export function americanFlagBitSortInt32(array, options = {}) {
     options.runtime = options.runtime || {};
@@ -17,13 +17,15 @@ export function americanFlagBitSortInt32(array, options = {}) {
     if (n < 2) {
         return;
     }
-    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1);
+    const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = partitionReverseNotStableUpperBit(array, start, endP1);
+        const finalLeft = asc
+            ? partitionReverseNotStableUpperBit(array, start, endP1)
+            : partitionNotStable(array, start, endP1, 1 << 31);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
         let mask1 = 0;
@@ -42,42 +44,43 @@ export function americanFlagBitSortInt32(array, options = {}) {
         }
         if (n1 > 1) {
             bList = getMaskAsArray(mask1);
-            aFlagSortInt(array, start, finalLeft, bList);
+            aFlagSortInt(array, start, finalLeft, bList, asc);
         }
         if (n2 > 1) {
             bList = getMaskAsArray(mask2);
-            aFlagSortInt(array, finalLeft, endP1, bList);
+            aFlagSortInt(array, finalLeft, endP1, bList, asc);
         }
     } else {
-        aFlagSortInt(array, start, endP1, bList);
+        aFlagSortInt(array, start, endP1, bList, asc);
     }
 }
 
-function aFlagSortInt(array, start, endP1, bList) {
+function aFlagSortInt(array, start, endP1, bList, asc) {
     const sections = getSections(bList, 4);
-    aFlagSortIntAux(array, start, endP1, sections, sections.length - 1);
+    aFlagSortIntAux(array, start, endP1, sections, sections.length - 1, asc);
 }
 
-function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
-    let section = sections[sectionIndex];
-    let bits = section.bits;
-    let shift = section.shift;
-    let mask = section.mask;
-    let range = 1 << bits;
-    let nextFree = new Int32Array(range);
+function aFlagSortIntAux(array, start, endP1, sections, sectionIndex, asc) {
+    const section = sections[sectionIndex];
+    const bits = section.bits;
+    const shift = section.shift;
+    const mask = section.mask;
+    const range = 1 << bits;
+    const bucketXor = asc ? 0 : range - 1;
+    const nextFree = new Int32Array(range);
     for (let i = start; i < endP1; i++) {
-        nextFree[(array[i] & mask) >> shift]++;
+        nextFree[((array[i] & mask) >> shift) ^ bucketXor]++;
     }
     calculateSumOffsets(true, nextFree, range);
-    let offsets = nextFree.slice();
+    const offsets = nextFree.slice();
     let curBlock = 0;
     while (curBlock < range) {
-        let i = nextFree[curBlock] + start;
+        const i = nextFree[curBlock] + start;
         if (i >= endP1 || ((curBlock + 1 < range) && i >= offsets[curBlock + 1] + start)) {
             curBlock = curBlock + 1;
             continue;
         }
-        const elementHash = (array[i] & mask) >> shift;
+        const elementHash = ((array[i] & mask) >> shift) ^ bucketXor;
         const elementIndex = nextFree[elementHash] + start;
         if (i !== elementIndex) {
             swap(array, i, elementIndex);
@@ -87,10 +90,10 @@ function aFlagSortIntAux(array, start, endP1, sections, sectionIndex) {
     if (sectionIndex > 0) {
         const N = endP1 - start;
         for (let i = 0; i < offsets.length; i++) {
-            let start2 = offsets[i];
-            let end2 = i + 1 < offsets.length ? offsets[i + 1] : N;
+            const start2 = offsets[i];
+            const end2 = i + 1 < offsets.length ? offsets[i + 1] : N;
             if (end2 - start2 > 1) {
-                aFlagSortIntAux(array, start2 + start, end2 + start, sections, sectionIndex - 1);
+                aFlagSortIntAux(array, start2 + start, end2 + start, sections, sectionIndex - 1, asc);
             }
         }
     }

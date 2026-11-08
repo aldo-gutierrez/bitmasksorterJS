@@ -126,14 +126,15 @@ The sort function picks the best algorithm for your specific data, considering t
 
 | Type                  | Example                                                     |
 |-----------------------|-------------------------------------------------------------|
-| `int32`               | 32-bit signed integer values                                |
+| `int32` or `int`      | 32-bit signed integer values                                |
 | `float64` or `number` | JavaScript numeric values                                   |
 | `string`              | String values                                               |
 | `boolean`             | Boolean values                                              |
 | `date`                | `Date` values, sorted by timestamp                          |
-| `bigint`, `int64`     | BigInt values in range: -1.7976 × 10³⁰⁸ ...  1.7976 × 10³⁰⁸ |
+| `bigint`              | BigInt values in range: -1.7976 × 10³⁰⁸ ...  1.7976 × 10³⁰⁸ |
+| `int64`               | BigInt values in range: -2^63 ...  2^63-1                   |
 
-For typed arrays, `sort` also recognizes these types: `uint32`, `uint64`, `float32`, `int16`, `uint16`, `int8`, `uint8` and , `uint8clamped`
+For typed arrays, `sort` also autodetect these types: `float64`, `float32`, `int64`, `uint64`, `int32`, `uint32`, `int16`, `uint16`, `int8`, `uint8` and , `uint8clamped`
 
 ### Specialized functions
 
@@ -149,7 +150,7 @@ The general purpose API is recommended but the package also exports mid-level al
 The package also exports lower-level algorithms and convenience functions from `src/main.js`:
 These functions are useful when a specific algorithm is needed. Their input constraints and stability characteristics can differ; consult the implementation and tests before relying on algorithm-specific behavior.
 
-`radixBitSortInt32`, `radixBitSortFloat64`, `radixBitSortFloat64`, `radixBitSortObjectByInt32Key`, `radixBitV2SortObjectByInt32Key`, `radixBitSortObjectByFloat64Key`, `quickBitSortInt32`, `quickBitSortInt32`, `quickBitSortObjectByInt32Key`, `quickBitLowMemSortObjectByInt32Key`,`pCountBitSortInt32`, `pCountBitMinMaxSortInt32`, `pCountSortObjectByInt32Key`, `americanFlagBitSortInt32`
+`radixBitSortInt32`, `radixBitSortFloat64`, `radixBitSortObjectByInt32Key`, `radixBitV2SortObjectByInt32Key`, `radixBitSortObjectByFloat64Key`, `quickBitSortInt32`, `quickBitSortObjectByInt32Key`, `quickBitLowMemSortObjectByInt32Key`,`pCountBitSortInt32`, `pCountBitMinMaxSortInt32`, `pCountSortObjectByInt32Key`, `americanFlagBitSortInt32`
 
 We implemented it with BitMask
 - Radix Sort with BitMask (stable)
@@ -229,17 +230,19 @@ Array of objects with int32 keys
 
 To search for the maximum speedup on you machine execute the following commands
 
+The `times` report displays aligned speedup multipliers with two decimal places.
+
 for 32 bit integer arrays
 ```sh
 node bench/generate-benchmark-database-int.js 18 5     
-node bench/report-from-database.js .\bench\sort-results.jsonl times
+node bench/report-from-database.js bench/sort-results.jsonl times
 ```
 
 for array of objects with 32 bit key
 
 ```sh
 node bench/generate-benchmark-database-object-int.js 18 5     
-node bench/report-from-database.js .\bench\sort-object-results.jsonl times
+node bench/report-from-database.js bench/sort-object-results.jsonl times
 ```
 
 Additionally, see:

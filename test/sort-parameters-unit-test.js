@@ -2,6 +2,37 @@ import assert from 'assert';
 import {sort} from '../src/utils/sort.js';
 
 describe('sort wrapper parameter dispatch', function () {
+    for (const {alias, canonical, values} of [
+        {alias: 'int', canonical: 'int32', values: [3, -1, 2]},
+        {alias: 'number', canonical: 'float64', values: [3.5, -1.25, 2.2]}
+    ]) {
+        it(`normalizes ${alias} for ordinary arrays and object keys`, function () {
+            const expected = values.slice().sort((a, b) => a - b);
+            const array = values.slice();
+            const options = {type: alias.toUpperCase()};
+            sort(array, options);
+            assert.strictEqual(options.type, canonical);
+            assert.deepStrictEqual(array, expected);
+
+            const items = values.map(value => ({value}));
+            const keyOptions = {type: alias.toUpperCase()};
+            sort(items, item => item.value, keyOptions);
+            assert.strictEqual(keyOptions.type, canonical);
+            assert.deepStrictEqual(items.map(item => item.value), expected);
+
+            for (const globalOptions of [undefined, {order: 'asc'}]) {
+                const keyedItems = values.map(value => ({value}));
+                const specs = [{key: item => item.value, type: alias.toUpperCase()}];
+                if (globalOptions) {
+                    sort(keyedItems, specs, globalOptions);
+                } else {
+                    sort(keyedItems, specs);
+                }
+                assert.deepStrictEqual(keyedItems.map(item => item.value), expected);
+            }
+        });
+    }
+
     it('dispatches mapper sorts using the explicit options.type', function () {
         const items = [
             {id: 3},
@@ -111,6 +142,22 @@ describe('sort wrapper parameter dispatch', function () {
         const arr = [9, 7, 8, 1, 2];
         sort(arr, {start: 1, end: 4});
         assert.deepStrictEqual(arr, [9, 1, 7, 8, 2]);
+    });
+
+    it('sorts mixed-sign float object keys in a subrange with null placement', function () {
+        const values = [99, -3, 5, -1, null, 2, 88];
+        for (const {order, nulls, expected} of [
+            {order: 'asc', nulls: 'first', expected: [99, null, -3, -1, 2, 5, 88]},
+            {order: 'desc', nulls: 'last', expected: [99, 5, 2, -1, -3, null, 88]}
+        ]) {
+            const items = values.map(value => ({value}));
+            const first = items[0];
+            const last = items[items.length - 1];
+            sort(items, item => item.value, {type: 'float64', start: 1, end: 6, order, nulls});
+            assert.deepStrictEqual(items.map(item => item.value), expected);
+            assert.strictEqual(items[0], first);
+            assert.strictEqual(items[items.length - 1], last);
+        }
     });
 
     it('supports per-field order overrides in multi-field specs', function () {

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 
 const inputPath = process.argv[2] || path.join("bench", "sort-results.jsonl");
 const format = process.argv[3];
@@ -124,6 +125,7 @@ if (format === "array") {
     console.table(report);
 } else if (format === "times") {
     const multipliersByIntersection = new Map();
+    let valueWidth = 5;
     for (const row of report) {
         const intersectionKey = `${row.n}:${row.range}`;
         const intersectionSummaries = summariesByIntersection.get(intersectionKey);
@@ -148,10 +150,9 @@ if (format === "array") {
                 `Best algorithm median time must be positive for n=${row.n}, range=${row.range}`
             );
         }
-        multipliersByIntersection.set(
-            intersectionKey,
-            Number((native.medianTimeMs / best.medianTimeMs).toFixed(2))
-        );
+        const multiplier = (native.medianTimeMs / best.medianTimeMs).toFixed(2);
+        multipliersByIntersection.set(intersectionKey, multiplier);
+        valueWidth = Math.max(valueWidth, multiplier.length);
     }
 
     const sizes = [...new Set(report.map((row) => row.n))].sort((a, b) => a - b);
@@ -159,8 +160,8 @@ if (format === "array") {
     console.log("[");
     sizes.forEach((size, index) => {
         const values = ranges.map((range) =>
-            multipliersByIntersection.get(`${size}:${range}`) ?? null
-        ).map((multiplier) => JSON.stringify(multiplier)).join(", ");
+            (multipliersByIntersection.get(`${size}:${range}`) ?? "null").padStart(valueWidth)
+        ).join(", ");
         const comma = index < sizes.length - 1 ? "," : "";
         console.log(`    [ ${values} ]${comma}`);
     });

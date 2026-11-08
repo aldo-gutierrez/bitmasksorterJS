@@ -15,15 +15,15 @@ export function quickBitSortObjectByInt32Key(array, mapper, options = {}) {
     if (n < 2) {
         return;
     }
-    let mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
+    const mask = options.runtime.mask ?? calculateMaskInt(array, start, endP1, mapper);
     let bList = getMaskAsArray(mask);
     if (bList.length === 0) {
         return;
     }
 
-    let aux = Array(endP1 - start);
+    const aux = Array(endP1 - start);
     if (bList[0] === 31) { //there are negative numbers and positive numbers
-        let finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
+        const finalLeft = asc ? partitionReverseStableInt(array, start, endP1, 1 << 31, aux, mapper)
             : partitionStableInt(array, start, endP1, 1 << 31, aux, mapper);
         let n1 = finalLeft - start;
         let n2 = endP1 - finalLeft;
@@ -55,20 +55,20 @@ export function quickBitSortObjectByInt32Key(array, mapper, options = {}) {
 }
 
 function qbSortInt(asc, array, mapper, start, endP1, bList, bListIndex, aux, recalculate) {
-    const n = endP1 - start;
+    const _n = endP1 - start;
     if (recalculate && bListIndex < 3) {
-        let mask = calculateMaskInt(array, start, endP1, mapper);
+        const mask = calculateMaskInt(array, start, endP1, mapper);
         bList = getMaskAsArray(mask);
         bListIndex = 0;
     }
-    let kDiff = bList.length - bListIndex;
+    const kDiff = bList.length - bListIndex;
     if (kDiff < 1) {
         return;
     }
-    let sortMask = 1 << bList[bListIndex];
-    let finalLeft = asc ? partitionStableInt(array, start, endP1, sortMask, aux, mapper)
+    const sortMask = 1 << bList[bListIndex];
+    const finalLeft = asc ? partitionStableInt(array, start, endP1, sortMask, aux, mapper)
         : partitionReverseStableInt(array, start, endP1, sortMask, aux, mapper);
-    let recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
+    const recalculateBitMask = (finalLeft - start <= 1 || endP1 - finalLeft <= 1);
     if (finalLeft - start > 1) {
         qbSortInt(asc, array, mapper, start, finalLeft, bList, bListIndex + 1, aux, recalculateBitMask);
     }

@@ -392,7 +392,7 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
         const newEnd = start + n;
         const newEnd2 = start + n + nanKeyObjs.length + nullKeyObjs.length + undefinedKeyObjs.length;
         return {start, endP1: newEnd, arrayNative, start2: start, end2: newEnd2};
-    } else { // nulls === "first"
+    } else if (nulls === "first") {
         // shift compacted block right by totalNulls to make space for nulls at start
         const totalNulls = nullValues + nullKeyObjs.length;
         if (totalNulls > 0) {
@@ -423,5 +423,7 @@ export function handleNullsUndefinedAndNans(arrayObj, nulls, start, endP1, mappe
         const newStart2 = start + nullValues;
         const newEnd2 = start + totalNulls + n + nanKeyObjs.length + undefinedKeyObjs.length;
         return {start: newStart, endP1: newEnd, arrayNative, start2: newStart2, end2: newEnd2};
+    } else {
+        return {start, endP1: start + n, arrayNative, start2: start, end2: start + n};
     }
 }

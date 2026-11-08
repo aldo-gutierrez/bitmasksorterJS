@@ -1,25 +1,111 @@
 import assert from 'assert';
 import {
-    sortInt32,
-    radixBitSortInt32,
-    quickBitSortInt32,
-    pCountBitSortInt32,
+    sortInt32 as _sortInt32,
+    radixBitSortInt32 as _radixBitSortInt32,
+    quickBitSortInt32 as _quickBitSortInt32,
+    pCountBitSortInt32 as _pCountBitSortInt32,
     pCountBitMinMaxSortInt32,
     americanFlagBitSortInt32,
-    sortFloat64,
-    radixBitSortFloat64,
+    sortFloat64 as _sortFloat64,
+    radixBitSortFloat64 as _radixBitSortFloat64,
     sortObjectByInt32Key,
-    radixBitSortObjectByInt32Key,
+    radixBitSortObjectByInt32Key as _radixBitSortObjectByInt32Key,
     radixBitV2SortObjectByInt32Key,
     quickBitSortObjectByInt32Key,
     quickBitLowMemSortObjectByInt32Key,
     pCountSortObjectByInt32Key,
-    sortObjectByFloat64Key,
+    sortObjectByFloat64Key as _sortObjectByFloat64Key,
     radixBitSortObjectByFloat64Key
 } from '../src/main.js';
 import { getMaskRangeBits, getSortOptions } from '../src/utils/sorter-utils.js';
 
 describe('Regression & Bug Fix Tests', function () {
+
+    describe('Radix integer subrange isolation', function () {
+        for (const order of ['asc', 'desc']) {
+            it(`sorts ${order} without converting values outside the range`, function () {
+                const actual = [1n, 3, -1, 2, -3, 2n];
+                _radixBitSortInt32(actual, { start: 1, end: 5, order });
+                const expected = order === 'asc'
+                    ? [1n, -3, -1, 2, 3, 2n]
+                    : [1n, 3, 2, -1, -3, 2n];
+                assert.deepStrictEqual(actual, expected);
+            });
+        }
+
+        it('does not read elements outside the requested range', function () {
+            const actual = [0, 3, 1, 2];
+            Object.defineProperty(actual, 0, {
+                get() { throw new Error('outside range'); }
+            });
+            _radixBitSortInt32(actual, { start: 1 });
+            assert.deepStrictEqual(actual.slice(1), [1, 2, 3]);
+        });
+    });
+
+    describe('Radix number subrange isolation', function () {
+        for (const order of ['asc', 'desc']) {
+            it(`sorts ${order} without converting values outside the range`, function () {
+                const actual = [1n, 3.5, -1.5, -0, 2.5, -3.5, 2n];
+                _radixBitSortFloat64(actual, { start: 1, end: 6, order });
+                const expected = order === 'asc'
+                    ? [1n, -3.5, -1.5, -0, 2.5, 3.5, 2n]
+                    : [1n, 3.5, 2.5, -0, -1.5, -3.5, 2n];
+                assert.deepStrictEqual(actual, expected);
+            });
+
+            it(`sorts ${order} within a Float64Array view`, function () {
+                const backing = new Float64Array([42, 99, -3.5, -0, 2.5, -1.5, 3.5, 88, 43]);
+                const view = backing.subarray(1, 8);
+                _radixBitSortFloat64(view, { start: 1, end: 6, order });
+                const expected = order === 'asc'
+                    ? [42, 99, -3.5, -1.5, -0, 2.5, 3.5, 88, 43]
+                    : [42, 99, 3.5, 2.5, -0, -1.5, -3.5, 88, 43];
+                assert.deepStrictEqual(Array.from(backing), expected);
+            });
+        }
+
+        it('does not read elements outside the requested range', function () {
+            const actual = [0, 3.5, 1.5, 2.5];
+            Object.defineProperty(actual, 0, {
+                get() { throw new Error('outside range'); }
+            });
+            _radixBitSortFloat64(actual, { start: 1 });
+            assert.deepStrictEqual(actual.slice(1), [1.5, 2.5, 3.5]);
+        });
+
+        it('sorts a negative subrange of a Float64Array after a positive prefix', function () {
+            const actual = new Float64Array([99, -1.5, -3.5, -2.5, 88]);
+            _radixBitSortFloat64(actual, { start: 1, end: 4 });
+            assert.deepStrictEqual(Array.from(actual), [99, -3.5, -2.5, -1.5, 88]);
+        });
+
+        it('copies a sorted Float32Array range back to its original position', function () {
+            const actual = new Float32Array([99, 3.5, -1.5, 2.5, 88]);
+            _radixBitSortFloat64(actual, { start: 1, end: 4 });
+            assert.deepStrictEqual(Array.from(actual), [99, -1.5, 2.5, 3.5, 88]);
+        });
+
+        it('sorts the compacted range after placing nulls first', function () {
+            const actual = [1n, 3.5, null, -1.5, 2.5, 2n];
+            _radixBitSortFloat64(actual, { start: 1, end: 5, nulls: 'first' });
+            assert.deepStrictEqual(actual, [1n, null, -1.5, 2.5, 3.5, 2n]);
+        });
+    });
+
+    describe('American flag integer sort descending order', function () {
+        it('sorts a signed typed-array subrange across multiple digit sections', function () {
+            const actual = new Int32Array([99, -2147483648, 65539, 65537, -65539, -65537, 0, 2147483647, 88]);
+            americanFlagBitSortInt32(actual, { start: 1, end: 8, order: 'desc' });
+            assert.deepStrictEqual(Array.from(actual), [99, 2147483647, 65539, 65537, 0, -65537, -65539, -2147483648, 88]);
+        });
+
+        it('preserves null placement while sorting descending', function () {
+            const actual = [99, -2, null, 3, NaN, -1, undefined, 88];
+            americanFlagBitSortInt32(actual, { start: 1, end: 7, order: 'desc', nulls: 'first' });
+            assert.deepStrictEqual(actual, [99, null, 3, -1, -2, NaN, undefined, 88]);
+        });
+    });
 
     describe('Sort option parsing', function () {
         it('should default nulls to ignore and parse first/last/ignore', function () {
@@ -92,7 +178,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('radixBitSorterObjectNumber should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99.9 }, { val: 3.3 }, { val: 1.1 }, { val: 2.2 }, { val: 88.8 }];
+            const arr = [{ val: 99.9 }, { val: 3.3 }, { val: 1.1 }, { val: 2.2 }, { val: 88.8 }];
             radixBitSortObjectByFloat64Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99.9 },
@@ -104,7 +190,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('quickBitSorterObjectInt should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
+            const arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
             quickBitSortObjectByInt32Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
@@ -116,7 +202,7 @@ describe('Regression & Bug Fix Tests', function () {
         });
 
         it('pCountSortObjectByInt32Key should sort only subslice [1, 4)', function () {
-            let arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
+            const arr = [{ val: 99 }, { val: 3 }, { val: 1 }, { val: 2 }, { val: 88 }];
             pCountSortObjectByInt32Key(arr, x => x.val, { start: 1, end: 4 });
             assert.deepStrictEqual(arr, [
                 { val: 99 },
@@ -126,6 +212,69 @@ describe('Regression & Bug Fix Tests', function () {
                 { val: 88 }
             ]);
         });
+    });
+
+    describe('Low-memory object sorter radix buffer capacity', function () {
+        function createInput() {
+            return [
+                ...Array.from({ length: 40 }, (_, i) => ({ key: ((i * 37) & 255) << 1 })),
+                ...Array.from({ length: 40 }, (_, i) => ({ key: 512 + (i << 1) })),
+                ...Array.from({ length: 80 }, (_, i) => ({ key: 1024 + (i << 1) }))
+            ];
+        }
+
+        function assertSortedReferences(actual, expected) {
+            assert.strictEqual(actual.length, expected.length);
+            for (let i = 0; i < actual.length; i++) {
+                assert.strictEqual(actual[i], expected[i], `Incorrect object at index ${i}`);
+            }
+        }
+
+        for (const order of ['asc', 'desc']) {
+            for (const subslice of [false, true]) {
+                it(`should sort ${order} radix partitions with limited memory${subslice ? ' in a subslice' : ''}`, function () {
+                    // Bits 10 and 9 isolate a 40-element partition with eight remaining bits.
+                    const input = createInput();
+                    const sorted = input.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                    const before = { key: -1 };
+                    const after = { key: 9999 };
+                    const actual = subslice ? [before, ...input, after] : input.slice();
+                    const expected = subslice ? [before, ...sorted, after] : sorted;
+                    const options = { order, runtime: {} };
+                    if (subslice) {
+                        options.start = 1;
+                        options.end = input.length + 1;
+                    }
+
+                    quickBitLowMemSortObjectByInt32Key(actual, x => x.key, options);
+
+                    assertSortedReferences(actual, expected);
+                    assert.ok(options.runtime.arrayI32.length >= 40);
+                    assert.ok(options.runtime.auxI32.length >= 40);
+                    assert.ok(options.runtime.arrayI32.length <= options.runtime.aux.length);
+                    assert.ok(options.runtime.auxI32.length <= options.runtime.aux.length);
+                    assert.ok(options.runtime.aux.length < input.length);
+                });
+            }
+
+            it(`should grow cached radix buffers for a larger ${order} sort`, function () {
+                const options = { order, runtime: {} };
+                const small = [0, 6, 512, 518, 1024, 1030].map(key => ({ key }));
+                const expectedSmall = small.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                quickBitLowMemSortObjectByInt32Key(small, x => x.key, options);
+                assertSortedReferences(small, expectedSmall);
+                assert.ok(options.runtime.arrayI32.length < 40);
+                assert.ok(options.runtime.auxI32.length < 40);
+
+                const actual = createInput();
+                const expected = actual.slice().sort((a, b) => order === 'asc' ? a.key - b.key : b.key - a.key);
+                quickBitLowMemSortObjectByInt32Key(actual, x => x.key, options);
+
+                assertSortedReferences(actual, expected);
+                assert.ok(options.runtime.arrayI32.length >= 40);
+                assert.ok(options.runtime.auxI32.length >= 40);
+            });
+        }
     });
 
     describe('Bug 7: Preserving Object References with NaNs, Nulls, Undefined', function () {
