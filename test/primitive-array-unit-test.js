@@ -168,6 +168,36 @@ describe('primitive array sorting', function () {
         ]);
     });
 
+    it('corrects every bigint precision-collision group for arrays and object keys', function () {
+        const low = 9007199254740992n;
+        const input = [low + 1n, low, low + 9n, low + 8n, low + 16n];
+        for (const type of ['bigint', 'int64', 'uint64', undefined]) {
+            for (const order of ['asc', 'desc']) {
+                const values = order === 'asc' ? input : input.slice().reverse();
+                const expected = input.slice().sort((a, b) =>
+                    order === 'asc' ? (a > b ? 1 : a < b ? -1 : 0) : (a < b ? 1 : a > b ? -1 : 0)
+                );
+                const actual = values.slice();
+                sort(actual, {type, order});
+                assert.deepStrictEqual(actual, expected);
+
+                const items = values.map(value => ({value}));
+                sort(items, item => item.value, {type, order});
+                assert.deepStrictEqual(items.map(item => item.value), expected);
+            }
+        }
+    });
+
+    it('corrects large bigint collision groups without exceeding argument limits', function () {
+        const low = 9007199254740992n;
+        const values = Array.from({length: 140000}, (_, i) => low + BigInt(i % 2));
+        values.push(low + 8n);
+        sort(values, {type: 'bigint'});
+        assert(values.slice(0, 70000).every(value => value === low));
+        assert(values.slice(70000, 140000).every(value => value === low + 1n));
+        assert.strictEqual(values[140000], low + 8n);
+    });
+
     describe('bigint subrange isolation', function () {
         const low = 9007199254740992n;
         const high = low + 1n;

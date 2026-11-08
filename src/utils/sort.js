@@ -36,7 +36,7 @@ export function sort(array, ...parameters) {
         if (!isPlainObject(parameter2)) {
             parameter2  = {}
         }
-        parameter2.type = parameter2.type?.toLowerCase() || "";
+        parameter2.type = normalizeType(parameter2.type);
         if (array instanceof Float64Array || array instanceof Float32Array ||  array instanceof Uint32Array) {
             sortFloat64(array, parameter2);
         } else {
@@ -54,7 +54,7 @@ export function sort(array, ...parameters) {
             sortElementArray("", array, {});
         } else if (parameters.length === 1) {
             if (isPlainObject(parameter2)) {
-                parameter2.type = parameter2.type?.toLowerCase() || "";
+                parameter2.type = normalizeType(parameter2.type);
                 sortElementArray(parameter2.type, array, parameter2);
             } else if (isFunction(parameter2)) {
                 sortObjectArrayByKey("", array, parameter2, {})
@@ -65,7 +65,7 @@ export function sort(array, ...parameters) {
                     let options;
                     if (isPlainObject(sortBy)) {
                         options = sortBy;
-                        options.type = options.type?.toLowerCase() || "";
+                        options.type = normalizeType(options.type);
                     } else if (isFunction(sortBy)) {
                         options = {};
                         options.key = sortBy;
@@ -86,7 +86,7 @@ export function sort(array, ...parameters) {
                 throw new Error("Invalid parameter type. Expected an object as the third parameter.");
             }
             if (isFunction(parameter2)) {
-                parameter3.type = parameter3.type ? parameter3.type.toLowerCase() : "";
+                parameter3.type = normalizeType(parameter3.type);
                 sortObjectArrayByKey(parameter3.type, array, parameter2, parameter3);
             } else {
                 const sortByArray = parameter2;
@@ -102,7 +102,7 @@ export function sort(array, ...parameters) {
                         if (key === null || key === undefined) {
                             throw new Error("Invalid parameter type. Expected a function (x) ==> x.field");
                         }
-                        type = sortBy.type ? sortBy.type.toLowerCase() : "";
+                        type = normalizeType(sortBy.type);
                         if (start === undefined || end === undefined) {
                             start = sortBy.start ?? undefined;
                             end = sortBy.end ?? undefined;
@@ -123,6 +123,13 @@ export function sort(array, ...parameters) {
             throw new Error("Invalid number of parameters. Expected 1, 2, or 3 parameters.");
         }
     }
+}
+
+function normalizeType(type) {
+    type = type?.toLowerCase() || "";
+    if (type === "int") return "int32";
+    if (type === "number") return "float64";
+    return type;
 }
 
 function mergeOptions(globalOptions, userOptions) {
@@ -174,19 +181,29 @@ function sortObjectByBigIntKey(array, key, options) {
 function correctBigIntCollisions(array, start, endP1, key, comparator, isTyped) {
     // Distinct BigInts can convert to the same floating-point number.
     let previousNumber = null;
-    let previousIndex = null;
+    let previousIndex = start;
+    const sortGroup = (end) => {
+        if (end - previousIndex < 2) return;
+        if (isTyped) {
+            array.subarray(previousIndex, end).sort(comparator);
+        } else {
+            const group = array.slice(previousIndex, end).sort(comparator);
+            for (let i = 0; i < group.length; i++) {
+                array[previousIndex + i] = group[i];
+            }
+        }
+    };
     for (let i = start; i < endP1; i++) {
         const element = array[i];
         const bigInt = key(element);
         const number = Number(bigInt);
-        if (previousIndex === null || number !== previousNumber) {
+        if (number !== previousNumber) {
+            sortGroup(i);
             previousNumber = number;
             previousIndex = i;
         }
     }
-    if (previousIndex !== null) {
-        sortSubList(array, previousIndex, endP1, comparator, isTyped);
-    }
+    sortGroup(endP1);
 }
 
 
@@ -197,7 +214,7 @@ function sortElementArray(type, array, options) {
         if (type.length === 0) {
             type = detectPrimitiveValueType(array);
         }
-        if (type === "float64" || type === "number") {
+        if (type === "float64") {
             sortFloat64(array, options);
         } else if (type === "date") {
             sortObjectByFloat64Key(array, (x) => x.getTime(), options)
