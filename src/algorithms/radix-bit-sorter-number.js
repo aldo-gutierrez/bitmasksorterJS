@@ -10,7 +10,6 @@ import {
     getMaskAsArrayNumber, partitionF64NotStableUpperBit,
     partitionReverseF64NotStableUpperBit
 } from "../utils/sorter-utils-number.js";
-import {isTypedArray} from "../utils/utils.js";
 
 export function radixBitSortFloat64(array, options = {}) {
     options.runtime = options.runtime || {};
@@ -21,10 +20,10 @@ export function radixBitSortFloat64(array, options = {}) {
     if (n < 2) {
         return;
     }
-    let isFloat64Array = array instanceof Float64Array;
-    let isBigIntArray = array instanceof BigInt64Array;
-    let isBigUint64Array = array instanceof BigUint64Array;
-    let is64BitInt = isBigIntArray || isBigUint64Array;
+    const isFloat64Array = array instanceof Float64Array;
+    const isBigIntArray = array instanceof BigInt64Array;
+    const isBigUint64Array = array instanceof BigUint64Array;
+    const is64BitInt = isBigIntArray || isBigUint64Array;
     const arrayWas6Bit4Array = isFloat64Array || is64BitInt;
     const originalStart = start;
     let arrayFloat64;
@@ -64,11 +63,11 @@ export function radixBitSortFloat64(array, options = {}) {
         }
         const auxFloat64 = arrayWas6Bit4Array ? new array.constructor(Math.max(n1, n2)) : new Float64Array(Math.max(n1, n2));
         if (n1 > 1) {
-            let order = is64BitInt ? asc : false;
+            const order = is64BitInt ? asc : false;
             radixSortNumber(order, arrayFloat64, start, finalLeft, bList1, auxFloat64);
         }
         if (n2 > 1) {
-            let order = is64BitInt ? asc : true;
+            const order = is64BitInt ? asc : true;
             radixSortNumber(order, arrayFloat64, finalLeft, endP1, bList2, auxFloat64);
         }
     } else {
