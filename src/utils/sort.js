@@ -155,8 +155,8 @@ function sortBigIntArray(array, options) {
 function sortObjectByBigIntKey(array, key, options) {
     let {start, endP1, asc} = getSortOptions(options);
     ({start, endP1} = validateSortRange(array, start, endP1));
-    let mapper = (x) => {
-        let v = key(x)
+    const mapper = (x) => {
+        const v = key(x)
         if (v === null || v === undefined) {
             return v;
         }
