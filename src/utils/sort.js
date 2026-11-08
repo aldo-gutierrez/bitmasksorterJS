@@ -43,9 +43,8 @@ export function sort(array, ...parameters) {
             const isBigInt64 = isBigInt64Array(array);
             const isBigUint64 = isBigUint64Array(array);
             if (isBigInt64 || isBigUint64) {
-                const options = parameter2;
                 parameter2.type = isBigInt64 ? "int64" : "uint64";
-                sortElementArray(options.type, array, options);
+                sortFloat64(array, parameter2);
             } else {
                 sortInt32(array, parameter2);
             }
