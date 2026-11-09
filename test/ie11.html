@@ -98,7 +98,8 @@
   <div class="row">
     <label for="algorithm-select" style="align-self:center;margin-left:8px;color:#223;">Algorithm:</label>
     <select id="algorithm-select" style="padding:6px;border-radius:6px;border:1px solid #d6e7ff;margin-left:6px">
-      <option value="radixBitSortInt32" selected>radixBitSortInt32 (default)</option>
+      <option value="sortInt32" selected>sortInt32 (default)</option>
+      <option value="radixBitSortInt32">radixBitSortInt32</option>
       <option value="pCountBitSortInt32">pCountBitSortInt32</option>
       <option value="pCountBitMinMaxSortInt32">pCountBitMinMaxSortInt32</option>
       <option value="americanFlagBitSortInt32">americanFlagBitSortInt32</option>
@@ -191,7 +192,7 @@
         }
 
         function runTest(size) {
-            var alg = (algSelect && algSelect.value) || 'radixBitSortInt32';
+            var alg = (algSelect && algSelect.value) || 'sortInt32';
             var isFloatAlg = alg === 'radixBitSortFloat64';
             status.textContent = 'Generating ' + size + ' random ' + (isFloatAlg ? 'floats' : 'integers') + '...';
             log.textContent = '';
