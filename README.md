@@ -57,9 +57,9 @@ sort(players, [{
 
 To check browser usage, see:
 
-https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ie11.html
+https://rawcdn.githack.com/aldo-gutierrez/bitmasksorterJS/eb6bf19b072ed61334af3a9b6b48a8a5b70b5083/test/ie11.html
 
-https://github.com/aldo-gutierrez/bitmasksorterJS/blob/216ac40442a31e9bcf11b7c0c9963cbcda0d7b7e/test/ios12.html
+https://rawcdn.githack.com/aldo-gutierrez/bitmasksorterJS/9fa5e984ebbe67b0b9859a8ea4c8d221ad08960d/test/ios12.html
 
 ## API
 
