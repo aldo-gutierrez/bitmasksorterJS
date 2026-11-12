@@ -214,6 +214,35 @@ describe('Regression & Bug Fix Tests', function () {
         });
     });
 
+    describe('Radix V2 object mixed-sign offset regression', function () {
+        for (const order of ['asc', 'desc']) {
+            it(`sorts a mixed-sign subrange in ${order} order`, function () {
+                const values = [99, -3, 2, -1, 1, -3, 88];
+                const original = values.map((val, id) => ({ val, id }));
+                const actual = original.slice();
+                const expected = original.slice();
+                const sorted = original.slice(1, 6).sort((a, b) =>
+                    order === 'asc' ? a.val - b.val : b.val - a.val);
+                expected.splice(1, 5, ...sorted);
+
+                radixBitV2SortObjectByInt32Key(actual, x => x.val, { start: 1, end: 6, order });
+
+                assert.deepStrictEqual(actual, expected);
+            });
+
+            it(`sorts mixed-sign keys after nulls in ${order} order`, function () {
+                const original = [null, ...[-3, 2, -1, 1, -3].map((val, id) => ({ val, id }))];
+                const actual = original.slice();
+                const expected = [null, ...original.slice(1).sort((a, b) =>
+                    order === 'asc' ? a.val - b.val : b.val - a.val)];
+
+                radixBitV2SortObjectByInt32Key(actual, x => x.val, { nulls: 'first', order });
+
+                assert.deepStrictEqual(actual, expected);
+            });
+        }
+    });
+
     describe('Low-memory object sorter radix buffer capacity', function () {
         function createInput() {
             return [
